@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/AuthContext"
@@ -31,7 +32,15 @@ export function Navbar() {
         <div className="flex justify-between items-center">
           {/* Logo */}
           <Link href="/" className="text-2xl font-bold text-primary">
-            📚 Raju Book World
+              {/* Icon (logo image) */}
+
+                 <Image src="/king1.png" // apna icon path
+          alt="King Shopper"
+          width={80}
+          height={20}
+          className="object-contain"
+        />
+        {/* Text */}
           </Link>
 
           {/* Desktop Menu */}
