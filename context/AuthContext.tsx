@@ -1,6 +1,7 @@
 "use client";
 
-import { apiCall, logoutRequest } from "@/lib/auth";
+import api from "@/lib/api";
+import { logoutRequest } from "@/lib/auth";
 import { User } from "@/types/user/user-types";
 import { useRouter } from "next/navigation";
 import React, { createContext, useContext, useEffect, useState } from "react";
@@ -26,12 +27,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	// Fetch current user from server (using httpOnly cookie)
 	const fetchCurrentUser = async (): Promise<User | null> => {
 		try {
-			const res = await apiCall("/auth/me");
+			console.log("🔍 Fetching current user from /auth/me");
+			const res = await api.get("/auth/me");
 
-			if (res.ok) {
-				const data = await res.json();
-				return data.user || null;
+			if (res.status === 200) {
+				const data = res;
+				console.log("✅ User fetched successfully:", data.data.user);
+				return data.data.user || null;
 			} else {
+				console.log("❌ Failed to fetch user, status:", res.status);
 				return null;
 			}
 		} catch (error) {
@@ -42,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 	// Initialize user on app load
 	useEffect(() => {
-		if (isInitialized) return;
+		if (isInitialized) return; // Prevent multiple initializations
 
 		let mounted = true;
 
@@ -54,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 					setIsInitialized(true);
 				}
 			} catch (error) {
-				console.error("❌ Auth initialization error:", error);
+				console.error("Auth initialization error:", error);
 				if (mounted) {
 					setUser(null);
 					setIsInitialized(true);
@@ -66,22 +70,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			}
 		};
 
-		// Add a small delay to prevent flash
-		const timer = setTimeout(initializeAuth, 100);
+		initializeAuth();
 
 		return () => {
 			mounted = false;
-			clearTimeout(timer);
 		};
 	}, [isInitialized]);
 
-	// Login function
+	// Login function - accepts user data or fetches from server
 	const login = async (providedUser?: User): Promise<void> => {
 		try {
 			if (providedUser) {
+				// Use provided user data (from login/register response)
 				setUser(providedUser);
 				setIsInitialized(true);
 			} else {
+				// Fetch user from server (cookie should be set)
 				const currentUser = await fetchCurrentUser();
 				setUser(currentUser);
 				setIsInitialized(true);
@@ -95,11 +99,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	// Logout function
 	const logout = async (): Promise<void> => {
 		try {
+			// Call server to clear cookie
 			await logoutRequest();
 			setUser(null);
 			router.push("/auth/login");
 		} catch (error) {
 			console.error("Error during logout:", error);
+			// Still clear user state even if server call fails
 			setUser(null);
 			router.push("/auth/login");
 		}
@@ -123,7 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const value: AuthContextType = {
 		user,
 		loading,
-		isAuthenticated: !!user && !loading,
+		isAuthenticated: !!user, // User exists = authenticated (cookie-based)
 		login,
 		logout,
 		updateUser,
