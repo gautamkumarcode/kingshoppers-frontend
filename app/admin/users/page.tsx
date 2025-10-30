@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { apiCall } from "@/lib/auth"
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast"
-import { Search, CheckCircle, XCircle } from "lucide-react"
+import { apiCall } from "@/lib/auth";
+import { CheckCircle, Search, XCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function UsersPage() {
   const { toast } = useToast()
@@ -20,7 +20,7 @@ export default function UsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await apiCall("/api/admin/users")
+      const response = await apiCall("/admin/users");
       const data = await response.json()
       setUsers(data)
     } catch (error) {

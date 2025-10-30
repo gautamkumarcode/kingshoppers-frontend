@@ -1,3 +1,4 @@
+import { AppInitializer } from "@/components/auth/AppInitializer";
 import { Navbar } from "@/components/navbar";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/context/AuthContext";
@@ -11,9 +12,9 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-	title: "Raju Book World",
-	description: "Your one-stop destination for books and stationery",
-	generator: "v0.app",
+	title: "King shoppers",
+	description: "Your one-step towards new shopping style",
+	generator: "Aradhya tech",
 };
 
 export default function RootLayout({
@@ -25,10 +26,12 @@ export default function RootLayout({
 		<html lang="en">
 			<body className={`font-sans antialiased`}>
 				<AuthProvider>
-					<Navbar />
-					{children}
-					<Toaster />
-					<Analytics />
+					<AppInitializer>
+						<Navbar />
+						{children}
+						<Toaster />
+						<Analytics />
+					</AppInitializer>
 				</AuthProvider>
 			</body>
 		</html>
