@@ -29,7 +29,8 @@
 		"react-dom": "19.2.0",
 		"tailwind-merge": "^2.6.0",
 		"tailwindcss-animate": "^1.0.7",
-		"tw-animate-css": "latest"
+		"tw-animate-css": "latest",
+		"vaul": "^1.1.2"
 	},
 	"devDependencies": {
 		"@tailwindcss/postcss": "^4.1.16",

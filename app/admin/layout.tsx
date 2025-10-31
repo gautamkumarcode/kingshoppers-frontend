@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Label } from "@radix-ui/react-label";
 
 export default function AdminLayout({
   children,
@@ -47,6 +48,7 @@ export default function AdminLayout({
     { icon: Package, label: "Products", href: "/admin/products" },
     { icon: ShoppingCart, label: "Orders", href: "/admin/orders" },
     { icon: Settings, label: "Settings", href: "/admin/settings" },
+	{icon:ShoppingCart,label: "Category",href: "/admin/category"}
   ]
 
   return (

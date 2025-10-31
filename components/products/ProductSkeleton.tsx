@@ -12,7 +12,6 @@ export function ProductCardSkeleton() {
           <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
           <div className="h-3 bg-gray-200 rounded w-3/4 animate-pulse"></div>
           <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse"></div>
-          
           <div className="flex justify-between items-center pt-2">
             <div className="h-6 bg-gray-200 rounded w-16 animate-pulse"></div>
             <div className="h-8 bg-gray-200 rounded w-20 animate-pulse"></div>
