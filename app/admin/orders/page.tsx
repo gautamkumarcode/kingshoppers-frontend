@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { apiCall } from "@/lib/auth"
-import { Search, Eye } from "lucide-react"
+import api from "@/lib/api";
+import { Eye, Search } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([])
@@ -18,9 +18,8 @@ export default function OrdersPage() {
 
   const fetchOrders = async () => {
     try {
-      const response = await apiCall("/api/orders")
-      const data = await response.json()
-      setOrders(data)
+      const response = await api.get("/orders");
+			setOrders(response.data);
     } catch (error) {
       console.error("Failed to fetch orders:", error)
     } finally {

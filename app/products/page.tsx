@@ -59,7 +59,7 @@ export default function ProductsPage() {
 				api.get("/brands"),
 			]);
 			setCategories(categoriesRes.data || []);
-			setBrands(brandsRes.data || []);
+			setBrands(brandsRes.data.data || []);
 		} catch (error) {
 			console.error("Failed to fetch initial data:", error);
 		}
@@ -80,7 +80,7 @@ export default function ProductsPage() {
 
 			const response = await api.get(`/products?${params}`);
 			const data = response.data;
-			setProducts(data.products || []);
+			setProducts(data.data || []);
 			setTotalPages(data.totalPages || 1);
 		} catch (error) {
 			console.error("Failed to fetch products:", error);

@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Menu, ShoppingCart, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { UserDropdown } from "./navbar/UserDropdown";
 import { LoadingSpinner } from "./ui/loading-spinner";
@@ -14,12 +15,18 @@ export function Navbar() {
 	const { user, loading } = useAuth();
 	const [isOpen, setIsOpen] = useState(false);
 	const [cartCount, setCartCount] = useState(0);
+	const pathname = usePathname();
 
 	useEffect(() => {
 		// Get cart count from localStorage
 		const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 		setCartCount(cart.length);
 	}, []);
+
+	// Hide navbar on admin routes
+	if (typeof pathname === "string" && pathname.startsWith("/admin")) {
+		return null;
+	}
 
 	return (
 		<nav className="border-b border-border bg-background sticky top-0 z-50">
@@ -38,9 +45,15 @@ export function Navbar() {
 						/>
 						{/* Text */}
 					</Link>
+
 					{/* Right Section */}
 					<div className="flex items-center gap-4">
 						{/* Cart */}
+						<Link
+							href="/products"
+							className="hidden md:block hover:text-primary">
+							Store
+						</Link>
 						<Link href="/cart" className="relative">
 							<Button variant="ghost" size="icon">
 								<ShoppingCart className="w-5 h-5" />
