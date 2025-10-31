@@ -24,7 +24,7 @@ export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
 			return;
 		}
 
-		if (requiredRole && user?.userType !== requiredRole) {
+		if (requiredRole && user?.userTypes !== requiredRole) {
 			router.push("/unauthorized");
 			return;
 		}

@@ -27,10 +27,10 @@ export default function AdminLayout({
 
   useEffect(() => {
     if (loading) return
-    if (!user || user.userType !== "admin") {
-      router.push("/auth/login")
-      return
-    }
+    if (!user || user.userTypes !== "admin") {
+			router.push("/auth/login");
+			return;
+		}
   }, [router])
 
   const handleLogout = () => {

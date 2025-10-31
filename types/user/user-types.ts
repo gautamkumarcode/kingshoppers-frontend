@@ -43,7 +43,7 @@ export interface User {
 	specialPricing: any[];
 	createdAt: Date;
 	updatedAt: Date;
-	userType: string;
+	userTypes: string;
 	email: string;
 	__v: number;
 }

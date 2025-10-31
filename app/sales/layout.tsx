@@ -26,7 +26,7 @@ export default function SalesLayout({
 
 	useEffect(() => {
 		if (loading) return;
-		if (!user || user.userType !== "sales_executive") {
+		if (!user || user.userTypes !== "sales_executive") {
 			router.push("/auth/login");
 			return;
 		}

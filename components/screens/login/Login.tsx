@@ -78,8 +78,20 @@ export default function LoginPage() {
 			// Update auth context with user data
 			await login(data.user);
 
+			if (data.user.userTypes == "admin") {
+				router.push("/admin/dashboard");
+				return;
+			}
+
 			// Always redirect to dashboard to show profile and status
-			router.push("/dashboard");
+			if (data.user.userTypes == "sales_executive") {
+				router.push("/sales/dashboard");
+				return;
+			}
+			if (data.user.userTypes == "customer") {
+				router.push("/dashboard");
+				return;
+			}
 		} catch (err: any) {
 			const errorMessage =
 				err.response?.data?.message || "An error occurred. Please try again.";
