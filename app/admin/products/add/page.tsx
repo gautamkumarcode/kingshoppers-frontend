@@ -223,11 +223,12 @@ export default function CreateProductPage() {
 	};
 
 	const handleImageUpload = (url: string) => {
-		setUploadedImages((prev) => [...prev, url]);
-		setValue("images", [...uploadedImages, url]);
-		if (uploadedImages.length === 0) {
-			setValue("thumbnail", url);
-		}
+		setUploadedImages((prev) => {
+			const next = [...prev, url];
+			setValue("images", next);
+			if (prev.length === 0) setValue("thumbnail", url);
+			return next;
+		});
 	};
 
 	const removeImage = (index: number) => {
@@ -458,9 +459,10 @@ export default function CreateProductPage() {
 
 														try {
 															const formData = new FormData();
-															formData.append("file", file);
+															// backend expects images[] for multi-upload
+															formData.append("images", file);
 															const response = await api.post(
-																"/upload/documents",
+																"/upload/images",
 																formData,
 																{
 																	headers: {
@@ -468,7 +470,19 @@ export default function CreateProductPage() {
 																	},
 																}
 															);
-															handleImageUpload(response.data.url);
+
+															// response.data.files is an array of uploaded files
+															const uploaded = response.data?.files || [];
+															if (uploaded.length > 0) {
+																const url = uploaded[0].url;
+																handleImageUpload(url);
+															} else {
+																console.error(
+																	"Upload returned no files:",
+																	response.data
+																);
+																alert("Upload failed. Please try again.");
+															}
 														} catch (error) {
 															console.error("Upload failed:", error);
 															alert("Upload failed. Please try again.");
