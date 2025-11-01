@@ -15,8 +15,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import api from "@/lib/api";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Trash2, Upload, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Loader, Plus, Trash2, Upload, X } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -101,10 +101,14 @@ interface Brand {
 
 export default function CreateProductPage() {
 	const router = useRouter();
+	const searchParams = useSearchParams();
+	const editingId = searchParams.get("id");
+	const isEdit = Boolean(editingId);
 	const [submitting, setSubmitting] = useState(false);
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [brands, setBrands] = useState<Brand[]>([]);
 	const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+	const [uploading, setUploading] = useState(false);
 
 	const {
 		register,
@@ -187,6 +191,53 @@ export default function CreateProductPage() {
 			}
 		};
 		loadData();
+
+		// If editing, load product data
+		if (editingId) {
+			(async () => {
+				try {
+					const res = await api.get(`/products/${editingId}`);
+					const product = res.data?.data || res.data;
+					if (product) {
+						// populate form values
+						setValue("name", product.name || "");
+						setValue("slug", product.slug || "");
+						setValue("description", product.description || "");
+						setValue("shortDescription", product.shortDescription || "");
+						setValue(
+							"category",
+							product.category?._id || product.category || ""
+						);
+						setValue("brand", product.brand?._id || product.brand || "");
+						setValue("sku", product.sku || "");
+						setValue("barcode", product.barcode || "");
+						setValue("moq", product.moq || 1);
+						setValue("isFeatured", !!product.isFeatured);
+						setValue("isActive", product.isActive !== false);
+						setValue("gstPercentage", product.gstPercentage ?? 18);
+						setUploadedImages(product.images || []);
+						setValue("images", product.images || []);
+						setValue(
+							"thumbnail",
+							product.thumbnail || product.images?.[0] || ""
+						);
+						// populate variants and specs if present
+						if (product.variants && Array.isArray(product.variants)) {
+							// reset field arrays by setting value directly
+							setValue("variants", product.variants);
+						}
+						if (
+							product.specifications &&
+							Array.isArray(product.specifications)
+						) {
+							setValue("specifications", product.specifications);
+						}
+					}
+				} catch (err) {
+					console.error("Failed to load product for editing:", err);
+				}
+			})();
+		}
 	}, []);
 
 	// Auto-generate slug from name
@@ -204,11 +255,20 @@ export default function CreateProductPage() {
 	const onSubmit = async (data: FormValues) => {
 		setSubmitting(true);
 		try {
-			await api.post("/products", {
-				...data,
-				images: uploadedImages,
-				thumbnail: uploadedImages[0] || "",
-			});
+			if (isEdit && editingId) {
+				// update existing product
+				await api.put(`/products/${editingId}`, {
+					...data,
+					images: uploadedImages,
+					thumbnail: uploadedImages[0] || "",
+				});
+			} else {
+				await api.post("/products", {
+					...data,
+					images: uploadedImages,
+					thumbnail: uploadedImages[0] || "",
+				});
+			}
 			router.push("/admin/products");
 		} catch (err: any) {
 			console.error("Failed to create product", err);
@@ -278,7 +338,9 @@ export default function CreateProductPage() {
 							<CardContent className="space-y-4">
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 									<div className="sm:col-span-2">
-										<Label htmlFor="name">Product Name *</Label>
+										<Label htmlFor="name" className="block mb-2">
+											Product Name *
+										</Label>
 										<Input
 											id="name"
 											{...register("name")}
@@ -292,7 +354,9 @@ export default function CreateProductPage() {
 									</div>
 
 									<div>
-										<Label htmlFor="sku">SKU *</Label>
+										<Label htmlFor="sku" className="block mb-2">
+											SKU *
+										</Label>
 										<Input
 											id="sku"
 											{...register("sku")}
@@ -306,7 +370,9 @@ export default function CreateProductPage() {
 									</div>
 
 									<div>
-										<Label htmlFor="slug">Slug</Label>
+										<Label htmlFor="slug" className="block mb-2">
+											Slug
+										</Label>
 										<Input
 											id="slug"
 											{...register("slug")}
@@ -317,7 +383,9 @@ export default function CreateProductPage() {
 									</div>
 
 									<div>
-										<Label htmlFor="barcode">Barcode</Label>
+										<Label htmlFor="barcode" className="block mb-2">
+											Barcode
+										</Label>
 										<Input
 											id="barcode"
 											{...register("barcode")}
@@ -326,7 +394,9 @@ export default function CreateProductPage() {
 									</div>
 
 									<div>
-										<Label htmlFor="category">Category *</Label>
+										<Label htmlFor="category" className="block mb-2">
+											Category *
+										</Label>
 										<Controller
 											control={control}
 											name="category"
@@ -355,7 +425,9 @@ export default function CreateProductPage() {
 									</div>
 
 									<div>
-										<Label htmlFor="brand">Brand *</Label>
+										<Label htmlFor="brand" className="block mb-2">
+											Brand *
+										</Label>
 										<Controller
 											control={control}
 											name="brand"
@@ -384,7 +456,9 @@ export default function CreateProductPage() {
 									</div>
 
 									<div>
-										<Label htmlFor="gstPercentage">GST Percentage</Label>
+										<Label htmlFor="gstPercentage" className="block mb-2">
+											GST Percentage
+										</Label>
 										<Input
 											id="gstPercentage"
 											type="number"
@@ -394,7 +468,9 @@ export default function CreateProductPage() {
 									</div>
 
 									<div>
-										<Label htmlFor="moq">Minimum Order Quantity</Label>
+										<Label htmlFor="moq" className="block mb-2">
+											Minimum Order Quantity
+										</Label>
 										<Input
 											id="moq"
 											type="number"
@@ -405,7 +481,9 @@ export default function CreateProductPage() {
 								</div>
 
 								<div>
-									<Label htmlFor="description">Description</Label>
+									<Label htmlFor="description" className="block mb-2">
+										Description
+									</Label>
 									<Textarea
 										id="description"
 										{...register("description")}
@@ -441,7 +519,7 @@ export default function CreateProductPage() {
 							<CardContent>
 								<div className="space-y-4">
 									<div className="space-y-2">
-										<Label>Upload Product Images</Label>
+										<Label className="block mb-2">Upload Product Images</Label>
 										<div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
 											<input
 												type="file"
@@ -458,6 +536,7 @@ export default function CreateProductPage() {
 														}
 
 														try {
+															setUploading(true);
 															const formData = new FormData();
 															// backend expects images[] for multi-upload
 															formData.append("images", file);
@@ -486,21 +565,29 @@ export default function CreateProductPage() {
 														} catch (error) {
 															console.error("Upload failed:", error);
 															alert("Upload failed. Please try again.");
+														} finally {
+															setUploading(false);
 														}
 													}
 												}}
 												className="hidden"
 												id="image-upload"
 											/>
-											<label htmlFor="image-upload" className="cursor-pointer">
-												<Upload className="mx-auto h-12 w-12 text-gray-400" />
-												<p className="mt-2 text-sm text-gray-600">
-													Click to upload images or drag and drop
-												</p>
-												<p className="text-xs text-gray-500">
-													PNG, JPG, GIF up to 5MB each
-												</p>
-											</label>
+											{uploading ? (
+												<Loader className="w-8 h-8 animate-spin" />
+											) : (
+												<label
+													htmlFor="image-upload"
+													className="cursor-pointer">
+													<Upload className="mx-auto h-12 w-12 text-gray-400" />
+													<p className="mt-2 text-sm text-gray-600">
+														Click to upload images or drag and drop
+													</p>
+													<p className="text-xs text-gray-500">
+														PNG, JPG, GIF up to 5MB each
+													</p>
+												</label>
+											)}
 										</div>
 									</div>
 
@@ -586,7 +673,7 @@ export default function CreateProductPage() {
 											{/* Basic Variant Info */}
 											<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 												<div>
-													<Label>Variant Name *</Label>
+													<Label className="block mb-2">Variant Name *</Label>
 													<Input
 														{...register(
 															`variants.${index}.variantName` as const
@@ -601,7 +688,7 @@ export default function CreateProductPage() {
 												</div>
 
 												<div>
-													<Label>Variant SKU *</Label>
+													<Label className="block mb-2">Variant SKU *</Label>
 													<Input
 														{...register(
 															`variants.${index}.variantSku` as const
@@ -616,7 +703,7 @@ export default function CreateProductPage() {
 												</div>
 
 												<div>
-													<Label>Pack Type *</Label>
+													<Label className="block mb-2">Pack Type *</Label>
 													<Controller
 														control={control}
 														name={`variants.${index}.packType` as const}
@@ -646,7 +733,7 @@ export default function CreateProductPage() {
 											{/* Pricing */}
 											<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 												<div>
-													<Label>Pack Size *</Label>
+													<Label className="block mb-2">Pack Size *</Label>
 													<Input
 														type="number"
 														{...register(
@@ -660,7 +747,7 @@ export default function CreateProductPage() {
 												</div>
 
 												<div>
-													<Label>MRP *</Label>
+													<Label className="block mb-2">MRP *</Label>
 													<Input
 														type="number"
 														step="0.01"
@@ -672,7 +759,9 @@ export default function CreateProductPage() {
 												</div>
 
 												<div>
-													<Label>Wholesale Price *</Label>
+													<Label className="block mb-2">
+														Wholesale Price *
+													</Label>
 													<Input
 														type="number"
 														step="0.01"
@@ -685,7 +774,7 @@ export default function CreateProductPage() {
 												</div>
 
 												<div>
-													<Label>Cost Price *</Label>
+													<Label className="block mb-2">Cost Price *</Label>
 													<Input
 														type="number"
 														step="0.01"
@@ -703,7 +792,7 @@ export default function CreateProductPage() {
 											{/* Stock & Discount */}
 											<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 												<div>
-													<Label>Discount %</Label>
+													<Label className="block mb-2">Discount %</Label>
 													<Input
 														type="number"
 														{...register(
@@ -716,7 +805,7 @@ export default function CreateProductPage() {
 												</div>
 
 												<div>
-													<Label>Stock</Label>
+													<Label className="block mb-2">Stock</Label>
 													<Input
 														type="number"
 														{...register(`variants.${index}.stock` as const, {
@@ -727,7 +816,7 @@ export default function CreateProductPage() {
 												</div>
 
 												<div>
-													<Label>Low Stock Alert</Label>
+													<Label className="block mb-2">Low Stock Alert</Label>
 													<Input
 														type="number"
 														{...register(
@@ -739,7 +828,7 @@ export default function CreateProductPage() {
 												</div>
 
 												<div>
-													<Label>Weight (grams)</Label>
+													<Label className="block mb-2">Weight (grams)</Label>
 													<Input
 														type="number"
 														{...register(`variants.${index}.weight` as const, {
@@ -753,7 +842,7 @@ export default function CreateProductPage() {
 											{/* Dimensions */}
 											<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 												<div>
-													<Label>Length (cm)</Label>
+													<Label className="block mb-2">Length (cm)</Label>
 													<Input
 														type="number"
 														{...register(
@@ -765,7 +854,7 @@ export default function CreateProductPage() {
 												</div>
 
 												<div>
-													<Label>Width (cm)</Label>
+													<Label className="block mb-2">Width (cm)</Label>
 													<Input
 														type="number"
 														{...register(
@@ -777,7 +866,7 @@ export default function CreateProductPage() {
 												</div>
 
 												<div>
-													<Label>Height (cm)</Label>
+													<Label className="block mb-2">Height (cm)</Label>
 													<Input
 														type="number"
 														{...register(
@@ -851,7 +940,7 @@ export default function CreateProductPage() {
 												key={field.id}
 												className="flex flex-col sm:flex-row gap-4 items-end">
 												<div className="flex-1">
-													<Label>Name</Label>
+													<Label className="block mb-2">Name</Label>
 													<Input
 														{...register(
 															`specifications.${index}.name` as const
@@ -860,7 +949,7 @@ export default function CreateProductPage() {
 													/>
 												</div>
 												<div className="flex-1">
-													<Label>Value</Label>
+													<Label className="block mb-2">Value</Label>
 													<Input
 														{...register(
 															`specifications.${index}.value` as const

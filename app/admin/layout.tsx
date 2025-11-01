@@ -72,8 +72,9 @@ export default function AdminLayout({
 		{ icon: Users, label: "Users", href: "/admin/users" },
 		{ icon: Package, label: "Products", href: "/admin/products" },
 		{ icon: ShoppingCart, label: "Orders", href: "/admin/orders" },
-		{ icon: Settings, label: "Settings", href: "/admin/settings" },
 		{ icon: ShoppingCart, label: "Category", href: "/admin/category" },
+		{ icon: ShoppingCart, label: "Brands", href: "/admin/brands" },
+		{ icon: Settings, label: "Settings", href: "/admin/settings" },
 	];
 
 	// whether to show full labels (desktop expanded OR mobile overlay open)
