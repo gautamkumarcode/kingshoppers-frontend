@@ -1,27 +1,21 @@
-"use client"
-
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { Menu, ShoppingCart, X } from "lucide-react";
+import logo from "@/public/logo.png";
+import { Menu, StoreIcon, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { CartIcon } from "./cart";
 import { UserDropdown } from "./navbar/UserDropdown";
 import { LoadingSpinner } from "./ui/loading-spinner";
 
 export function Navbar() {
 	const { user, loading } = useAuth();
 	const [isOpen, setIsOpen] = useState(false);
-	const [cartCount, setCartCount] = useState(0);
 	const pathname = usePathname();
-
-	useEffect(() => {
-		// Get cart count from localStorage
-		const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-		setCartCount(cart.length);
-	}, []);
 
 	// Hide navbar on admin routes
 	if (typeof pathname === "string" && pathname.startsWith("/admin")) {
@@ -33,17 +27,23 @@ export function Navbar() {
 			<div className="max-w-7xl mx-auto px-4 py-4">
 				<div className="flex justify-between items-center">
 					{/* Logo */}
-					<Link href="/" className="text-2xl font-bold text-primary">
-						{/* Icon (logo image) */}
+					<Link
+						href="/"
+						className="relative flex items-center gap-2 w-auto h-12 font-bold text-primary"
+						aria-label="Go to Kingshppers homepage">
+						{/* Logo Icon */}
+						<div className="relative  h-20 w-32 md:w-40">
+							<Image
+								src={logo}
+								alt="Kingshppers Logo"
+								fill
+								sizes="(max-width: 768px) 40px, 50px"
+								className="object-contain"
+								priority
+							/>
+						</div>
 
-						<Image
-							src="/king1.png" // apna icon path
-							alt="King Shopper"
-							width={80}
-							height={20}
-							className="object-contain"
-						/>
-						{/* Text */}
+						{/* Brand Text */}
 					</Link>
 
 					{/* Right Section */}
@@ -52,18 +52,9 @@ export function Navbar() {
 						<Link
 							href="/products"
 							className="hidden md:block hover:text-primary">
-							Store
+							<StoreIcon className=" w-4 h-4" />
 						</Link>
-						<Link href="/cart" className="relative">
-							<Button variant="ghost" size="icon">
-								<ShoppingCart className="w-5 h-5" />
-								{cartCount > 0 && (
-									<span className="absolute -top-2 -right-2 bg-destructive text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-										{cartCount}
-									</span>
-								)}
-							</Button>
-						</Link>
+						<CartIcon showCount={true} variant="ghost" />
 
 						{/* Auth Section */}
 						{loading ? (
@@ -114,19 +105,13 @@ export function Navbar() {
 						{user && (
 							<>
 								<Link
-									href="/dashboard"
-									className="block px-4 py-2 hover:bg-accent rounded"
-									onClick={() => setIsOpen(false)}>
-									Dashboard
-								</Link>
-								<Link
 									href="/profile"
 									className="block px-4 py-2 hover:bg-accent rounded"
 									onClick={() => setIsOpen(false)}>
 									Profile
 								</Link>
 								<Link
-									href="/orders"
+									href="/my-orders"
 									className="block px-4 py-2 hover:bg-accent rounded"
 									onClick={() => setIsOpen(false)}>
 									My Orders

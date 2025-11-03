@@ -17,7 +17,6 @@ import {
 	CreditCard,
 	FileText,
 	LogOut,
-	Settings,
 	ShoppingBag,
 	Store,
 	User,
@@ -124,27 +123,27 @@ export function UserDropdown() {
 				{/* Dashboard */}
 				<DropdownMenuItem asChild>
 					<Link
-						href="/dashboard"
+						href="/profile"
 						className="flex items-center gap-2 cursor-pointer">
 						<User className="h-4 w-4" />
-						<span>Dashboard</span>
+						<span>Profile</span>
 					</Link>
 				</DropdownMenuItem>
 
 				{/* Profile */}
-				<DropdownMenuItem asChild>
+				{/* <DropdownMenuItem asChild>
 					<Link
 						href="/profile"
 						className="flex items-center gap-2 cursor-pointer">
 						<Settings className="h-4 w-4" />
 						<span>Profile Settings</span>
 					</Link>
-				</DropdownMenuItem>
+				</DropdownMenuItem> */}
 
 				{/* Orders */}
 				<DropdownMenuItem asChild>
 					<Link
-						href="/orders"
+						href="/my-orders"
 						className="flex items-center gap-2 cursor-pointer">
 						<ShoppingBag className="h-4 w-4" />
 						<span>My Orders</span>

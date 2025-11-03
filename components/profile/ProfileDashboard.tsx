@@ -392,7 +392,7 @@ export default function ProfileDashboard() {
 									</Button>
 									<Button
 										variant="outline"
-										onClick={() => router.push("/orders")}>
+										onClick={() => router.push("/my-orders")}>
 										My Orders
 									</Button>
 									<Button

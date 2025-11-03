@@ -1,146 +1,179 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Trash2, ArrowLeft } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { CartItem } from "@/components/cart/CartItem";
+import { CartSummary } from "@/components/cart/CartSummary";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCart } from "@/hooks/useCart";
+import { AlertTriangle, ArrowLeft, ShoppingCart } from "lucide-react";
+import Link from "next/link";
 
 export default function CartPage() {
-  const { toast } = useToast()
-  const [cart, setCart] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+	const {
+		items,
+		isEmpty,
+		isLoading,
+		validationErrors,
+		hasErrors,
+		clearCart,
+		getValidationStatus,
+	} = useCart();
 
-  useEffect(() => {
-    loadCart()
-  }, [])
+	const validationStatus = getValidationStatus();
 
-  const loadCart = () => {
-    const cartData = JSON.parse(localStorage.getItem("cart") || "[]")
-    setCart(cartData)
-    setLoading(false)
-  }
+	if (isLoading) {
+		return (
+			<div className="container mx-auto px-4 py-8">
+				<div className="flex items-center justify-center min-h-[400px]">
+					<div className="text-center">
+						<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+						<p className="text-gray-600">Loading your cart...</p>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
-  const updateQuantity = (index: number, newQuantity: number) => {
-    const updatedCart = [...cart]
-    updatedCart[index].quantity = Math.max(1, newQuantity)
-    setCart(updatedCart)
-    localStorage.setItem("cart", JSON.stringify(updatedCart))
-  }
+	if (isEmpty) {
+		return (
+			<div className="container mx-auto px-4 py-8">
+				<div className="max-w-2xl mx-auto">
+					<Card>
+						<CardContent className="flex flex-col items-center justify-center py-12">
+							<ShoppingCart className="h-16 w-16 text-gray-400 mb-6" />
+							<h2 className="text-2xl font-semibold text-gray-900 mb-2">
+								Your cart is empty
+							</h2>
+							<p className="text-gray-600 mb-6 text-center">
+								Looks like you haven't added any items to your cart yet. Start
+								shopping to fill it up!
+							</p>
+							<Link href="/products">
+								<Button size="lg">Start Shopping</Button>
+							</Link>
+						</CardContent>
+					</Card>
+				</div>
+			</div>
+		);
+	}
 
-  const removeItem = (index: number) => {
-    const updatedCart = cart.filter((_, i) => i !== index)
-    setCart(updatedCart)
-    localStorage.setItem("cart", JSON.stringify(updatedCart))
-    toast({
-      title: "Removed",
-      description: "Item removed from cart",
-    })
-  }
+	return (
+		<div className="container mx-auto px-4 py-8">
+			{/* Header */}
+			<div className="flex items-center justify-between mb-8">
+				<div className="flex items-center gap-4">
+					<Link href="/products">
+						<Button variant="outline" size="sm">
+							<ArrowLeft className="h-4 w-4 mr-2" />
+							Continue Shopping
+						</Button>
+					</Link>
+					<div>
+						<h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
+						<p className="text-gray-600">
+							{items.length} {items.length === 1 ? "item" : "items"} in your
+							cart
+						</p>
+					</div>
+				</div>
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const tax = Math.round(subtotal * 0.18) // 18% GST
-  const total = subtotal + tax
+				{items.length > 0 && (
+					<Button
+						variant="outline"
+						onClick={clearCart}
+						className="text-red-600 hover:text-red-700 hover:bg-red-50">
+						Clear Cart
+					</Button>
+				)}
+			</div>
 
-  if (loading) {
-    return <div className="text-center py-12">Loading...</div>
-  }
+			{/* Validation Errors */}
+			{hasErrors && (
+				<Card className="mb-6 border-red-200 bg-red-50">
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2 text-red-800">
+							<AlertTriangle className="h-5 w-5" />
+							Cart Issues
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-2">
+							{validationErrors.map((error, index) => (
+								<div key={index} className="text-sm text-red-700">
+									• {error.message}
+								</div>
+							))}
+						</div>
+					</CardContent>
+				</Card>
+			)}
 
-  return (
-    <main className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <Link href="/products" className="flex items-center gap-2 text-primary hover:underline mb-6">
-          <ArrowLeft className="w-4 h-4" />
-          Continue Shopping
-        </Link>
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+				{/* Cart Items */}
+				<div className="lg:col-span-2">
+					<Card>
+						<CardHeader>
+							<CardTitle>Cart Items</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="space-y-4">
+								{items.map((item) => (
+									<CartItem
+										key={item.id}
+										item={item}
+										showRemoveButton={true}
+										showQuantityControls={true}
+									/>
+								))}
+							</div>
+						</CardContent>
+					</Card>
 
-        <h1 className="text-4xl font-bold mb-8">Shopping Cart</h1>
+					{/* Additional Actions */}
+					<div className="mt-6 flex flex-col sm:flex-row gap-4">
+						<Link href="/products" className="flex-1">
+							<Button variant="outline" className="w-full">
+								Continue Shopping
+							</Button>
+						</Link>
 
-        {cart.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground mb-4">Your cart is empty</p>
-              <Link href="/products">
-                <Button>Start Shopping</Button>
-              </Link>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Cart Items */}
-            <div className="lg:col-span-2 space-y-4">
-              {cart.map((item, index) => (
-                <Card key={index}>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start gap-4">
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{item.productName}</h3>
-                        <p className="text-sm text-muted-foreground">{item.variantName}</p>
-                        <p className="text-lg font-bold text-primary mt-2">₹{item.price}</p>
-                      </div>
+						<Button
+							variant="outline"
+							onClick={clearCart}
+							className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50">
+							Clear All Items
+						</Button>
+					</div>
+				</div>
 
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          min="1"
-                          value={item.quantity}
-                          onChange={(e) => updateQuantity(index, Number.parseInt(e.target.value))}
-                          className="w-16"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeItem(index)}
-                          className="text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
+				{/* Cart Summary */}
+				<div className="lg:col-span-1">
+					<div className="sticky top-4">
+						<CartSummary />
 
-                    <div className="mt-4 pt-4 border-t flex justify-between">
-                      <span className="text-muted-foreground">Subtotal:</span>
-                      <span className="font-semibold">₹{item.price * item.quantity}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Order Summary */}
-            <div>
-              <Card className="sticky top-20">
-                <CardHeader>
-                  <CardTitle>Order Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Subtotal:</span>
-                      <span>₹{subtotal}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Tax (18% GST):</span>
-                      <span>₹{tax}</span>
-                    </div>
-                    <div className="border-t pt-2 flex justify-between font-bold text-lg">
-                      <span>Total:</span>
-                      <span className="text-primary">₹{total}</span>
-                    </div>
-                  </div>
-
-                  <Link href="/checkout" className="block">
-                    <Button className="w-full">Proceed to Checkout</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-      </div>
-    </main>
-  )
+						{/* Additional Info */}
+						<Card className="mt-4">
+							<CardContent className="p-4">
+								<div className="space-y-3 text-sm text-gray-600">
+									<div className="flex items-center gap-2">
+										<span className="w-2 h-2 bg-green-500 rounded-full"></span>
+										<span>Free delivery on orders above ₹500</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+										<span>Easy returns within 7 days</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+										<span>Secure payment options</span>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
 }
