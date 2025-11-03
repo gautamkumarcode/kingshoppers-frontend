@@ -26,7 +26,6 @@ interface Brand {
 	logoPublicId?: string;
 	isActive?: boolean;
 	categories?: string[];
-
 	productCount?: number;
 	createdAt?: string;
 	updatedAt?: string;

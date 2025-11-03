@@ -35,11 +35,11 @@ type FormValues = z.infer<typeof productSchema>;
 interface Category {
   _id: string;
   name: string;
-
   category?: string;
   parentCategory?: string | null;
   uploadedImages?: string;
   loadingImages?: string;
+  submitting?:Boolean
 }
 export default function CreateProductPage() {
   const router = useRouter();
