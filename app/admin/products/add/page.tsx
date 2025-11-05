@@ -97,8 +97,10 @@ interface Category {
 interface Brand {
 	_id: string;
 	name: string;
+	submitting:Boolean;
+	uploadedImages:String;
+	uploading:String;
 }
-
 export default function CreateProductPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
