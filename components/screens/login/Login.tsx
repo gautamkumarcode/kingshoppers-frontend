@@ -89,7 +89,7 @@ export default function LoginPage() {
 				return;
 			}
 			if (data.user.userTypes == "customer") {
-				router.push("/dashboard");
+				router.push("/profile");
 				return;
 			}
 		} catch (err: any) {

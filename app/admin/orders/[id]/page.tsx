@@ -215,9 +215,24 @@ export default function AdminOrderDetailsPage() {
 		);
 	}
 
+	// compute safe totals when API doesn't provide them
+	const computedSubtotal =
+		order.subtotal ??
+		order.items?.reduce((sum, it) => {
+			const itemTotal = it.total ?? (it.unitPrice ?? 0) * (it.quantity ?? 0);
+			return sum + (itemTotal ?? 0);
+		}, 0) ??
+		0;
+
+	const computedTotalTax = order.totalTax ?? 0;
+
+	const computedGrandTotal =
+		order.grandTotal ?? computedSubtotal + computedTotalTax;
+
 	return (
 		<div className="min-h-screen bg-gray-50 p-4">
 			<div className="max-w-6xl mx-auto space-y-6">
+				{/* Header */}
 				{/* Header */}
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-4">
@@ -456,11 +471,11 @@ export default function AdminOrderDetailsPage() {
 							<CardContent className="space-y-3">
 								<div className="flex justify-between">
 									<span>Subtotal</span>
-									<span>₹{order.subtotal || order.grandTotal}</span>
+									<span>₹{computedSubtotal}</span>
 								</div>
 								<div className="flex justify-between">
 									<span>Tax</span>
-									<span>₹{order.totalTax || 0}</span>
+									<span>₹{computedTotalTax}</span>
 								</div>
 								<div className="flex justify-between">
 									<span>Shipping</span>
@@ -469,7 +484,7 @@ export default function AdminOrderDetailsPage() {
 								<Separator />
 								<div className="flex justify-between font-bold text-lg">
 									<span>Total</span>
-									<span className="text-primary">₹{order.grandTotal}</span>
+									<span className="text-primary">₹{computedGrandTotal}</span>
 								</div>
 							</CardContent>
 						</Card>

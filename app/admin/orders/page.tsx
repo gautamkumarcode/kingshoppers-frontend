@@ -64,7 +64,7 @@ interface Order {
 		pincode: string;
 		landmark: string;
 	};
-	grandTotal: number;
+	total: number;
 	createdAt: string;
 	expectedDeliveryDate?: string;
 	statusHistory: Array<{
@@ -451,6 +451,14 @@ export default function AdminOrdersPage() {
 																Qty: {item.quantity} × ₹{item.unitPrice} = ₹
 																{item.total}
 															</span>
+															<div className="text-right flex gap-2 justify-center items-center">
+																<p className="text-sm text-gray-600">
+																	Total Amount
+																</p>
+																<p className="text-lg font-bold text-primary">
+																	₹{item.total}
+																</p>
+															</div>
 														</div>
 													</div>
 												))}
@@ -477,12 +485,6 @@ export default function AdminOrdersPage() {
 														{order.paymentStatus || "Pending"}
 													</span>
 												</div>
-											</div>
-											<div className="text-right">
-												<p className="text-sm text-gray-600">Total Amount</p>
-												<p className="text-xl font-bold text-primary">
-													₹{order.grandTotal}
-												</p>
 											</div>
 										</div>
 									</div>

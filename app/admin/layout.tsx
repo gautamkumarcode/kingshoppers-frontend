@@ -69,11 +69,12 @@ export default function AdminLayout({
 
 	const menuItems = [
 		{ icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
-		{ icon: Users, label: "Users", href: "/admin/users" },
+		{ icon: ShoppingCart, label: "Brands", href: "/admin/brands" },
+		{ icon: ShoppingCart, label: "Category", href: "/admin/category" },
 		{ icon: Package, label: "Products", href: "/admin/products" },
 		{ icon: ShoppingCart, label: "Orders", href: "/admin/orders" },
-		{ icon: ShoppingCart, label: "Category", href: "/admin/category" },
-		{ icon: ShoppingCart, label: "Brands", href: "/admin/brands" },
+		{ icon: Users, label: "Users", href: "/admin/users" },
+
 		{ icon: Settings, label: "Settings", href: "/admin/settings" },
 	];
 
