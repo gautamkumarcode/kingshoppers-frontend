@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -7,6 +8,7 @@ import api from "@/lib/api";
 import {
 	Calendar,
 	CheckCircle,
+	Clock,
 	CreditCard,
 	Download,
 	Mail,
@@ -15,6 +17,7 @@ import {
 	Phone,
 	Truck,
 	User,
+	X,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -40,32 +43,107 @@ export default function OrderConfirmationPage() {
 		}
 	};
 
-	const handleDownloadInvoice = () => {
-		// Add print styles
-		const printStyles = `
-			<style>
-				@media print {
-					body * { visibility: hidden; }
-					.print-area, .print-area * { visibility: visible; }
-					.print-area { position: absolute; left: 0; top: 0; width: 100%; }
-					.no-print { display: none !important; }
-					.print-header { display: block !important; }
-				}
-			</style>
-		`;
+	const handleDownloadInvoice = async () => {
+		if (!order) return;
 
-		// Add styles to head
-		const styleSheet = document.createElement("style");
-		styleSheet.innerHTML = printStyles;
-		document.head.appendChild(styleSheet);
+		try {
+			// Call backend API to generate and download invoice PDF
+			const response = await api.get(`/orders/${order._id}/invoice`, {
+				responseType: "blob", // Important for file download
+			});
 
-		// Print
-		window.print();
+			// Create a blob from the PDF data
+			const blob = new Blob([response.data], { type: "application/pdf" });
 
-		// Remove styles after printing
-		setTimeout(() => {
-			document.head.removeChild(styleSheet);
-		}, 1000);
+			// Create download link
+			const url = window.URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = url;
+			link.setAttribute(
+				"download",
+				`invoice-${order.orderNumber || order._id}.pdf`
+			);
+			document.body.appendChild(link);
+			link.click();
+
+			// Cleanup
+			link.remove();
+			window.URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error("Failed to download invoice:", error);
+			alert("Failed to download invoice. Please try again.");
+		}
+	};
+
+	const getStatusIcon = (status: string) => {
+		const normalizedStatus = status?.toLowerCase();
+		switch (normalizedStatus) {
+			case "pending":
+				return <Clock className="w-4 h-4" />;
+			case "confirmed":
+			case "processing":
+			case "packed":
+				return <Package className="w-4 h-4" />;
+			case "shipped":
+			case "out_for_delivery":
+				return <Truck className="w-4 h-4" />;
+			case "delivered":
+				return <CheckCircle className="w-4 h-4" />;
+			case "cancelled":
+			case "returned":
+			case "refunded":
+				return <X className="w-4 h-4" />;
+			default:
+				return <Package className="w-4 h-4" />;
+		}
+	};
+
+	const getStatusColor = (status: string) => {
+		const normalizedStatus = status?.toLowerCase();
+		switch (normalizedStatus) {
+			case "pending":
+				return "bg-yellow-100 text-yellow-800";
+			case "confirmed":
+				return "bg-blue-100 text-blue-800";
+			case "processing":
+			case "packed":
+				return "bg-purple-100 text-purple-800";
+			case "shipped":
+			case "out_for_delivery":
+				return "bg-indigo-100 text-indigo-800";
+			case "delivered":
+				return "bg-green-100 text-green-800";
+			case "cancelled":
+			case "returned":
+			case "refunded":
+				return "bg-red-100 text-red-800";
+			default:
+				return "bg-gray-100 text-gray-800";
+		}
+	};
+
+	const getTimelineIconColor = (status: string) => {
+		const normalizedStatus = status?.toLowerCase();
+		switch (normalizedStatus) {
+			case "pending":
+				return "bg-yellow-500 text-white";
+			case "confirmed":
+				return "bg-blue-500 text-white";
+			case "processing":
+			case "packed":
+				return "bg-purple-500 text-white";
+			case "shipped":
+			case "out_for_delivery":
+				return "bg-indigo-500 text-white";
+			case "delivered":
+				return "bg-green-500 text-white";
+			case "cancelled":
+			case "returned":
+			case "refunded":
+				return "bg-red-500 text-white";
+			default:
+				return "bg-gray-400 text-white";
+		}
 	};
 
 	if (loading) {
@@ -126,7 +204,7 @@ export default function OrderConfirmationPage() {
 						Thank you for your order. We'll send you a confirmation email
 						shortly.
 					</p>
-					<div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+					<div className="flex items-center justify-center gap-4 text-sm text-muted-foreground mb-3">
 						<div className="flex items-center gap-1">
 							<Package className="w-4 h-4" />
 							<span>Order #{order.orderNumber}</span>
@@ -136,6 +214,19 @@ export default function OrderConfirmationPage() {
 							<span>{new Date(order.createdAt).toLocaleDateString()}</span>
 						</div>
 					</div>
+					{order.orderStatus && (
+						<div className="flex justify-center">
+							<Badge
+								className={`${getStatusColor(
+									order.orderStatus
+								)} flex items-center gap-1 text-sm px-3 py-1`}>
+								{getStatusIcon(order.orderStatus)}
+								<span className="capitalize">
+									{order.orderStatus.replace(/_/g, " ")}
+								</span>
+							</Badge>
+						</div>
+					)}
 				</div>
 
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -146,47 +237,125 @@ export default function OrderConfirmationPage() {
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
 									<Truck className="w-5 h-5" />
-									Order Status
+									Order Timeline
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<div className="flex items-center justify-between">
-									<div className="flex flex-col items-center">
-										<div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-											<CheckCircle className="w-4 h-4 text-white" />
-										</div>
-										<p className="text-xs mt-2 text-center">Order Placed</p>
+								{order.statusHistory && order.statusHistory.length > 0 ? (
+									<div className="space-y-4">
+										{[...order.statusHistory]
+											.reverse()
+											.map((history: any, index: number) => (
+												<div key={index} className="flex gap-4">
+													<div className="flex flex-col items-center">
+														<div
+															className={`w-10 h-10 rounded-full flex items-center justify-center ${
+																index === 0
+																	? getTimelineIconColor(history.status)
+																	: "bg-gray-300 text-gray-600"
+															}`}>
+															{getStatusIcon(history.status)}
+														</div>
+														{index < order.statusHistory.length - 1 && (
+															<div
+																className={`w-0.5 h-full mt-2 min-h-10 ${
+																	index === 0
+																		? getTimelineIconColor(
+																				history.status
+																		  ).split(" ")[0]
+																		: "bg-gray-200"
+																}`}></div>
+														)}
+													</div>
+													<div className="flex-1 pb-4">
+														<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+															<div className="flex items-center gap-2">
+																<span className="font-semibold capitalize text-lg">
+																	{history.status.replace(/_/g, " ")}
+																</span>
+																<Badge
+																	className={`${getStatusColor(
+																		history.status
+																	)} text-xs`}>
+																	{index === 0 ? "Current" : "Completed"}
+																</Badge>
+															</div>
+															<span className="text-sm text-muted-foreground">
+																{new Date(history.timestamp).toLocaleDateString(
+																	"en-US",
+																	{
+																		day: "numeric",
+																		month: "short",
+																		year: "numeric",
+																	}
+																)}{" "}
+																at{" "}
+																{new Date(history.timestamp).toLocaleTimeString(
+																	"en-US",
+																	{
+																		hour: "2-digit",
+																		minute: "2-digit",
+																	}
+																)}
+															</span>
+														</div>
+														{history.notes && (
+															<p className="text-sm text-muted-foreground mt-1">
+																{history.notes}
+															</p>
+														)}
+														{history.location && (
+															<p className="text-xs text-muted-foreground mt-1">
+																📍 {history.location}
+															</p>
+														)}
+													</div>
+												</div>
+											))}
 									</div>
-									<div className="flex-1 h-0.5 bg-gray-200 mx-2"></div>
-									<div className="flex flex-col items-center">
-										<div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-											<Package className="w-4 h-4 text-gray-500" />
+								) : (
+									<div className="flex items-center justify-between">
+										<div className="flex flex-col items-center">
+											<div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+												<CheckCircle className="w-4 h-4 text-white" />
+											</div>
+											<p className="text-xs mt-2 text-center">Order Placed</p>
 										</div>
-										<p className="text-xs mt-2 text-center">Processing</p>
-									</div>
-									<div className="flex-1 h-0.5 bg-gray-200 mx-2"></div>
-									<div className="flex flex-col items-center">
-										<div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-											<Truck className="w-4 h-4 text-gray-500" />
+										<div className="flex-1 h-0.5 bg-gray-200 mx-2"></div>
+										<div className="flex flex-col items-center">
+											<div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+												<Package className="w-4 h-4 text-gray-500" />
+											</div>
+											<p className="text-xs mt-2 text-center">Processing</p>
 										</div>
-										<p className="text-xs mt-2 text-center">Shipped</p>
-									</div>
-									<div className="flex-1 h-0.5 bg-gray-200 mx-2"></div>
-									<div className="flex flex-col items-center">
-										<div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-											<CheckCircle className="w-4 h-4 text-gray-500" />
+										<div className="flex-1 h-0.5 bg-gray-200 mx-2"></div>
+										<div className="flex flex-col items-center">
+											<div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+												<Truck className="w-4 h-4 text-gray-500" />
+											</div>
+											<p className="text-xs mt-2 text-center">Shipped</p>
 										</div>
-										<p className="text-xs mt-2 text-center">Delivered</p>
+										<div className="flex-1 h-0.5 bg-gray-200 mx-2"></div>
+										<div className="flex flex-col items-center">
+											<div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+												<CheckCircle className="w-4 h-4 text-gray-500" />
+											</div>
+											<p className="text-xs mt-2 text-center">Delivered</p>
+										</div>
 									</div>
-								</div>
+								)}
 								<div className="mt-4 p-3 bg-blue-50 rounded-lg">
 									<p className="text-sm text-blue-700">
-										<strong>Expected Delivery:</strong> 3-5 business days
+										<strong>Expected Delivery:</strong>{" "}
+										{order.expectedDeliveryDate
+											? new Date(
+													order.expectedDeliveryDate
+											  ).toLocaleDateString()
+											: "3-5 business days"}
 									</p>
-									{order.deliveryAddress?.deliverySlot && (
+									{order.deliverySlot && (
 										<p className="text-sm text-blue-700">
-											<strong>Delivery Slot:</strong>{" "}
-											{order.deliveryAddress.deliverySlot}
+											<strong>Delivery Slot:</strong> {order.deliverySlot}
 										</p>
 									)}
 								</div>

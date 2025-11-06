@@ -5,6 +5,7 @@ import type React from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import {
+	Image,
 	LayoutDashboard,
 	LogOut,
 	Menu,
@@ -75,6 +76,12 @@ export default function AdminLayout({
 		{ icon: ShoppingCart, label: "Category", href: "/admin/category" },
 		{ icon: Package, label: "Products", href: "/admin/products" },
 		{ icon: ShoppingCart, label: "Orders", href: "/admin/orders" },
+		{ icon: Image, label: "Banners", href: "/admin/banners" },
+		{
+			icon: ShoppingCart,
+			label: "Homepage Sections",
+			href: "/admin/homepage-sections",
+		},
 		{ icon: Users, label: "Users", href: "/admin/users" },
 
 		{ icon: Settings, label: "Settings", href: "/admin/settings" },
