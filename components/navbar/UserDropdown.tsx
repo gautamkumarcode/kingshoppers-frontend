@@ -131,14 +131,16 @@ export function UserDropdown() {
 				</DropdownMenuItem>
 
 				{/* Profile */}
-				{/* <DropdownMenuItem asChild>
-					<Link
-						href="/profile"
-						className="flex items-center gap-2 cursor-pointer">
-						<Settings className="h-4 w-4" />
-						<span>Profile Settings</span>
-					</Link>
-				</DropdownMenuItem> */}
+				{user.userTypes === "admin" && (
+					<DropdownMenuItem asChild>
+						<Link
+							href="/admin/dashboard"
+							className="flex items-center gap-2 cursor-pointer">
+							<User className="h-4 w-4" />
+							<span>Admin Dashboard</span>
+						</Link>
+					</DropdownMenuItem>
+				)}
 
 				{/* Orders */}
 				<DropdownMenuItem asChild>

@@ -70,6 +70,8 @@ export default function AdminLayout({
 	const menuItems = [
 		{ icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
 		{ icon: ShoppingCart, label: "Brands", href: "/admin/brands" },
+		{ icon: Users, label: "Regional Brands", href: "/admin/regional-brands" },
+
 		{ icon: ShoppingCart, label: "Category", href: "/admin/category" },
 		{ icon: Package, label: "Products", href: "/admin/products" },
 		{ icon: ShoppingCart, label: "Orders", href: "/admin/orders" },

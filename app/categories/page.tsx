@@ -109,7 +109,7 @@ function CategorySection({
 								<h4 className="text-xs font-medium text-gray-900 truncate">
 									{child.name}
 								</h4>
-								{child.productCount !== undefined && (
+								{child.productCount !== undefined && child.productCount > 0 && (
 									<p className="text-xs text-gray-500 mt-1">
 										{child.productCount} items
 									</p>
@@ -169,13 +169,18 @@ export default async function Page({
 		<div className="min-h-screen bg-gray-50">
 			<div className="max-w-7xl mx-auto p-4 sm:p-6">
 				<div className="space-y-6">
-					<div className="flex items-center justify-between">
-						<h1 className="text-2xl font-bold text-gray-900">
-							Shop by Category
-						</h1>
+					<div className="flex items-start gap-6">
+						<div>
+							<h1 className="text-2xl font-bold text-gray-900">
+								Shop by Category
+							</h1>
+							<p className="text-sm text-gray-500 mt-1">
+								Browse categories and subcategories to discover products.
+							</p>
+						</div>
 					</div>
 
-					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 						{filtered.length === 0 && (
 							<div className="p-6 text-center text-muted-foreground col-span-full">
 								No categories found
@@ -202,8 +207,8 @@ export default async function Page({
 								<Link
 									key={cat._id}
 									href={`/products?category=${cat._id}`}
-									className="block p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition">
-									<div className="w-full h-28 bg-gray-50 rounded flex items-center justify-center overflow-hidden">
+									className="block p-4 bg-white rounded-lg shadow hover:shadow-lg transition transform hover:-translate-y-0.5">
+									<div className="w-full h-36 bg-gray-50 rounded flex items-center justify-center overflow-hidden mb-3">
 										{cat.image ? (
 											// eslint-disable-next-line @next/next/no-img-element
 											<img
@@ -215,7 +220,7 @@ export default async function Page({
 											<div className="text-gray-400">No image</div>
 										)}
 									</div>
-									<div className="mt-3">
+									<div className="mt-1">
 										<div className="font-medium text-sm truncate">
 											{cat.name}
 										</div>
@@ -230,7 +235,11 @@ export default async function Page({
 											</p>
 										)}
 										<div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-											<span>{cat.productCount ?? 0} products</span>
+											<span>
+												{(cat.productCount ?? 0) > 0
+													? `${cat.productCount} products`
+													: ""}
+											</span>
 											<span
 												className={`px-2 py-0.5 rounded text-[11px] ${
 													cat.isActive

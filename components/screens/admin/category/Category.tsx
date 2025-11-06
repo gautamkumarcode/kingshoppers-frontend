@@ -24,6 +24,7 @@ export default function ProductsPage() {
 	const [editingCategory, setEditingCategory] =
 		useState<CategoryResponseType | null>(null);
 	const [saving, setSaving] = useState(false);
+	const [uploadingImage, setUploadingImage] = useState(false);
 	const router = useRouter();
 
 	// ✅ Load categories
@@ -59,9 +60,19 @@ export default function ProductsPage() {
 	const handleSaveEdit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		if (!editingCategory) return;
+		// Prevent saving while image is uploading
+		if (uploadingImage)
+			return alert("Please wait for the image upload to finish");
 		setSaving(true);
 		try {
-			await api.put(`/categories/${editingCategory._id}`, editingCategory);
+			const payload: Partial<typeof editingCategory> = {
+				name: editingCategory.name,
+				description: editingCategory.description,
+				isActive: editingCategory.isActive,
+				image: editingCategory.image,
+			};
+
+			await api.put(`/categories/${editingCategory._id}`, payload);
 			await fetchCategories();
 			setEditingCategory(null);
 		} catch (error) {
@@ -178,7 +189,9 @@ export default function ProductsPage() {
 			{/* ✅ Edit Modal */}
 			<Dialog
 				open={!!editingCategory}
-				onOpenChange={() => setEditingCategory(null)}>
+				onOpenChange={(open) => {
+					if (!open) setEditingCategory(null);
+				}}>
 				<DialogContent className="max-w-lg">
 					<DialogHeader>
 						<DialogTitle>Edit Category</DialogTitle>
@@ -226,25 +239,7 @@ export default function ProductsPage() {
 								<span>Active</span>
 							</div>
 
-							<div className="flex justify-end gap-2 pt-4">
-								<Button
-									variant="outline"
-									type="button"
-									onClick={() => setEditingCategory(null)}>
-									Cancel
-								</Button>
-								<Button type="submit" disabled={saving}>
-									{saving ? (
-										<>
-											<Loader2 className="w-4 h-4 animate-spin mr-2" />
-											Saving...
-										</>
-									) : (
-										"Save Changes"
-									)}
-								</Button>
-							</div>
-							{/* ✅ Image Upload Section */}
+							{/* ✅ Image Upload Section - moved above actions for clarity */}
 							<div>
 								<Label>Image</Label>
 								<div className="flex items-center gap-4 mt-2">
@@ -262,36 +257,73 @@ export default function ProductsPage() {
 										</span>
 									)}
 
-									<Input
-										type="file"
-										accept="image/*"
-										onChange={async (e) => {
-											const file = e.target.files?.[0];
-											if (!file) return;
+									<div className="flex flex-col">
+										<Input
+											type="file"
+											accept="image/*"
+											onChange={async (e) => {
+												const file = e.target.files?.[0];
+												if (!file) return;
 
-											// 🟡 Upload to backend (like in your create page)
-											const formData = new FormData();
-											formData.append("images", file);
+												// 🟡 Upload to backend (like in your create page)
+												const formData = new FormData();
+												formData.append("images", file);
 
-											try {
-												const res = await api.post("/upload/images", formData, {
-													headers: { "Content-Type": "multipart/form-data" },
-												});
-												const uploaded = res.data?.files?.[0]?.url;
-												if (uploaded) {
-													setEditingCategory({
-														...editingCategory,
-														image: uploaded,
-														previewImage: uploaded,
-													});
+												try {
+													setUploadingImage(true);
+													const res = await api.post(
+														"/upload/images",
+														formData,
+														{
+															headers: {
+																"Content-Type": "multipart/form-data",
+															},
+														}
+													);
+													const uploaded = res.data?.files?.[0]?.url;
+													if (uploaded) {
+														setEditingCategory({
+															...editingCategory,
+															image: uploaded,
+															previewImage: uploaded,
+														});
+													}
+												} catch (err) {
+													console.error("Image upload failed:", err);
+													alert("Image upload failed");
+												} finally {
+													setUploadingImage(false);
 												}
-											} catch (err) {
-												console.error("Image upload failed:", err);
-												alert("Image upload failed");
-											}
-										}}
-									/>
+											}}
+										/>
+										{uploadingImage && (
+											<span className="text-sm text-muted-foreground mt-1">
+												Uploading...
+											</span>
+										)}
+									</div>
 								</div>
+							</div>
+
+							<div className="flex justify-end gap-2 pt-4">
+								<Button
+									variant="outline"
+									type="button"
+									onClick={() => setEditingCategory(null)}>
+									Cancel
+								</Button>
+								<Button type="submit" disabled={saving || uploadingImage}>
+									{saving ? (
+										<>
+											<Loader2 className="w-4 h-4 animate-spin mr-2" />
+											Saving...
+										</>
+									) : uploadingImage ? (
+										"Uploading..."
+									) : (
+										"Save Changes"
+									)}
+								</Button>
 							</div>
 						</form>
 					)}

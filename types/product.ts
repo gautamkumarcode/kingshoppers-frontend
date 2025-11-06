@@ -43,7 +43,7 @@ export interface Product {
 	description: string;
 	shortDescription: string;
 	category: string | { _id: string; name: string; slug: string };
-	brand: string | { _id: string; name: string; slug: string };
+	brand: string | { _id: string; name: string; slug: string; region?: string };
 	sku: string;
 	barcode?: string;
 	hsnCode?: string;
@@ -60,6 +60,7 @@ export interface Product {
 	keywords: string[];
 	totalSold: number;
 	viewCount: number;
+	calculatedMargin?: number; // For high margin products
 	createdAt: string;
 	updatedAt: string;
 }

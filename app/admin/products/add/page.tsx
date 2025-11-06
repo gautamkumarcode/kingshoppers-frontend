@@ -85,6 +85,7 @@ const productSchema = z.object({
 	isFeatured: z.boolean(),
 	gstPercentage: z.number().min(0).max(100),
 	keywords: z.array(z.string()).optional(),
+	regionalBrand: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof productSchema>;
@@ -97,9 +98,9 @@ interface Category {
 interface Brand {
 	_id: string;
 	name: string;
-	submitting:Boolean;
-	uploadedImages:String;
-	uploading:String;
+	submitting: Boolean;
+	uploadedImages: String;
+	uploading: String;
 }
 export default function CreateProductPage() {
 	const router = useRouter();
@@ -111,6 +112,8 @@ export default function CreateProductPage() {
 	const [brands, setBrands] = useState<Brand[]>([]);
 	const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 	const [uploading, setUploading] = useState(false);
+	const [regionalBrands, setRegionalBrands] = useState<Brand[]>([]);
+	const [profitMargins, setProfitMargins] = useState<{ [key: number]: number }>({});
 
 	const {
 		register,
@@ -128,6 +131,7 @@ export default function CreateProductPage() {
 			shortDescription: "",
 			category: "",
 			brand: "",
+			regionalBrand: "",
 			sku: "",
 			barcode: "",
 			images: [],
@@ -180,14 +184,17 @@ export default function CreateProductPage() {
 	useEffect(() => {
 		const loadData = async () => {
 			try {
-				const [categoriesRes, brandsRes] = await Promise.all([
-					api.get("/categories"),
-					api.get("/brands"),
-				]);
+				const [categoriesRes, brandsRes, regionalBrandsRes] = await Promise.all(
+					[
+						api.get("/categories"),
+						api.get("/brands"),
+						api.get("/regional-brands"),
+					]
+				);
 
-				console.log(categoriesRes, brandsRes);
-				setCategories(categoriesRes.data || []);
+				setCategories(categoriesRes.data.data || []);
 				setBrands(brandsRes.data.data || []);
+				setRegionalBrands(regionalBrandsRes.data.regionalBrands || []);
 			} catch (error) {
 				console.error("Failed to load categories/brands:", error);
 			}
@@ -223,6 +230,7 @@ export default function CreateProductPage() {
 							"thumbnail",
 							product.thumbnail || product.images?.[0] || ""
 						);
+						setValue("regionalBrand", product.regionalBrand || "");
 						// populate variants and specs if present
 						if (product.variants && Array.isArray(product.variants)) {
 							// reset field arrays by setting value directly
@@ -406,7 +414,7 @@ export default function CreateProductPage() {
 												<Select
 													onValueChange={field.onChange}
 													value={field.value}>
-													<SelectTrigger>
+													<SelectTrigger className="w-full ">
 														<SelectValue placeholder="Select category" />
 													</SelectTrigger>
 													<SelectContent>
@@ -437,7 +445,7 @@ export default function CreateProductPage() {
 												<Select
 													onValueChange={field.onChange}
 													value={field.value}>
-													<SelectTrigger>
+													<SelectTrigger className="w-full ">
 														<SelectValue placeholder="Select brand" />
 													</SelectTrigger>
 													<SelectContent>
@@ -458,26 +466,28 @@ export default function CreateProductPage() {
 									</div>
 
 									<div>
-										<Label htmlFor="gstPercentage" className="block mb-2">
-											GST Percentage
+										<Label htmlFor="regionalBrand" className="block mb-2">
+											Regional Brand *
 										</Label>
-										<Input
-											id="gstPercentage"
-											type="number"
-											{...register("gstPercentage", { valueAsNumber: true })}
-											placeholder="18"
-										/>
-									</div>
-
-									<div>
-										<Label htmlFor="moq" className="block mb-2">
-											Minimum Order Quantity
-										</Label>
-										<Input
-											id="moq"
-											type="number"
-											{...register("moq", { valueAsNumber: true })}
-											placeholder="1"
+										<Controller
+											control={control}
+											name="regionalBrand"
+											render={({ field }) => (
+												<Select
+													onValueChange={field.onChange}
+													value={field.value}>
+													<SelectTrigger className="w-full ">
+														<SelectValue placeholder="Select regional brand" />
+													</SelectTrigger>
+													<SelectContent>
+														{regionalBrands.map((brand) => (
+															<SelectItem key={brand._id} value={brand._id}>
+																{brand.name}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
+											)}
 										/>
 									</div>
 								</div>
@@ -496,7 +506,20 @@ export default function CreateProductPage() {
 								</div>
 
 								<div className="flex flex-wrap gap-6">
+									<div className="w-1/2">
+										<Label htmlFor="moq" className="block mb-2">
+											Minimum Order Quantity
+										</Label>
+										<Input
+											id="moq"
+											type="number"
+											{...register("moq", { valueAsNumber: true })}
+											placeholder="1"
+										/>
+									</div>
 									<div className="flex items-center space-x-2">
+										<Label>Featured</Label>
+
 										<Controller
 											control={control}
 											name="isFeatured"
@@ -507,7 +530,6 @@ export default function CreateProductPage() {
 												/>
 											)}
 										/>
-										<Label>Featured</Label>
 									</div>
 								</div>
 							</CardContent>
@@ -750,19 +772,59 @@ export default function CreateProductPage() {
 
 												<div>
 													<Label className="block mb-2">MRP *</Label>
-													<Input
-														type="number"
-														step="0.01"
-														{...register(`variants.${index}.mrp` as const, {
-															valueAsNumber: true,
-														})}
-														placeholder="0.00"
+													<Controller
+														control={control}
+														name={`variants.${index}.mrp` as const}
+														render={({ field }) => (
+															<Input
+																type="number"
+																step="0.01"
+																placeholder="0.00"
+																value={field.value || ''}
+																onChange={(e) => {
+																	const mrpValue = parseFloat(e.target.value) || 0;
+																	field.onChange(mrpValue);
+																	
+																	// Calculate wholesale price
+																	const discount = watch(`variants.${index}.discountPercentage`) || 0;
+																	const wholesalePrice = mrpValue - (mrpValue * discount / 100);
+																	setValue(`variants.${index}.wholesalePrice`, Number(wholesalePrice.toFixed(2)));
+																}}
+															/>
+														)}
+													/>
+												</div>
+
+												<div>
+													<Label className="block mb-2">Discount %</Label>
+													<Controller
+														control={control}
+														name={`variants.${index}.discountPercentage` as const}
+														render={({ field }) => (
+															<Input
+																type="number"
+																step="0.01"
+																placeholder="0"
+																max="100"
+																min="0"
+																value={field.value || ''}
+																onChange={(e) => {
+																	const discountValue = parseFloat(e.target.value) || 0;
+																	field.onChange(discountValue);
+																	
+																	// Calculate wholesale price
+																	const mrp = watch(`variants.${index}.mrp`) || 0;
+																	const wholesalePrice = mrp - (mrp * discountValue / 100);
+																	setValue(`variants.${index}.wholesalePrice`, Number(wholesalePrice.toFixed(2)));
+																}}
+															/>
+														)}
 													/>
 												</div>
 
 												<div>
 													<Label className="block mb-2">
-														Wholesale Price *
+														Wholesale Price * (Auto-calculated)
 													</Label>
 													<Input
 														type="number"
@@ -772,11 +834,49 @@ export default function CreateProductPage() {
 															{ valueAsNumber: true }
 														)}
 														placeholder="0.00"
+														disabled
+														className="bg-gray-100 cursor-not-allowed"
 													/>
+													<p className="text-xs text-muted-foreground mt-1">
+														= MRP - (MRP × Discount%)
+													</p>
+												</div>
+											</div>
+
+											{/* Cost & Stock Section */}
+											<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+												<div>
+													<Label className="block mb-2">
+														Profit Margin % (optional)
+													</Label>
+													<Input
+														type="number"
+														step="0.01"
+														placeholder="0"
+														max="100"
+														min="0"
+														value={profitMargins[index] || ''}
+														onChange={(e) => {
+															const profitMarginValue = parseFloat(e.target.value) || 0;
+															setProfitMargins(prev => ({ ...prev, [index]: profitMarginValue }));
+															
+															// Calculate cost price from wholesale price
+															const wholesalePrice = watch(`variants.${index}.wholesalePrice`) || 0;
+															if (wholesalePrice > 0) {
+																const costPrice = wholesalePrice - (wholesalePrice * profitMarginValue / 100);
+																setValue(`variants.${index}.costPrice`, Number(costPrice.toFixed(2)));
+															}
+														}}
+													/>
+													<p className="text-xs text-muted-foreground mt-1">
+														Leave empty to enter cost manually
+													</p>
 												</div>
 
 												<div>
-													<Label className="block mb-2">Cost Price *</Label>
+													<Label className="block mb-2">
+														Cost Price * {profitMargins[index] > 0 && '(Auto-calculated)'}
+													</Label>
 													<Input
 														type="number"
 														step="0.01"
@@ -787,23 +887,14 @@ export default function CreateProductPage() {
 															}
 														)}
 														placeholder="0.00"
+														disabled={profitMargins[index] > 0}
+														className={profitMargins[index] > 0 ? "bg-gray-100 cursor-not-allowed" : ""}
 													/>
-												</div>
-											</div>
-
-											{/* Stock & Discount */}
-											<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-												<div>
-													<Label className="block mb-2">Discount %</Label>
-													<Input
-														type="number"
-														{...register(
-															`variants.${index}.discountPercentage` as const,
-															{ valueAsNumber: true }
-														)}
-														placeholder="0"
-														max="100"
-													/>
+													{profitMargins[index] > 0 && (
+														<p className="text-xs text-muted-foreground mt-1">
+															= Wholesale - (Wholesale × Margin%)
+														</p>
+													)}
 												</div>
 
 												<div>
@@ -828,7 +919,10 @@ export default function CreateProductPage() {
 														placeholder="10"
 													/>
 												</div>
+											</div>
 
+											{/* Weight & Dimensions Section */}
+											<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 												<div>
 													<Label className="block mb-2">Weight (grams)</Label>
 													<Input

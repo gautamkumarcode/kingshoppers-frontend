@@ -1,40 +1,33 @@
 "use client";
 
-import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Star } from "lucide-react";
-import api from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Product } from "@/types/product";
-
-
+import { ShoppingCart, Star } from "lucide-react";
+import Link from "next/link";
 
 export function ProductCard({ product }: { product: Product }) {
-  const validVariants =
-    product.variants?.filter((v) => v.wholesalePrice && v.mrp) || [];
+	const validVariants =
+		product.variants?.filter((v) => v.wholesalePrice && v.mrp) || [];
 
-  const lowestPrice =
-    validVariants.length > 0
-      ? Math.min(...validVariants.map((v) => v.wholesalePrice))
-      : 0;
+	const lowestPrice =
+		validVariants.length > 0
+			? Math.min(...validVariants.map((v) => v.wholesalePrice))
+			: 0;
 
-  const highestMRP =
-    validVariants.length > 0
-      ? Math.max(...validVariants.map((v) => v.mrp))
-      : 0;
+	const highestMRP =
+		validVariants.length > 0 ? Math.max(...validVariants.map((v) => v.mrp)) : 0;
 
-  const minMOQ =
-    validVariants.length > 0
-      ? Math.min(...validVariants.map((v) => v.moq || 1))
-      : 1;
+	const minMOQ =
+		validVariants.length > 0
+			? Math.min(...validVariants.map((v) => v.moq || 1))
+			: 1;
 
-  // ✅ Image URL logic
- 
+	// ✅ Image URL logic
 
-
-  return (
-   <Link href={`/products/${product._id}`}>
+	return (
+		<Link href={`/products/${product._id}`}>
 			<Card className="hover:shadow-lg transition-all duration-200 h-full group">
 				<CardContent className="p-4">
 					{/* Product Image */}
@@ -67,9 +60,9 @@ export function ProductCard({ product }: { product: Product }) {
 
 						{/* Brand and Category */}
 						<div className="flex items-center gap-2 text-xs">
-							{typeof product.brand === "object" && product.brand.name && (
+							{typeof product.brand === "object" && product.brand?.name && (
 								<Badge variant="secondary" className="text-xs">
-									{product.brand.name}
+									{product?.brand?.name}
 								</Badge>
 							)}
 						</div>
@@ -105,5 +98,5 @@ export function ProductCard({ product }: { product: Product }) {
 				</CardContent>
 			</Card>
 		</Link>
-  );
+	);
 }

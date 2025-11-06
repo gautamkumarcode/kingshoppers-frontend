@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,8 +13,24 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import api from "@/lib/api";
-import { Edit, Eye, Package, Plus, Search, Trash2 } from "lucide-react";
+import {
+	Calendar,
+	Edit,
+	Eye,
+	Package,
+	Plus,
+	Search,
+	Trash2,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -301,7 +318,7 @@ export default function BrandsListPage() {
 						</CardContent>
 					</Card>
 
-					{/* Brands Grid */}
+					{/* Brands Table (matches regional brand layout) */}
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center justify-between">
@@ -314,7 +331,7 @@ export default function BrandsListPage() {
 								<div className="flex justify-center py-12">
 									<LoadingSpinner size="lg" />
 								</div>
-							) : paged.length === 0 ? (
+							) : filtered.length === 0 ? (
 								<div className="text-center py-12">
 									<Package className="mx-auto h-12 w-12 text-gray-400 mb-4" />
 									<p className="text-lg font-medium text-gray-900 mb-2">
@@ -336,70 +353,91 @@ export default function BrandsListPage() {
 								</div>
 							) : (
 								<>
-									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-										{paged.map((brand) => (
-											<div
-												key={brand._id}
-												className="group relative bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-												{/* Brand Logo/Image */}
-												<div className="aspect-square mb-4 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
-													{brand.logo ? (
-														<img
-															src={brand.logo}
-															alt={brand.name}
-															className="w-full h-full object-contain"
-														/>
-													) : (
-														<div className="text-gray-400 text-center">
-															<Package className="h-12 w-12 mx-auto mb-2" />
-															<span className="text-sm">No Logo</span>
-														</div>
-													)}
-												</div>
-
-												{/* Brand Info */}
-												<div className="space-y-2">
-													<div className="flex items-center gap-2">
-														<h3 className="font-semibold text-lg text-gray-900 truncate">
-															{brand.name}
-														</h3>
-														{brand.isActive === false && (
-															<span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
-																Inactive
-															</span>
-														)}
-													</div>
-													{brand.slug && (
-														<p className="text-sm text-gray-500 truncate">
-															/{brand.slug}
-														</p>
-													)}
-													{brand.description && (
-														<p className="text-sm text-gray-600 line-clamp-2">
-															{brand.description}
-														</p>
-													)}
-												</div>
-
-												{/* Actions */}
-												<div className="flex gap-2 mt-4">
-													<Button
-														size="sm"
-														variant="outline"
-														onClick={() => handleEdit(brand)}
-														className="flex-1">
-														<Edit className="w-4 h-4 mr-1" />
-														Edit
-													</Button>
-													<Button
-														size="sm"
-														variant="destructive"
-														onClick={() => handleDelete(brand)}>
-														<Trash2 className="w-4 h-4" />
-													</Button>
-												</div>
-											</div>
-										))}
+									<div className="overflow-x-auto">
+										<Table>
+											<TableHeader>
+												<TableRow>
+													<TableHead>Brand</TableHead>
+													<TableHead>Categories</TableHead>
+													<TableHead>Products</TableHead>
+													<TableHead>Status</TableHead>
+													<TableHead>Created</TableHead>
+													<TableHead className="text-right">Actions</TableHead>
+												</TableRow>
+											</TableHeader>
+											<TableBody>
+												{paged.map((brand) => (
+													<TableRow key={brand._id}>
+														<TableCell>
+															<div className="flex items-center gap-3">
+																{brand.logo ? (
+																	<img
+																		src={brand.logo}
+																		alt={brand.name}
+																		className="w-10 h-10 rounded-md object-cover"
+																	/>
+																) : (
+																	<div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center">
+																		<Package className="w-5 h-5 text-gray-400" />
+																	</div>
+																)}
+																<div>
+																	<div className="font-medium">
+																		{brand.name}
+																	</div>
+																	{brand.slug && (
+																		<div className="text-sm text-muted-foreground">
+																			/{brand.slug}
+																		</div>
+																	)}
+																</div>
+															</div>
+														</TableCell>
+														<TableCell>
+															<div className="text-sm">
+																{(brand.categories || []).length}
+															</div>
+														</TableCell>
+														<TableCell>
+															<Badge variant="secondary">
+																{brand.productCount || 0} products
+															</Badge>
+														</TableCell>
+														<TableCell>
+															<div>
+																{brand.isActive ? "Active" : "Inactive"}
+															</div>
+														</TableCell>
+														<TableCell>
+															<div className="text-sm text-muted-foreground flex items-center gap-2">
+																<Calendar className="w-4 h-4" />
+																{brand.createdAt
+																	? new Date(
+																			brand.createdAt
+																	  ).toLocaleDateString()
+																	: "-"}
+															</div>
+														</TableCell>
+														<TableCell className="text-right">
+															<div className="flex items-center justify-end gap-2">
+																<Button
+																	size="sm"
+																	variant="ghost"
+																	onClick={() => handleEdit(brand)}>
+																	<Edit className="w-4 h-4" />
+																</Button>
+																<Button
+																	size="sm"
+																	variant="destructive"
+																	onClick={() => handleDelete(brand)}>
+																	<Trash2 className="w-4 h-4" />
+																</Button>
+															</div>
+														</TableCell>
+													</TableRow>
+												))}
+											</TableBody>
+										</Table>
 									</div>
 
 									{/* Pagination */}
