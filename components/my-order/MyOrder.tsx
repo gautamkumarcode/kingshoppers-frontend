@@ -45,7 +45,10 @@ interface Order {
 		state: string;
 		pincode: string;
 	};
-	grandTotal: number;
+	grandTotal?: number;
+	totalAmount?: number;
+	subtotal?: number;
+	totalTax?: number;
 	createdAt: string;
 	expectedDeliveryDate?: string;
 }
@@ -72,6 +75,22 @@ export default function OrdersPage() {
 		} finally {
 			setLoading(false);
 		}
+	};
+
+	const calculateOrderTotal = (order: Order) => {
+		// Try different possible field names for total
+		if (order.grandTotal) return order.grandTotal;
+		if (order.totalAmount) return order.totalAmount;
+
+		// Calculate from items if no total field exists
+		const itemsTotal = order.items.reduce((sum, item) => {
+			return sum + (item.total || item.unitPrice * item.quantity || 0);
+		}, 0);
+
+		// Add tax if available
+		const total = itemsTotal + (order.totalTax || 0);
+
+		return total || 0;
 	};
 
 	const getStatusColor = (status: string) => {
@@ -293,7 +312,7 @@ export default function OrdersPage() {
 															Total Amount
 														</p>
 														<p className="text-xl font-bold text-primary">
-															₹{order.grandTotal}
+															₹{calculateOrderTotal(order).toFixed(2)}
 														</p>
 													</div>
 												</div>

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useCart } from "@/hooks/useCart";
 import { calculateDiscountPercentage, formatPrice } from "@/lib/cart-utils";
 import { CartItem as CartItemType } from "@/types/cart";
-import { Minus, Package, Plus, Trash2 } from "lucide-react";
+import { Loader2, Minus, Package, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -48,14 +48,34 @@ export function CartItem({
 		}
 	};
 
-	const handleIncrement = () => {
-		if (item.quantity < item.stock) {
-			incrementItem(item.productId, item.variantId);
+	const handleIncrement = async (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		if (isUpdating || item.quantity >= item.stock) return;
+
+		setIsUpdating(true);
+		try {
+			await incrementItem(item.productId, item.variantId);
+		} catch (error) {
+			console.error("Error incrementing quantity:", error);
+		} finally {
+			setIsUpdating(false);
 		}
 	};
 
-	const handleDecrement = () => {
-		decrementItem(item.productId, item.variantId);
+	const handleDecrement = async (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		if (isUpdating || item.quantity <= 1) return;
+
+		setIsUpdating(true);
+		try {
+			await decrementItem(item.productId, item.variantId);
+		} catch (error) {
+			console.error("Error decrementing quantity:", error);
+		} finally {
+			setIsUpdating(false);
+		}
 	};
 
 	if (compact) {
@@ -165,32 +185,50 @@ export function CartItem({
 				{showQuantityControls && (
 					<div className="flex items-center gap-2">
 						<Button
+							type="button"
 							variant="outline"
 							size="sm"
 							onClick={handleDecrement}
 							disabled={isUpdating || item.quantity <= 1}
-							className="h-8 w-8 p-0">
+							className="h-8 w-8 p-0"
+							aria-label="Decrease quantity">
 							<Minus className="h-4 w-4" />
 						</Button>
 
-						<Input
-							type="number"
-							value={item.quantity}
-							onChange={(e) =>
-								handleQuantityChange(parseInt(e.target.value) || 0)
-							}
-							className="w-16 h-8 text-center"
-							min={item.moq}
-							max={item.stock}
-							disabled={isUpdating}
-						/>
+						<div className="relative w-16 h-8">
+							{isUpdating ? (
+								<div className="absolute inset-0 flex items-center justify-center bg-white border rounded-md">
+									<Loader2 className="h-4 w-4 animate-spin text-primary" />
+								</div>
+							) : (
+								<Input
+									type="number"
+									value={item.quantity}
+									onChange={(e) => {
+										e.preventDefault();
+										e.stopPropagation();
+										const newQty = parseInt(e.target.value) || 0;
+										if (newQty !== item.quantity && newQty > 0) {
+											handleQuantityChange(newQty);
+										}
+									}}
+									className="w-full h-full text-center"
+									min={item.moq}
+									max={item.stock}
+									disabled={isUpdating}
+									aria-label="Quantity"
+								/>
+							)}
+						</div>
 
 						<Button
+							type="button"
 							variant="outline"
 							size="sm"
 							onClick={handleIncrement}
 							disabled={isUpdating || item.quantity >= item.stock}
-							className="h-8 w-8 p-0">
+							className="h-8 w-8 p-0"
+							aria-label="Increase quantity">
 							<Plus className="h-4 w-4" />
 						</Button>
 					</div>
@@ -204,9 +242,16 @@ export function CartItem({
 				{/* Remove Button */}
 				{showRemoveButton && (
 					<Button
+						type="button"
 						variant="ghost"
 						size="sm"
-						onClick={() => removeItem(item.productId, item.variantId)}
+						onClick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							if (!isUpdating) {
+								removeItem(item.productId, item.variantId);
+							}
+						}}
 						disabled={isUpdating}
 						className="text-red-600 hover:text-red-700 hover:bg-red-50">
 						<Trash2 className="h-4 w-4 mr-1" />

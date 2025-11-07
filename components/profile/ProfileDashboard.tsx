@@ -21,6 +21,7 @@ import {
 	RefreshCw,
 	Store,
 	User,
+	XCircle,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -48,18 +49,31 @@ export default function ProfileDashboard() {
 		setRefreshing(false);
 	};
 
-	const getStatusColor = (isApproved: boolean) => {
-		return isApproved
-			? "bg-green-100 text-green-800"
-			: "bg-yellow-100 text-yellow-800";
+	const getStatusColor = (approvalStatus: string, isApproved: boolean) => {
+		if (approvalStatus === "approved" || isApproved) {
+			return "bg-green-100 text-green-800";
+		} else if (approvalStatus === "rejected") {
+			return "bg-red-100 text-red-800";
+		}
+		return "bg-yellow-100 text-yellow-800";
 	};
 
-	const getStatusIcon = (isApproved: boolean) => {
-		return isApproved ? (
-			<CheckCircle className="w-4 h-4" />
-		) : (
-			<Clock className="w-4 h-4" />
-		);
+	const getStatusIcon = (approvalStatus: string, isApproved: boolean) => {
+		if (approvalStatus === "approved" || isApproved) {
+			return <CheckCircle className="w-4 h-4" />;
+		} else if (approvalStatus === "rejected") {
+			return <XCircle className="w-4 h-4" />;
+		}
+		return <Clock className="w-4 h-4" />;
+	};
+
+	const getStatusText = (approvalStatus: string, isApproved: boolean) => {
+		if (approvalStatus === "approved" || isApproved) {
+			return "Approved";
+		} else if (approvalStatus === "rejected") {
+			return "Rejected";
+		}
+		return "Pending Approval";
 	};
 
 	if (!user) {
@@ -117,26 +131,59 @@ export default function ProfileDashboard() {
 						<div className="flex items-center justify-between">
 							<div>
 								<CardTitle className="flex items-center gap-2">
-									{getStatusIcon(user.isApproved)}
+									{getStatusIcon(user.approvalStatus, user.isApproved)}
 									Account Status
 								</CardTitle>
 								<CardDescription>
 									Your account verification status
 								</CardDescription>
 							</div>
-							<Badge className={getStatusColor(user.isApproved)}>
-								{user.isApproved ? "Approved" : "Pending Approval"}
+							<Badge
+								className={getStatusColor(
+									user.approvalStatus,
+									user.isApproved
+								)}>
+								{getStatusText(user.approvalStatus, user.isApproved)}
 							</Badge>
 						</div>
 					</CardHeader>
 					<CardContent>
-						{user.isApproved ? (
+						{user.approvalStatus === "approved" || user.isApproved ? (
 							<div className="flex items-center gap-2 text-green-700">
 								<CheckCircle className="w-5 h-5" />
 								<span>
 									Your account is approved and active. You can start placing
 									orders!
 								</span>
+							</div>
+						) : user.approvalStatus === "rejected" ? (
+							<div className="space-y-3">
+								<div className="flex items-center gap-2 text-red-700">
+									<XCircle className="w-5 h-5" />
+									<span>Your account registration has been rejected.</span>
+								</div>
+								{user.rejectionReason && (
+									<div className="bg-red-50 border border-red-200 rounded-lg p-3">
+										<h4 className="font-medium text-red-900 mb-1">
+											Rejection Reason
+										</h4>
+										<p className="text-sm text-red-800">
+											{user.rejectionReason}
+										</p>
+									</div>
+								)}
+								<div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+									<h4 className="font-medium text-blue-900 mb-1">
+										What you can do?
+									</h4>
+									<ul className="text-sm text-blue-800 space-y-1">
+										<li>• Review the rejection reason above</li>
+										<li>• Contact our support team for clarification</li>
+										<li>
+											• You may need to register again with correct documents
+										</li>
+									</ul>
+								</div>
 							</div>
 						) : (
 							<div className="space-y-3">
@@ -385,7 +432,7 @@ export default function ProfileDashboard() {
 				<Card>
 					<CardContent className="pt-6">
 						<div className="flex flex-wrap gap-3">
-							{user.isApproved ? (
+							{user.approvalStatus === "approved" || user.isApproved ? (
 								<>
 									<Button onClick={() => router.push("/products")}>
 										Browse Products
@@ -399,6 +446,20 @@ export default function ProfileDashboard() {
 										variant="outline"
 										onClick={() => router.push("/profile/edit")}>
 										Edit Profile
+									</Button>
+								</>
+							) : user.approvalStatus === "rejected" ? (
+								<>
+									<Button variant="outline" disabled>
+										Products (Account Rejected)
+									</Button>
+									<Button
+										variant="default"
+										onClick={() =>
+											(window.location.href = "tel:+919876543210")
+										}>
+										<Phone className="w-4 h-4 mr-2" />
+										Contact Support
 									</Button>
 								</>
 							) : (

@@ -1,6 +1,7 @@
 export interface User {
 	shopAddress: ShopAddress;
 	approvalStatus: string;
+	rejectionReason?: string;
 	_id: string;
 	shopName: string;
 	ownerName: string;
@@ -29,6 +30,11 @@ export interface User {
 		uploadedAt: string;
 	};
 	aadhaarPhoto?: {
+		url: string;
+		publicId: string;
+		uploadedAt: string;
+	};
+	aadhaarPhotoBack?: {
 		url: string;
 		publicId: string;
 		uploadedAt: string;

@@ -54,6 +54,7 @@ export default function RegisterPage() {
 	const [uploadedDocuments, setUploadedDocuments] = useState<{
 		gstDocument?: any;
 		aadhaarPhoto?: any;
+		aadhaarPhotoBack?: any;
 		panCardPhoto?: any;
 	}>({});
 
@@ -101,7 +102,13 @@ export default function RegisterPage() {
 
 		// Validate required documents
 		if (!uploadedDocuments.aadhaarPhoto) {
-			setError("Aadhaar card photo is required");
+			setError("Aadhaar card front photo is required");
+			setLoading(false);
+			return;
+		}
+
+		if (!uploadedDocuments.aadhaarPhotoBack) {
+			setError("Aadhaar card back photo is required");
 			setLoading(false);
 			return;
 		}
@@ -272,11 +279,22 @@ export default function RegisterPage() {
 							/>
 
 							<FileUpload
-								label="Aadhaar Card Photo"
+								label="Aadhaar Card - Front Side *"
 								accept=".jpg,.jpeg,.png"
 								fileType="aadhaarPhoto"
 								onFileUploaded={(fileData) =>
 									handleDocumentUpload("aadhaarPhoto", fileData)
+								}
+								maxSize={3}
+								required={true}
+							/>
+
+							<FileUpload
+								label="Aadhaar Card - Back Side *"
+								accept=".jpg,.jpeg,.png"
+								fileType="aadhaarPhotoBack"
+								onFileUploaded={(fileData) =>
+									handleDocumentUpload("aadhaarPhotoBack", fileData)
 								}
 								maxSize={3}
 								required={true}

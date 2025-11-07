@@ -369,7 +369,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 	const removeItem = async (productId: string, variantId: string) => {
 		try {
 			if (user) {
-				dispatch({ type: "SET_LOADING", payload: true });
+				// Don't set global loading state for item removal
+				// dispatch({ type: "SET_LOADING", payload: true });
 				try {
 					const response = await api.delete("/cart/remove", {
 						data: { productId, variantId },
@@ -381,7 +382,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 						dispatch({ type: "SET_ITEMS", payload: formattedItems });
 					}
 				} finally {
-					dispatch({ type: "SET_LOADING", payload: false });
+					// dispatch({ type: "SET_LOADING", payload: false });
 				}
 			} else {
 				dispatch({ type: "REMOVE_ITEM", payload: { productId, variantId } });
@@ -399,7 +400,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 	) => {
 		try {
 			if (user) {
-				dispatch({ type: "SET_LOADING", payload: true });
+				// Don't set global loading state for quantity updates
+				// dispatch({ type: "SET_LOADING", payload: true });
 				try {
 					const response = await api.put("/cart/update", {
 						productId,
@@ -413,7 +415,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 						dispatch({ type: "SET_ITEMS", payload: formattedItems });
 					}
 				} finally {
-					dispatch({ type: "SET_LOADING", payload: false });
+					// dispatch({ type: "SET_LOADING", payload: false });
 				}
 			} else {
 				dispatch({

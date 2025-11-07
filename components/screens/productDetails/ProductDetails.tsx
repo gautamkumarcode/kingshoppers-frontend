@@ -12,7 +12,9 @@ import api from "@/lib/api";
 import {
 	ArrowLeft,
 	Info,
+	Minus,
 	Package,
+	Plus,
 	ShoppingCart,
 	Star,
 	Truck,
@@ -29,18 +31,11 @@ export default function ProductDetailPage() {
 	const [loading, setLoading] = useState(true);
 	const [selectedVariant, setSelectedVariant] = useState<any>(null);
 	const [quantity, setQuantity] = useState(1);
-	const [selectedTier, setSelectedTier] = useState("bronze");
-	const [currentPrice, setCurrentPrice] = useState(0);
+	const [inputValue, setInputValue] = useState("1");
 
 	useEffect(() => {
 		fetchProduct();
 	}, [params.id]);
-
-	useEffect(() => {
-		if (selectedVariant) {
-			updatePrice();
-		}
-	}, [selectedVariant, quantity, selectedTier]);
 
 	const fetchProduct = async () => {
 		try {
@@ -50,7 +45,9 @@ export default function ProductDetailPage() {
 			setProduct(data);
 			if (data.variants && data.variants.length > 0) {
 				setSelectedVariant(data.variants[0]);
-				setQuantity(data.variants[0].moq || 1);
+				const moq = data.variants[0].moq || 1;
+				setQuantity(moq);
+				setInputValue(String(moq));
 			}
 		} catch (error) {
 			console.error("Failed to fetch product:", error);
@@ -59,24 +56,100 @@ export default function ProductDetailPage() {
 		}
 	};
 
-	const updatePrice = () => {
+	// Helper function to validate and set quantity
+	const setValidatedQuantity = (newQuantity: number) => {
 		if (!selectedVariant) return;
 
-		// Find the best tier price based on quantity
-		let bestPrice = selectedVariant.wholesalePrice;
-		let bestTier = "bronze";
+		const moq = selectedVariant.moq || 1;
+		const stock = selectedVariant.stock || 0;
 
-		if (selectedVariant.tierPricing) {
-			for (const tier of selectedVariant.tierPricing) {
-				if (quantity >= tier.minimumQuantity && tier.price < bestPrice) {
-					bestPrice = tier.price;
-					bestTier = tier.tier;
-				}
-			}
+		// Ensure quantity is at least MOQ and not more than stock
+		let validatedQty = Math.max(moq, Math.min(stock, newQuantity));
+
+		setQuantity(validatedQty);
+		setInputValue(String(validatedQty));
+	};
+
+	// Handle quantity increase
+	const handleIncrease = () => {
+		if (!selectedVariant) return;
+
+		const newQty = quantity + 1;
+		if (newQty <= selectedVariant.stock) {
+			setValidatedQuantity(newQty);
+		} else {
+			toast({
+				title: "Stock limit reached",
+				description: `Only ${selectedVariant.stock} units available`,
+				variant: "destructive",
+			});
+		}
+	};
+
+	// Handle quantity decrease
+	const handleDecrease = () => {
+		if (!selectedVariant) return;
+
+		const newQty = quantity - 1;
+		const moq = selectedVariant.moq || 1;
+
+		if (newQty >= moq) {
+			setValidatedQuantity(newQty);
+		} else {
+			toast({
+				title: "Minimum quantity",
+				description: `Minimum order quantity is ${moq}`,
+				variant: "destructive",
+			});
+		}
+	};
+
+	// Handle manual input change
+	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const value = e.target.value;
+		setInputValue(value);
+
+		// Allow empty input for better UX
+		if (value === "") {
+			return;
 		}
 
-		setCurrentPrice(bestPrice);
-		setSelectedTier(bestTier);
+		// Parse and validate the input
+		const numValue = parseInt(value, 10);
+		if (isNaN(numValue)) {
+			return; // Don't update if not a number
+		}
+
+		setValidatedQuantity(numValue);
+	};
+
+	// Handle input blur - final validation
+	const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+		if (!selectedVariant) return;
+
+		const value = e.target.value;
+
+		if (value === "") {
+			// If input is empty, reset to current quantity
+			setInputValue(String(quantity));
+			return;
+		}
+
+		const numValue = parseInt(value, 10);
+		if (isNaN(numValue)) {
+			// If not a valid number, reset to current quantity
+			setInputValue(String(quantity));
+			return;
+		}
+
+		setValidatedQuantity(numValue);
+	};
+
+	// Handle Enter key in input
+	const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Enter") {
+			e.currentTarget.blur();
+		}
 	};
 
 	const handleAddToCart = () => {
@@ -277,7 +350,8 @@ export default function ProductDetailPage() {
 											}`}
 											onClick={() => {
 												setSelectedVariant(variant);
-												setQuantity(variant.moq || 1);
+												const moq = variant.moq || 1;
+												setValidatedQuantity(moq);
 											}}>
 											<div className="flex justify-between items-start">
 												<div className="space-y-2">
@@ -313,30 +387,6 @@ export default function ProductDetailPage() {
 													)}
 												</div>
 											</div>
-
-											{/* Tier Pricing */}
-											{variant.tierPricing &&
-												variant.tierPricing.length > 0 && (
-													<div className="mt-3 pt-3 border-t">
-														<p className="text-xs font-medium text-muted-foreground mb-2">
-															Bulk Pricing:
-														</p>
-														<div className="grid grid-cols-2 gap-2 text-xs">
-															{variant.tierPricing.map((tier: any) => (
-																<div
-																	key={tier.tier}
-																	className="flex justify-between">
-																	<span className="capitalize">
-																		{tier.tier} ({tier.minimumQuantity}+):
-																	</span>
-																	<span className="font-medium">
-																		₹{tier.price}
-																	</span>
-																</div>
-															))}
-														</div>
-													</div>
-												)}
 										</div>
 									))}
 								</CardContent>
@@ -354,41 +404,38 @@ export default function ProductDetailPage() {
 										<Label htmlFor="quantity">
 											Quantity ({selectedVariant.packType}s)
 										</Label>
-										<Input
-											id="quantity"
-											type="number"
-											min={selectedVariant.moq}
-											max={selectedVariant.stock}
-											value={quantity}
-											onChange={(e) => {
-												const newQuantity = Math.max(
-													selectedVariant.moq,
-													Math.min(
-														selectedVariant.stock,
-														Number.parseInt(e.target.value) ||
-															selectedVariant.moq
-													)
-												);
-												setQuantity(newQuantity);
-											}}
-											className="mt-2"
-										/>
+										<div className="flex items-center gap-2 mt-2">
+											<Button
+												type="button"
+												variant="outline"
+												size="icon"
+												onClick={handleDecrease}
+												disabled={quantity <= (selectedVariant.moq || 1)}>
+												<Minus className="h-4 w-4" />
+											</Button>
+											<Input
+												id="quantity"
+												type="number"
+												min={selectedVariant.moq || 1}
+												max={selectedVariant.stock}
+												value={inputValue}
+												onChange={handleInputChange}
+												onBlur={handleInputBlur}
+												onKeyDown={handleInputKeyDown}
+												className="text-center"
+											/>
+											<Button
+												type="button"
+												variant="outline"
+												size="icon"
+												onClick={handleIncrease}
+												disabled={quantity >= selectedVariant.stock}>
+												<Plus className="h-4 w-4" />
+											</Button>
+										</div>
 										<div className="flex justify-between text-xs text-muted-foreground mt-1">
-											<span>Min: {selectedVariant.moq}</span>
+											<span>Min: {selectedVariant.moq || 1}</span>
 											<span>Available: {selectedVariant.stock}</span>
-										</div>
-									</div>
-
-									{/* Current Tier Info */}
-									<div className="p-3 bg-primary/5 rounded-lg">
-										<div className="flex items-center justify-between mb-2">
-											<span className="text-sm font-medium">Current Tier:</span>
-											<Badge variant="outline" className="capitalize">
-												{selectedTier}
-											</Badge>
-										</div>
-										<div className="text-xs text-muted-foreground">
-											Total units: {quantity * selectedVariant.packSize} pieces
 										</div>
 									</div>
 								</CardContent>
@@ -405,7 +452,7 @@ export default function ProductDetailPage() {
 									<div className="space-y-2">
 										<div className="flex justify-between">
 											<span>Price per {selectedVariant.packType}:</span>
-											<span>₹{currentPrice}</span>
+											<span>₹{selectedVariant.wholesalePrice}</span>
 										</div>
 										<div className="flex justify-between">
 											<span>Quantity:</span>
@@ -415,14 +462,19 @@ export default function ProductDetailPage() {
 										</div>
 										<div className="flex justify-between">
 											<span>Subtotal:</span>
-											<span>₹{(currentPrice * quantity).toFixed(2)}</span>
+											<span>
+												₹
+												{(selectedVariant.wholesalePrice * quantity).toFixed(2)}
+											</span>
 										</div>
 										<div className="flex justify-between text-sm text-muted-foreground">
 											<span>GST ({product.gstPercentage}%):</span>
 											<span>
 												₹
 												{(
-													(currentPrice * quantity * product.gstPercentage) /
+													(selectedVariant.wholesalePrice *
+														quantity *
+														product.gstPercentage) /
 													100
 												).toFixed(2)}
 											</span>
@@ -434,7 +486,7 @@ export default function ProductDetailPage() {
 										<span className="text-primary">
 											₹
 											{(
-												currentPrice *
+												selectedVariant.wholesalePrice *
 												quantity *
 												(1 + product.gstPercentage / 100)
 											).toFixed(2)}
@@ -442,9 +494,10 @@ export default function ProductDetailPage() {
 									</div>
 									<div className="text-xs text-muted-foreground text-center">
 										You save ₹
-										{((selectedVariant.mrp - currentPrice) * quantity).toFixed(
-											2
-										)}{" "}
+										{(
+											(selectedVariant.mrp - selectedVariant.wholesalePrice) *
+											quantity
+										).toFixed(2)}{" "}
 										from MRP
 									</div>
 								</CardContent>
@@ -452,7 +505,15 @@ export default function ProductDetailPage() {
 						)}
 
 						{/* Add to Cart Button */}
-						<Button size="lg" className="w-full" onClick={handleAddToCart}>
+						<Button
+							size="lg"
+							className="w-full"
+							onClick={handleAddToCart}
+							disabled={
+								!selectedVariant ||
+								quantity < (selectedVariant.moq || 1) ||
+								quantity > selectedVariant.stock
+							}>
 							<ShoppingCart className="w-5 h-5 mr-2" />
 							Add to Cart
 						</Button>

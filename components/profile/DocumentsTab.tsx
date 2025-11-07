@@ -27,6 +27,11 @@ interface DocumentCardProps {
 	title: string;
 	documentFile: DocumentFile | null;
 	type: "pdf" | "image";
+	fileType:
+		| "gstDocument"
+		| "aadhaarPhoto"
+		| "aadhaarPhotoBack"
+		| "panCardPhoto";
 	onUpload: (fileData: any) => void;
 	onRemove: () => void;
 	required?: boolean;
@@ -36,6 +41,7 @@ function DocumentCard({
 	title,
 	documentFile,
 	type,
+	fileType,
 	onUpload,
 	onRemove,
 	required = false,
@@ -120,7 +126,7 @@ function DocumentCard({
 							<FileUpload
 								label={`Replace ${title}`}
 								accept={type === "pdf" ? ".pdf" : ".jpg,.jpeg,.png"}
-								fileType={title.toLowerCase().replace(/\s+/g, "") as any}
+								fileType={fileType}
 								onFileUploaded={onUpload}
 								maxSize={type === "pdf" ? 5 : 3}
 							/>
@@ -143,7 +149,7 @@ function DocumentCard({
 						<FileUpload
 							label={`Upload ${title}`}
 							accept={type === "pdf" ? ".pdf" : ".jpg,.jpeg,.png"}
-							fileType={title.toLowerCase().replace(/\s+/g, "") as any}
+							fileType={fileType}
 							onFileUploaded={onUpload}
 							maxSize={type === "pdf" ? 5 : 3}
 							required={required}
@@ -215,9 +221,11 @@ export default function DocumentsTab() {
 						<div className="text-center">
 							<div
 								className={`w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center ${
-									user.aadhaarPhoto ? "bg-green-100" : "bg-gray-100"
+									user.aadhaarPhoto && user.aadhaarPhotoBack
+										? "bg-green-100"
+										: "bg-gray-100"
 								}`}>
-								{user.aadhaarPhoto ? (
+								{user.aadhaarPhoto && user.aadhaarPhotoBack ? (
 									<CheckCircle className="w-6 h-6 text-green-600" />
 								) : (
 									<X className="w-6 h-6 text-gray-400" />
@@ -225,7 +233,9 @@ export default function DocumentsTab() {
 							</div>
 							<p className="font-medium">Aadhaar Card</p>
 							<p className="text-sm text-gray-600">
-								{user.aadhaarPhoto ? "Uploaded" : "Required"}
+								{user.aadhaarPhoto && user.aadhaarPhotoBack
+									? "Uploaded (Both Sides)"
+									: "Required (Both Sides)"}
 							</p>
 						</div>
 
@@ -264,7 +274,9 @@ export default function DocumentsTab() {
 						</div>
 					</div>
 
-					{(!user.aadhaarPhoto || !user.panCardPhoto) && (
+					{(!user.aadhaarPhoto ||
+						!user.aadhaarPhotoBack ||
+						!user.panCardPhoto) && (
 						<div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
 							<p className="text-yellow-800 text-sm">
 								<strong>Action Required:</strong> Please upload all required
@@ -278,9 +290,10 @@ export default function DocumentsTab() {
 			{/* Document Upload Cards */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				<DocumentCard
-					title="Aadhaar Card Photo"
+					title="Aadhaar Card Photo (Front)"
 					documentFile={user.aadhaarPhoto || null}
 					type="image"
+					fileType="aadhaarPhoto"
 					onUpload={(fileData) =>
 						handleDocumentUpload("aadhaarPhoto", fileData)
 					}
@@ -289,9 +302,22 @@ export default function DocumentsTab() {
 				/>
 
 				<DocumentCard
+					title="Aadhaar Card Photo (Back)"
+					documentFile={user.aadhaarPhotoBack || null}
+					type="image"
+					fileType="aadhaarPhotoBack"
+					onUpload={(fileData) =>
+						handleDocumentUpload("aadhaarPhotoBack", fileData)
+					}
+					onRemove={() => handleDocumentRemove("aadhaarPhotoBack")}
+					required={true}
+				/>
+
+				<DocumentCard
 					title="PAN Card Photo"
 					documentFile={user.panCardPhoto || null}
 					type="image"
+					fileType="panCardPhoto"
 					onUpload={(fileData) =>
 						handleDocumentUpload("panCardPhoto", fileData)
 					}
@@ -304,6 +330,7 @@ export default function DocumentsTab() {
 				title="GST Certificate"
 				documentFile={user.gstDocument || null}
 				type="pdf"
+				fileType="gstDocument"
 				onUpload={(fileData) => handleDocumentUpload("gstDocument", fileData)}
 				onRemove={() => handleDocumentRemove("gstDocument")}
 				required={false}
@@ -317,11 +344,15 @@ export default function DocumentsTab() {
 				<CardContent>
 					<div className="space-y-4 text-sm">
 						<div>
-							<h4 className="font-medium mb-2">Aadhaar Card Photo:</h4>
+							<h4 className="font-medium mb-2">Aadhaar Card Photos:</h4>
 							<ul className="list-disc list-inside text-gray-600 space-y-1">
-								<li>Clear, readable photo of your Aadhaar card</li>
+								<li>
+									Clear, readable photo of your Aadhaar card (both front and
+									back)
+								</li>
 								<li>All details should be visible</li>
-								<li>Accepted formats: JPG, PNG (max 3MB)</li>
+								<li>Upload both sides separately</li>
+								<li>Accepted formats: JPG, PNG (max 3MB each)</li>
 							</ul>
 						</div>
 

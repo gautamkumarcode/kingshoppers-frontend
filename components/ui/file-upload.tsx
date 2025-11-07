@@ -10,7 +10,11 @@ import { useCallback, useState } from "react";
 interface FileUploadProps {
 	label: string;
 	accept: string;
-	fileType: "gstDocument" | "aadhaarPhoto" | "panCardPhoto";
+	fileType:
+		| "gstDocument"
+		| "aadhaarPhoto"
+		| "aadhaarPhotoBack"
+		| "panCardPhoto";
 	onFileUploaded: (fileData: any) => void;
 	maxSize?: number; // in MB
 	required?: boolean;
