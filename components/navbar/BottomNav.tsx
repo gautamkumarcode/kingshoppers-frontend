@@ -121,7 +121,7 @@ export default function BottomNav() {
 			href: "/cart",
 			icon: ShoppingCart,
 			show: true,
-			badge: cartItemCount,
+			...(cartItemCount > 0 && { badge: cartItemCount }),
 		},
 		{
 			name: "Orders",

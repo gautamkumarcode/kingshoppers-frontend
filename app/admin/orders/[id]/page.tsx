@@ -209,7 +209,7 @@ export default function AdminOrderDetailsPage() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-gray-50 p-4">
+			<div className="min-h-screen bg-gray-50 ">
 				<div className="max-w-6xl mx-auto">
 					<div className="flex items-center justify-center py-12">
 						<div className="text-center">
@@ -258,33 +258,32 @@ export default function AdminOrderDetailsPage() {
 		order.grandTotal ?? computedSubtotal + computedTotalTax;
 
 	return (
-		<div className="min-h-screen bg-gray-50 p-4">
-			<div className="max-w-6xl mx-auto space-y-6">
+		<div className="min-h-screen bg-gray-50 p-2 sm:p-4 pb-20 md:pb-4">
+			<div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
 				{/* Header */}
-				{/* Header */}
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-4">
+				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+					<div className="flex flex-col gap-3">
 						<Link href="/admin/orders">
-							<Button variant="outline" size="sm">
+							<Button variant="outline" size="sm" className="w-fit">
 								<ArrowLeft className="w-4 h-4 mr-2" />
-								Back to Orders
+								Back
 							</Button>
 						</Link>
 						<div>
-							<h1 className="text-3xl font-bold text-gray-900">
+							<h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
 								Order #{order.orderNumber}
 							</h1>
-							<p className="text-gray-600">
-								Placed on {new Date(order.createdAt).toLocaleDateString()} at{" "}
+							<p className="text-xs sm:text-sm text-gray-600 mt-1">
+								{new Date(order.createdAt).toLocaleDateString()} at{" "}
 								{new Date(order.createdAt).toLocaleTimeString()}
 							</p>
 						</div>
 					</div>
-					<div className="flex items-center gap-2">
+					<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
 						<Badge
 							className={`${getStatusColor(
 								order.orderStatus
-							)} flex items-center gap-1 text-sm px-3 py-1`}>
+							)} flex items-center justify-center gap-1 text-xs sm:text-sm px-3 py-2 sm:py-1`}>
 							{getStatusIcon(order.orderStatus)}
 							<span className="capitalize">{order.orderStatus}</span>
 						</Badge>
@@ -292,27 +291,28 @@ export default function AdminOrderDetailsPage() {
 							onClick={() => {
 								setUpdateData({ status: order.orderStatus, notes: "" });
 								setShowUpdateModal(true);
-							}}>
+							}}
+							className="w-full sm:w-auto text-sm">
 							<Edit className="w-4 h-4 mr-2" />
 							Update Status
 						</Button>
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
 					{/* Main Content */}
-					<div className="lg:col-span-2 space-y-6">
+					<div className="lg:col-span-2 space-y-4 sm:space-y-6">
 						{/* Customer Information */}
 						{order.user && (
 							<Card>
 								<CardHeader>
-									<CardTitle className="flex items-center gap-2">
-										<User className="w-5 h-5" />
+									<CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+										<User className="w-4 h-4 sm:w-5 sm:h-5" />
 										Customer Information
 									</CardTitle>
 								</CardHeader>
 								<CardContent className="space-y-4">
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
 										<div>
 											<Label className="text-sm font-medium text-gray-600">
 												Shop Name
@@ -365,39 +365,43 @@ export default function AdminOrderDetailsPage() {
 						{/* Order Items */}
 						<Card>
 							<CardHeader>
-								<CardTitle>Order Items ({order.items.length})</CardTitle>
+								<CardTitle className="text-base sm:text-lg">
+									Order Items ({order.items.length})
+								</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<div className="space-y-4">
+								<div className="space-y-3 sm:space-y-4">
 									{order.items.map((item, index) => (
 										<div
 											key={index}
-											className="flex gap-4 p-4 border rounded-lg">
-											<div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-												<Package className="w-8 h-8 text-gray-400" />
+											className="flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg">
+											<div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+												<Package className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
 											</div>
-											<div className="flex-1">
-												<h4 className="font-semibold">{item.product.name}</h4>
-												<p className="text-sm text-gray-600">
+											<div className="flex-1 min-w-0">
+												<h4 className="font-semibold text-sm sm:text-base truncate">
+													{item.product.name}
+												</h4>
+												<p className="text-xs sm:text-sm text-gray-600 truncate">
 													{item.variantName}
 												</p>
-												<div className="flex items-center gap-4 mt-2">
-													<span className="text-sm">
+												<div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 text-xs sm:text-sm">
+													<span className="truncate">
 														Category: {item.product.category}
 													</span>
-													<span className="text-sm">
+													<span className="truncate">
 														Brand: {item.product.brand}
 													</span>
 												</div>
-												<div className="flex items-center gap-4 mt-1">
-													<span className="text-sm">Qty: {item.quantity}</span>
-													<span className="text-sm">
-														₹{item.unitPrice} each
-													</span>
+												<div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1 text-xs sm:text-sm">
+													<span>Qty: {item.quantity}</span>
+													<span>₹{item.unitPrice} each</span>
 												</div>
 											</div>
-											<div className="text-right">
-												<p className="font-semibold text-lg">₹{item.total}</p>
+											<div className="text-left sm:text-right shrink-0">
+												<p className="font-semibold text-base sm:text-lg">
+													₹{item.total}
+												</p>
 											</div>
 										</div>
 									))}
@@ -408,13 +412,13 @@ export default function AdminOrderDetailsPage() {
 						{/* Delivery Address */}
 						<Card>
 							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<MapPin className="w-5 h-5" />
+								<CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+									<MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
 									Delivery Address
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<div className="space-y-2">
+								<div className="space-y-1 sm:space-y-2 text-sm sm:text-base">
 									{order.deliveryAddress.street && (
 										<p className="font-medium">
 											{order.deliveryAddress.street}
@@ -446,15 +450,17 @@ export default function AdminOrderDetailsPage() {
 						{/* Status History */}
 						<Card>
 							<CardHeader>
-								<CardTitle>Order Timeline</CardTitle>
+								<CardTitle className="text-base sm:text-lg">
+									Order Timeline
+								</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<div className="space-y-4">
+								<div className="space-y-3 sm:space-y-4">
 									{order.statusHistory.map((history, index) => (
-										<div key={index} className="flex gap-4">
+										<div key={index} className="flex gap-3 sm:gap-4">
 											<div className="flex flex-col items-center">
 												<div
-													className={`w-8 h-8 rounded-full flex items-center justify-center ${
+													className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 ${
 														index === 0
 															? "bg-primary text-white"
 															: "bg-gray-200"
@@ -462,22 +468,22 @@ export default function AdminOrderDetailsPage() {
 													{getStatusIcon(history.status)}
 												</div>
 												{index < order.statusHistory.length - 1 && (
-													<div className="w-0.5 h-8 bg-gray-200 mt-2"></div>
+													<div className="w-0.5 h-6 sm:h-8 bg-gray-200 mt-2"></div>
 												)}
 											</div>
-											<div className="flex-1 pb-4">
-												<div className="flex items-center gap-2 mb-1">
-													<span className="font-medium capitalize">
+											<div className="flex-1 pb-3 sm:pb-4 min-w-0">
+												<div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+													<span className="font-medium capitalize text-sm sm:text-base">
 														{history.status}
 													</span>
-													<span className="text-sm text-gray-500">
+													<span className="text-xs sm:text-sm text-gray-500">
 														{new Date(history.timestamp).toLocaleDateString()}{" "}
 														at{" "}
 														{new Date(history.timestamp).toLocaleTimeString()}
 													</span>
 												</div>
 												{history.notes && (
-													<p className="text-sm text-gray-600">
+													<p className="text-xs sm:text-sm text-gray-600 wrap-break-word">
 														{history.notes}
 													</p>
 												)}
@@ -490,13 +496,15 @@ export default function AdminOrderDetailsPage() {
 					</div>
 
 					{/* Sidebar */}
-					<div className="space-y-6">
+					<div className="space-y-4 sm:space-y-6">
 						{/* Order Summary */}
 						<Card>
 							<CardHeader>
-								<CardTitle>Order Summary</CardTitle>
+								<CardTitle className="text-base sm:text-lg">
+									Order Summary
+								</CardTitle>
 							</CardHeader>
-							<CardContent className="space-y-3">
+							<CardContent className="space-y-2 sm:space-y-3 text-sm sm:text-base">
 								<div className="flex justify-between">
 									<span>Subtotal</span>
 									<span>₹{computedSubtotal}</span>
@@ -510,7 +518,7 @@ export default function AdminOrderDetailsPage() {
 									<span className="text-green-600">FREE</span>
 								</div>
 								<Separator />
-								<div className="flex justify-between font-bold text-lg">
+								<div className="flex justify-between font-bold text-base sm:text-lg">
 									<span>Total</span>
 									<span className="text-primary">₹{computedGrandTotal}</span>
 								</div>
@@ -520,13 +528,13 @@ export default function AdminOrderDetailsPage() {
 						{/* Payment Information */}
 						<Card>
 							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<CreditCard className="w-5 h-5" />
+								<CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+									<CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
 									Payment Details
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<div className="space-y-2">
+								<div className="space-y-2 text-sm sm:text-base">
 									<div className="flex justify-between">
 										<span>Payment Method</span>
 										<span className="capitalize">{order.paymentMethod}</span>
@@ -549,12 +557,12 @@ export default function AdminOrderDetailsPage() {
 						{/* Delivery Information */}
 						<Card>
 							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<Truck className="w-5 h-5" />
+								<CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+									<Truck className="w-4 h-4 sm:w-5 sm:h-5" />
 									Delivery Information
 								</CardTitle>
 							</CardHeader>
-							<CardContent className="space-y-3">
+							<CardContent className="space-y-2 sm:space-y-3 text-sm sm:text-base">
 								<div>
 									<Label className="text-sm font-medium text-gray-600">
 										Expected Delivery
@@ -590,16 +598,16 @@ export default function AdminOrderDetailsPage() {
 						</Card>
 
 						{/* Actions */}
-						<div className="space-y-3">
+						<div className="space-y-2 sm:space-y-3">
 							<Button
 								variant="outline"
-								className="w-full"
+								className="w-full text-sm"
 								onClick={handleDownloadInvoice}
 								disabled={downloadingInvoice}>
 								<Download className="w-4 h-4 mr-2" />
 								{downloadingInvoice ? "Downloading..." : "Download Invoice"}
 							</Button>
-							<Button variant="outline" className="w-full">
+							<Button variant="outline" className="w-full text-sm">
 								Print Order Details
 							</Button>
 						</div>
@@ -608,23 +616,27 @@ export default function AdminOrderDetailsPage() {
 
 				{/* Update Status Modal */}
 				{showUpdateModal && (
-					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-						<Card className="w-full max-w-md">
+					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50">
+						<Card className="w-full max-w-md mx-2">
 							<CardHeader>
-								<CardTitle>Update Order Status</CardTitle>
-								<p className="text-sm text-gray-600">
+								<CardTitle className="text-lg sm:text-xl">
+									Update Order Status
+								</CardTitle>
+								<p className="text-xs sm:text-sm text-gray-600">
 									Order #{order.orderNumber}
 								</p>
 							</CardHeader>
-							<CardContent className="space-y-4">
+							<CardContent className="space-y-3 sm:space-y-4">
 								<div>
-									<Label htmlFor="status">Order Status</Label>
+									<Label htmlFor="status" className="text-sm">
+										Order Status
+									</Label>
 									<Select
 										value={updateData.status}
 										onValueChange={(value) =>
 											setUpdateData((prev) => ({ ...prev, status: value }))
 										}>
-										<SelectTrigger>
+										<SelectTrigger className="text-sm">
 											<SelectValue placeholder="Select status" />
 										</SelectTrigger>
 										<SelectContent>
@@ -638,7 +650,9 @@ export default function AdminOrderDetailsPage() {
 									</Select>
 								</div>
 								<div>
-									<Label htmlFor="notes">Notes (Optional)</Label>
+									<Label htmlFor="notes" className="text-sm">
+										Notes (Optional)
+									</Label>
 									<Textarea
 										id="notes"
 										placeholder="Add any notes about this status update..."
@@ -649,12 +663,13 @@ export default function AdminOrderDetailsPage() {
 												notes: e.target.value,
 											}))
 										}
+										className="text-sm"
 									/>
 								</div>
-								<div className="flex gap-2">
+								<div className="flex flex-col sm:flex-row gap-2">
 									<Button
 										onClick={handleStatusUpdate}
-										className="flex-1"
+										className="flex-1 text-sm"
 										disabled={updating}>
 										{updating ? "Updating..." : "Update Status"}
 									</Button>
@@ -664,7 +679,8 @@ export default function AdminOrderDetailsPage() {
 											setShowUpdateModal(false);
 											setUpdateData({ status: "", notes: "" });
 										}}
-										disabled={updating}>
+										disabled={updating}
+										className="text-sm">
 										Cancel
 									</Button>
 								</div>

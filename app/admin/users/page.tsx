@@ -341,19 +341,21 @@ export default function UsersPage() {
 
 			{/* User Details Dialog */}
 			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-				<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto min-w-3xl">
+				<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-full mx-2 sm:mx-4">
 					<DialogHeader>
-						<DialogTitle>User Details - Verification</DialogTitle>
-						<DialogDescription>
+						<DialogTitle className="text-lg sm:text-xl">
+							User Details - Verification
+						</DialogTitle>
+						<DialogDescription className="text-sm">
 							Review user information before approving
 						</DialogDescription>
 					</DialogHeader>
 
 					{selectedUser && (
-						<div className="space-y-6">
+						<div className="space-y-4 sm:space-y-6">
 							{/* Status Badge */}
-							<div className="flex justify-between items-center">
-								<div className="flex gap-2">
+							<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+								<div className="flex flex-wrap gap-2">
 									<Badge
 										variant={
 											selectedUser.approvalStatus === "approved" ||
@@ -388,13 +390,13 @@ export default function UsersPage() {
 							{/* Basic Information */}
 							<Card>
 								<CardHeader>
-									<CardTitle className="text-lg flex items-center gap-2">
-										<Building2 className="w-5 h-5" />
+									<CardTitle className="text-base sm:text-lg flex items-center gap-2">
+										<Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
 										Business Information
 									</CardTitle>
 								</CardHeader>
 								<CardContent className="space-y-3">
-									<div className="grid grid-cols-2 gap-4">
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
 										<div>
 											<p className="text-sm text-muted-foreground">Shop Name</p>
 											<p className="font-medium">
@@ -414,13 +416,13 @@ export default function UsersPage() {
 							{/* Contact Information */}
 							<Card>
 								<CardHeader>
-									<CardTitle className="text-lg flex items-center gap-2">
-										<Phone className="w-5 h-5" />
+									<CardTitle className="text-base sm:text-lg flex items-center gap-2">
+										<Phone className="w-4 h-4 sm:w-5 sm:h-5" />
 										Contact Information
 									</CardTitle>
 								</CardHeader>
 								<CardContent className="space-y-3">
-									<div className="grid grid-cols-2 gap-4">
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
 										<div>
 											<p className="text-sm text-muted-foreground flex items-center gap-1">
 												<Phone className="w-4 h-4" />
@@ -455,14 +457,14 @@ export default function UsersPage() {
 							{selectedUser.shopAddress && (
 								<Card>
 									<CardHeader>
-										<CardTitle className="text-lg flex items-center gap-2">
-											<MapPin className="w-5 h-5" />
+										<CardTitle className="text-base sm:text-lg flex items-center gap-2">
+											<MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
 											Address
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
 										<div className="space-y-2">
-											<p className="font-medium">
+											<p className="font-medium text-sm sm:text-base wrap-break-words">
 												{[
 													selectedUser.shopAddress.street,
 													selectedUser.shopAddress.area,
@@ -489,38 +491,38 @@ export default function UsersPage() {
 								selectedUser.tradeLicense) && (
 								<Card>
 									<CardHeader>
-										<CardTitle className="text-lg flex items-center gap-2">
-											<FileText className="w-5 h-5" />
+										<CardTitle className="text-base sm:text-lg flex items-center gap-2">
+											<FileText className="w-4 h-4 sm:w-5 sm:h-5" />
 											Business Documents
 										</CardTitle>
 									</CardHeader>
 									<CardContent className="space-y-2">
 										{selectedUser.gstNumber && (
-											<div className="flex justify-between items-center py-2 border-b">
+											<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 border-b gap-1">
 												<span className="text-sm text-muted-foreground">
 													GST Number
 												</span>
-												<span className="font-medium">
+												<span className="font-medium text-sm sm:text-base wrap-break-words">
 													{selectedUser.gstNumber}
 												</span>
 											</div>
 										)}
 										{selectedUser.panNumber && (
-											<div className="flex justify-between items-center py-2 border-b">
+											<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 border-b gap-1">
 												<span className="text-sm text-muted-foreground">
 													PAN Number
 												</span>
-												<span className="font-medium">
+												<span className="font-medium text-sm sm:text-base wrap-break-words">
 													{selectedUser.panNumber}
 												</span>
 											</div>
 										)}
 										{selectedUser.tradeLicense && (
-											<div className="flex justify-between items-center py-2">
+											<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 gap-1">
 												<span className="text-sm text-muted-foreground">
 													Trade License
 												</span>
-												<span className="font-medium">
+												<span className="font-medium text-sm sm:text-base wrap-break-words">
 													{selectedUser.tradeLicense}
 												</span>
 											</div>
@@ -536,9 +538,11 @@ export default function UsersPage() {
 								selectedUser.panCardPhoto) && (
 								<Card>
 									<CardHeader>
-										<CardTitle className="text-lg">Document Uploads</CardTitle>
+										<CardTitle className="text-base sm:text-lg">
+											Document Uploads
+										</CardTitle>
 									</CardHeader>
-									<CardContent className="space-y-4">
+									<CardContent className="space-y-3 sm:space-y-4">
 										{selectedUser.gstDocument?.url &&
 											renderDocument(
 												selectedUser.gstDocument.url,
@@ -563,17 +567,17 @@ export default function UsersPage() {
 							{/* Additional Information */}
 							<Card>
 								<CardHeader>
-									<CardTitle className="text-lg flex items-center gap-2">
-										<Calendar className="w-5 h-5" />
+									<CardTitle className="text-base sm:text-lg flex items-center gap-2">
+										<Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
 										Account Information
 									</CardTitle>
 								</CardHeader>
 								<CardContent className="space-y-2">
-									<div className="flex justify-between items-center py-2 border-b">
+									<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 border-b gap-1">
 										<span className="text-sm text-muted-foreground">
 											Customer Since
 										</span>
-										<span className="font-medium">
+										<span className="font-medium text-sm sm:text-base">
 											{selectedUser.customerSince
 												? new Date(
 														selectedUser.customerSince
@@ -581,7 +585,7 @@ export default function UsersPage() {
 												: "N/A"}
 										</span>
 									</div>
-									<div className="flex justify-between items-center py-2 border-b">
+									<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 border-b gap-1">
 										<span className="text-sm text-muted-foreground">
 											Customer Tier
 										</span>
@@ -590,21 +594,21 @@ export default function UsersPage() {
 										</Badge>
 									</div>
 									{selectedUser.totalOrders !== undefined && (
-										<div className="flex justify-between items-center py-2 border-b">
+										<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 border-b gap-1">
 											<span className="text-sm text-muted-foreground">
 												Total Orders
 											</span>
-											<span className="font-medium">
+											<span className="font-medium text-sm sm:text-base">
 												{selectedUser.totalOrders}
 											</span>
 										</div>
 									)}
 									{selectedUser.totalOrderValue !== undefined && (
-										<div className="flex justify-between items-center py-2">
+										<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 gap-1">
 											<span className="text-sm text-muted-foreground">
 												Total Order Value
 											</span>
-											<span className="font-medium">
+											<span className="font-medium text-sm sm:text-base">
 												₹{selectedUser.totalOrderValue.toFixed(2)}
 											</span>
 										</div>
@@ -616,10 +620,12 @@ export default function UsersPage() {
 							{selectedUser.notes && (
 								<Card>
 									<CardHeader>
-										<CardTitle className="text-lg">Notes</CardTitle>
+										<CardTitle className="text-base sm:text-lg">
+											Notes
+										</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<p className="text-sm">{selectedUser.notes}</p>
+										<p className="text-sm sm:text-base">{selectedUser.notes}</p>
 									</CardContent>
 								</Card>
 							)}
@@ -629,12 +635,12 @@ export default function UsersPage() {
 								selectedUser.rejectionReason && (
 									<Card className="border-red-200 bg-red-50">
 										<CardHeader>
-											<CardTitle className="text-lg text-red-700">
+											<CardTitle className="text-base sm:text-lg text-red-700">
 												Rejection Reason
 											</CardTitle>
 										</CardHeader>
 										<CardContent>
-											<p className="text-sm text-red-600">
+											<p className="text-sm sm:text-base text-red-600">
 												{selectedUser.rejectionReason}
 											</p>
 										</CardContent>
@@ -643,11 +649,12 @@ export default function UsersPage() {
 						</div>
 					)}
 
-					<DialogFooter>
+					<DialogFooter className="flex-col sm:flex-row gap-2">
 						<Button
 							variant="outline"
 							onClick={() => setIsDialogOpen(false)}
-							disabled={isApproving || isRejecting}>
+							disabled={isApproving || isRejecting}
+							className="w-full sm:w-auto">
 							Close
 						</Button>
 						{selectedUser && selectedUser.approvalStatus === "pending" && (
@@ -655,13 +662,14 @@ export default function UsersPage() {
 								<Button
 									variant="destructive"
 									onClick={() => handleRejectUser(selectedUser._id)}
-									disabled={isApproving || isRejecting}>
+									disabled={isApproving || isRejecting}
+									className="w-full sm:w-auto">
 									{isRejecting ? "Rejecting..." : "Reject User"}
 								</Button>
 								<Button
 									onClick={() => handleApproveUser(selectedUser._id)}
 									disabled={isApproving || isRejecting}
-									className="bg-green-600 hover:bg-green-700">
+									className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
 									{isApproving ? "Approving..." : "Approve User"}
 								</Button>
 							</>

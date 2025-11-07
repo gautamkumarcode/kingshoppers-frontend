@@ -66,14 +66,11 @@ export function Navbar() {
 						) : user ? (
 							<UserDropdown />
 						) : (
-							<div className="hidden md:flex gap-2">
+							<div className=" gap-2">
 								<Link href="/auth/login">
 									<Button variant="outline" size="sm">
 										Login
 									</Button>
-								</Link>
-								<Link href="/auth/register">
-									<Button size="sm">Register</Button>
 								</Link>
 							</div>
 						)}

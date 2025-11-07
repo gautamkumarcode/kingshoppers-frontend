@@ -187,8 +187,8 @@ export default function AdminLayout({
 						<h1 className="text-2xl font-bold">Admin Panel</h1>
 					</div>
 
-					<div className="flex items-center gap-4">
-						<span className="text-sm text-muted-foreground">
+					<div className="flex items-center gap-2 sm:gap-4">
+						<span className="text-sm text-muted-foreground hidden sm:inline">
 							{user.ownerName}
 						</span>
 						{isDesktop ? (
@@ -198,7 +198,16 @@ export default function AdminLayout({
 								onClick={() => setIsOpen(!isOpen)}>
 								{isOpen ? "Collapse" : "Expand"}
 							</Button>
-						) : null}
+						) : (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={handleLogout}
+								className="text-destructive hover:bg-destructive/10 flex items-center gap-1">
+								<LogOut className="w-4 h-4" />
+								<span className="hidden sm:inline">Logout</span>
+							</Button>
+						)}
 					</div>
 				</div>
 
