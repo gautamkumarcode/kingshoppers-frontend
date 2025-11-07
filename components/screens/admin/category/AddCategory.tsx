@@ -5,11 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import api from "@/lib/api";
@@ -22,51 +22,51 @@ import { z } from "zod";
 
 // ✅ Validation Schema
 const productSchema = z.object({
-  name: z.string().min(1, "Product name is required"),
-  description: z.string().optional(),
-  category: z.string().min(1, "Category is required"),
-  images: z.array(z.string()).optional(),
-  isFeatured: z.boolean().optional(), // only one can be selected
-  thumbnail: z.string().optional(),
+	name: z.string().min(1, "Product name is required"),
+	description: z.string().optional(),
+	category: z.string().optional(),
+	images: z.array(z.string()).optional(),
+	isFeatured: z.boolean().optional(), // only one can be selected
+	thumbnail: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof productSchema>;
 
 interface Category {
-  _id: string;
-  name: string;
-  category?: string;
-  parentCategory?: string | null;
-  uploadedImages?: string;
-  loadingImages?: string;
-  submitting?:Boolean
+	_id: string;
+	name: string;
+	category?: string;
+	parentCategory?: string | null;
+	uploadedImages?: string;
+	loadingImages?: string;
+	submitting?: Boolean;
 }
 export default function CreateProductPage() {
-  const router = useRouter();
-  const [submitting, setSubmitting] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [loadingImages, setLoadeImages] = useState(false);
+	const router = useRouter();
+	const [submitting, setSubmitting] = useState(false);
+	const [categories, setCategories] = useState<Category[]>([]);
+	const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+	const [loadingImages, setLoadeImages] = useState(false);
 
-  const {
-    register,
-    control,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-  } = useForm<FormValues>({
-    resolver: zodResolver(productSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      category: "",
-      isFeatured: false,
-      images: [],
-    },
-  });
+	const {
+		register,
+		control,
+		handleSubmit,
+		formState: { errors },
+		setValue,
+	} = useForm<FormValues>({
+		resolver: zodResolver(productSchema),
+		defaultValues: {
+			name: "",
+			description: "",
+			category: "",
+			isFeatured: false,
+			images: [],
+		},
+	});
 
-  // ✅ Load categories
-  useEffect(() => {
+	// ✅ Load categories
+	useEffect(() => {
 		const loadCategories = async () => {
 			try {
 				const res = await api.get("/categories");
@@ -148,7 +148,7 @@ export default function CreateProductPage() {
 			<div className="shrink-0 bg-white border-b shadow-sm -m-6 mb-6 p-6">
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 					<h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-						Create Product
+						Create Category
 					</h1>
 					<div className="flex gap-2">
 						<Button variant="outline" onClick={() => router.back()}>
@@ -159,7 +159,7 @@ export default function CreateProductPage() {
 							form="product-form"
 							disabled={submitting}
 							className="min-w-[120px]">
-							{submitting ? "Creating..." : "Create Product"}
+							{submitting ? "Creating..." : "Create Category"}
 						</Button>
 					</div>
 				</div>
@@ -180,11 +180,11 @@ export default function CreateProductPage() {
 							<CardContent className="space-y-4">
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 									<div className="sm:col-span-2">
-										<Label htmlFor="name">Product Name *</Label>
+										<Label htmlFor="name">Category Name *</Label>
 										<Input
 											id="name"
 											{...register("name")}
-											placeholder="Enter product name"
+											placeholder="Enter category name"
 										/>
 										{errors.name && (
 											<p className="text-sm text-red-500 mt-1">
@@ -228,7 +228,7 @@ export default function CreateProductPage() {
 									<Textarea
 										id="description"
 										{...register("description")}
-										placeholder="Product details"
+										placeholder="category details"
 										rows={4}
 										className="resize-none"
 									/>
@@ -259,7 +259,7 @@ export default function CreateProductPage() {
 						{/* ✅ Image Upload Section */}
 						<Card>
 							<CardHeader>
-								<CardTitle>Product Images</CardTitle>
+								<CardTitle>Category Image</CardTitle>
 							</CardHeader>
 							<CardContent className="space-y-4">
 								<div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors flex items-center justify-center min-h-[180px]">
@@ -325,7 +325,7 @@ export default function CreateProductPage() {
 					form="product-form"
 					disabled={submitting}
 					className="w-full">
-					{submitting ? "Creating..." : "Create Product"}
+					{submitting ? "Creating..." : "Create Category"}
 				</Button>
 			</div>
 		</div>
