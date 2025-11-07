@@ -76,7 +76,7 @@ export default function LoginPage() {
 
 			// Existing user - they're now logged in via cookie
 			// Update auth context with user data
-			await login(data.user);
+			await login(data.user, data.token);
 
 			if (data.user.userTypes == "admin") {
 				router.push("/admin/dashboard");

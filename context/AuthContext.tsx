@@ -10,7 +10,7 @@ type AuthContextType = {
 	user: User | null;
 	loading: boolean;
 	isAuthenticated: boolean;
-	login: (user?: User) => Promise<void>;
+	login: (user?: User, token?: string) => Promise<void>;
 	logout: () => Promise<void>;
 	updateUser: (user: User) => void;
 	refreshUser: () => Promise<void>;
@@ -78,14 +78,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	}, [isInitialized]);
 
 	// Login function - accepts user data or fetches from server
-	const login = async (providedUser?: User): Promise<void> => {
+	const login = async (providedUser?: User, token?: string): Promise<void> => {
 		try {
+			// Store token in localStorage if provided
+			if (token && typeof window !== "undefined") {
+				localStorage.setItem("auth_token", token);
+			}
+
 			if (providedUser) {
 				// Use provided user data (from login/register response)
 				setUser(providedUser);
 				setIsInitialized(true);
 			} else {
-				// Fetch user from server (cookie should be set)
+				// Fetch user from server (token should be in localStorage)
 				const currentUser = await fetchCurrentUser();
 				setUser(currentUser);
 				setIsInitialized(true);
@@ -101,11 +106,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		try {
 			// Call server to clear cookie
 			await logoutRequest();
+
+			// Clear token from localStorage
+			if (typeof window !== "undefined") {
+				localStorage.removeItem("auth_token");
+			}
+
 			setUser(null);
 			router.push("/auth/login");
 		} catch (error) {
 			console.error("Error during logout:", error);
-			// Still clear user state even if server call fails
+
+			// Still clear user state and token even if server call fails
+			if (typeof window !== "undefined") {
+				localStorage.removeItem("auth_token");
+			}
+
 			setUser(null);
 			router.push("/auth/login");
 		}

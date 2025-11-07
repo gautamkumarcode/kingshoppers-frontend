@@ -141,7 +141,7 @@ export default function RegisterPage() {
 			const data = response.data;
 
 			// Registration successful - user is now logged in via cookie
-			await login(data.user);
+			await login(data.user, data.token);
 
 			// Redirect to pending approval or products page
 			if (!data.user.isApproved) {

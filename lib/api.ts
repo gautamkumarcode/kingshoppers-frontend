@@ -12,6 +12,23 @@ const api = axios.create({
 	},
 });
 
+// Request interceptor to add token to headers
+api.interceptors.request.use(
+	(config) => {
+		// Get token from localStorage
+		if (typeof window !== "undefined") {
+			const token = localStorage.getItem("auth_token");
+			if (token) {
+				config.headers.Authorization = `Bearer ${token}`;
+			}
+		}
+		return config;
+	},
+	(error) => {
+		return Promise.reject(error);
+	}
+);
+
 // Response interceptor to handle 401 globally
 api.interceptors.response.use(
 	(response) => response,
@@ -23,6 +40,9 @@ api.interceptors.response.use(
 		if (status === 401 && !url?.includes("/auth/me")) {
 			try {
 				if (typeof window !== "undefined") {
+					// Clear token on 401
+					localStorage.removeItem("auth_token");
+					
 					// Only redirect if we're not already on auth pages
 					const currentPath = window.location.pathname;
 					if (!currentPath.startsWith("/auth/")) {
@@ -42,7 +62,14 @@ export default api;
 export const logoutRequest = async () => {
 	try {
 		await api.post("/auth/logout");
+		// Clear token from localStorage
+		if (typeof window !== "undefined") {
+			localStorage.removeItem("auth_token");
+		}
 	} catch (e) {
-		// ignore
+		// Clear token even if request fails
+		if (typeof window !== "undefined") {
+			localStorage.removeItem("auth_token");
+		}
 	}
 };
