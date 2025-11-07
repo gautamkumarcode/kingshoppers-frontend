@@ -74,10 +74,12 @@ export function UserDropdown() {
 	};
 
 	return (
-		<DropdownMenu>
+		<DropdownMenu modal={false}>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" className="flex items-center gap-2 h-auto p-2">
-					<Avatar className="h-8 w-8">
+				<Button
+					variant="ghost"
+					className="flex items-center gap-2 h-auto p-2 min-w-10">
+					<Avatar className="h-8 w-8 shrink-0">
 						<AvatarFallback className="text-xs font-medium">
 							{getInitials()}
 						</AvatarFallback>
@@ -90,10 +92,10 @@ export function UserDropdown() {
 							{user.shopName && user.ownerName ? user.shopName : user.phone}
 						</span>
 					</div>
-					<ChevronDown className="h-4 w-4 text-muted-foreground" />
+					<ChevronDown className="hidden sm:block h-4 w-4 text-muted-foreground shrink-0" />
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent className="w-64" align="end" forceMount>
+			<DropdownMenuContent className="w-64" align="end" sideOffset={5}>
 				<DropdownMenuLabel className="font-normal">
 					<div className="flex flex-col space-y-2">
 						<div className="flex items-center justify-between">

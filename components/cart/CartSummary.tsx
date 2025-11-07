@@ -26,54 +26,58 @@ export function CartSummary() {
 
 	return (
 		<Card>
-			<CardHeader>
-				<CardTitle className="flex items-center gap-2">
-					<ShoppingCart className="h-5 w-5" />
+			<CardHeader className="pb-3 md:pb-6">
+				<CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+					<ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />
 					Cart Summary
 				</CardTitle>
 			</CardHeader>
-			<CardContent className="space-y-4">
+			<CardContent className="space-y-3 md:space-y-4">
 				{/* Quick Stats */}
-				<div className="grid grid-cols-2 gap-4">
-					<div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
-						<Package className="h-4 w-4 text-blue-600" />
-						<div>
-							<p className="text-xs text-gray-600">Items</p>
-							<p className="font-semibold">{summary.totalItems}</p>
+				<div className="grid grid-cols-2 gap-3 md:gap-4">
+					<div className="flex items-center gap-2 p-2.5 md:p-3 bg-blue-50 rounded-lg">
+						<Package className="h-4 w-4 text-blue-600 shrink-0" />
+						<div className="min-w-0">
+							<p className="text-[10px] md:text-xs text-gray-600">Items</p>
+							<p className="font-semibold text-sm md:text-base truncate">
+								{summary.totalItems}
+							</p>
 						</div>
 					</div>
-					<div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
-						<TrendingUp className="h-4 w-4 text-green-600" />
-						<div>
-							<p className="text-xs text-gray-600">Quantity</p>
-							<p className="font-semibold">{summary.totalQuantity}</p>
+					<div className="flex items-center gap-2 p-2.5 md:p-3 bg-green-50 rounded-lg">
+						<TrendingUp className="h-4 w-4 text-green-600 shrink-0" />
+						<div className="min-w-0">
+							<p className="text-[10px] md:text-xs text-gray-600">Quantity</p>
+							<p className="font-semibold text-sm md:text-base truncate">
+								{summary.totalQuantity}
+							</p>
 						</div>
 					</div>
 				</div>
 
 				{/* Price Breakdown */}
-				<div className="space-y-2 border-t pt-4">
-					<div className="flex justify-between text-sm">
+				<div className="space-y-2 border-t pt-3 md:pt-4">
+					<div className="flex justify-between text-xs md:text-sm">
 						<span>Subtotal</span>
-						<span>{formatted.subtotal}</span>
+						<span className="font-medium">{formatted.subtotal}</span>
 					</div>
 
 					{summary.savings > 0 && (
-						<div className="flex justify-between text-sm text-green-600">
+						<div className="flex justify-between text-xs md:text-sm text-green-600">
 							<span className="flex items-center gap-1">
 								<Percent className="h-3 w-3" />
 								Savings
 							</span>
-							<span>-{formatted.savings}</span>
+							<span className="font-medium">-{formatted.savings}</span>
 						</div>
 					)}
 
-					<div className="flex justify-between text-sm">
+					<div className="flex justify-between text-xs md:text-sm">
 						<span>GST</span>
-						<span>{formatted.totalGST}</span>
+						<span className="font-medium">{formatted.totalGST}</span>
 					</div>
 
-					<div className="flex justify-between font-semibold text-lg border-t pt-2">
+					<div className="flex justify-between font-semibold text-base md:text-lg border-t pt-2">
 						<span>Total</span>
 						<span>{formatted.total}</span>
 					</div>
@@ -81,8 +85,8 @@ export function CartSummary() {
 
 				{/* Discount Info */}
 				{summary.averageDiscount > 0 && (
-					<div className="bg-green-50 p-3 rounded-lg">
-						<p className="text-sm text-green-800">
+					<div className="bg-green-50 p-2.5 md:p-3 rounded-lg">
+						<p className="text-xs md:text-sm text-green-800">
 							You're saving {formatted.averageDiscount} on average!
 						</p>
 					</div>
@@ -90,7 +94,7 @@ export function CartSummary() {
 
 				{/* Checkout Button */}
 				<Button
-					className="w-full"
+					className="w-full h-10 md:h-11 text-sm md:text-base"
 					disabled={!canCheckout()}
 					asChild={canCheckout()}>
 					{canCheckout() ? (
@@ -100,8 +104,8 @@ export function CartSummary() {
 					)}
 				</Button>
 
-				{/* Continue Shopping */}
-				<Link href="/products">
+				{/* Continue Shopping - Desktop Only */}
+				<Link href="/products" className="hidden md:block">
 					<Button variant="outline" className="w-full">
 						Continue Shopping
 					</Button>

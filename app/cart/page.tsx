@@ -59,48 +59,54 @@ export default function CartPage() {
 	}
 
 	return (
-		<div className="container mx-auto px-4 py-8">
+		<div className="container mx-auto px-4 py-4 md:py-8 mb-20 md:mb-0">
 			{/* Header */}
-			<div className="flex items-center justify-between mb-8">
-				<div className="flex items-center gap-4">
-					<Link href="/products">
-						<Button variant="outline" size="sm">
-							<ArrowLeft className="h-4 w-4 mr-2" />
-							Continue Shopping
-						</Button>
-					</Link>
-					<div>
-						<h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
-						<p className="text-gray-600">
-							{items.length} {items.length === 1 ? "item" : "items"} in your
-							cart
-						</p>
+			<div className="mb-4 md:mb-8">
+				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+					<div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+						<Link href="/products" className="w-fit">
+							<Button variant="outline" size="sm">
+								<ArrowLeft className="h-4 w-4 mr-2" />
+								<span className="hidden sm:inline">Continue Shopping</span>
+								<span className="sm:hidden">Back</span>
+							</Button>
+						</Link>
+						<div>
+							<h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+								Shopping Cart
+							</h1>
+							<p className="text-sm md:text-base text-gray-600">
+								{items.length} {items.length === 1 ? "item" : "items"} in your
+								cart
+							</p>
+						</div>
 					</div>
-				</div>
 
-				{items.length > 0 && (
-					<Button
-						variant="outline"
-						onClick={clearCart}
-						className="text-red-600 hover:text-red-700 hover:bg-red-50">
-						Clear Cart
-					</Button>
-				)}
+					{items.length > 0 && (
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={clearCart}
+							className="text-red-600 hover:text-red-700 hover:bg-red-50 w-fit">
+							Clear Cart
+						</Button>
+					)}
+				</div>
 			</div>
 
 			{/* Validation Errors */}
 			{hasErrors && (
-				<Card className="mb-6 border-red-200 bg-red-50">
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2 text-red-800">
-							<AlertTriangle className="h-5 w-5" />
+				<Card className="mb-4 md:mb-6 border-red-200 bg-red-50">
+					<CardHeader className="pb-3">
+						<CardTitle className="flex items-center gap-2 text-red-800 text-base md:text-lg">
+							<AlertTriangle className="h-4 w-4 md:h-5 md:w-5" />
 							Cart Issues
 						</CardTitle>
 					</CardHeader>
-					<CardContent>
+					<CardContent className="pt-0">
 						<div className="space-y-2">
 							{validationErrors.map((error, index) => (
-								<div key={index} className="text-sm text-red-700">
+								<div key={index} className="text-xs md:text-sm text-red-700">
 									• {error.message}
 								</div>
 							))}
@@ -109,15 +115,15 @@ export default function CartPage() {
 				</Card>
 			)}
 
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
 				{/* Cart Items */}
-				<div className="lg:col-span-2">
+				<div className="lg:col-span-2 space-y-4">
 					<Card>
-						<CardHeader>
-							<CardTitle>Cart Items</CardTitle>
+						<CardHeader className="pb-3 md:pb-6">
+							<CardTitle className="text-lg md:text-xl">Cart Items</CardTitle>
 						</CardHeader>
-						<CardContent>
-							<div className="space-y-4">
+						<CardContent className="pt-0">
+							<div className="space-y-3 md:space-y-4">
 								{items.map((item) => (
 									<CartItem
 										key={item.id}
@@ -130,8 +136,8 @@ export default function CartPage() {
 						</CardContent>
 					</Card>
 
-					{/* Additional Actions */}
-					<div className="mt-6 flex flex-col sm:flex-row gap-4">
+					{/* Additional Actions - Desktop Only */}
+					<div className="hidden md:flex flex-col sm:flex-row gap-4">
 						<Link href="/products" className="flex-1">
 							<Button variant="outline" className="w-full">
 								Continue Shopping
@@ -149,11 +155,11 @@ export default function CartPage() {
 
 				{/* Cart Summary */}
 				<div className="lg:col-span-1">
-					<div className="sticky top-4">
+					<div className="lg:sticky lg:top-4">
 						<CartSummary />
 
 						{/* Additional Info */}
-						<Card className="mt-4">
+						<Card className="mt-4 hidden md:block">
 							<CardContent className="p-4">
 								<div className="space-y-3 text-sm text-gray-600">
 									<div className="flex items-center gap-2">

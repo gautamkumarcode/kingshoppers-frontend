@@ -58,10 +58,12 @@ export default function HomePage() {
 				{/* Overlay for better text visibility */}
 				<div className="absolute inset-0 bg-black/40" />
 
-				<div className="relative max-w-7xl mx-auto px-4 text-center text-white">
-					<h1 className="text-5xl font-bold mb-4">
-						<marquee>Welcome to King Shoppers</marquee>
-					</h1>
+				<div className="relative  mx-auto px-4 text-center text-white">
+					<div className="overflow-hidden">
+						<h1 className="text-5xl font-bold mb-4 animate-marquee whitespace-nowrap">
+							Welcome to King Shoppers
+						</h1>
+					</div>
 
 					<p className="text-xl text-black-600 mb-8">
 						Welcome to Smart King Shopper, your trusted online destination for

@@ -112,9 +112,9 @@ export function CartItem({
 	}
 
 	return (
-		<div className="flex gap-4 p-4 border rounded-lg bg-white">
+		<div className="flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg bg-white">
 			{/* Product Image */}
-			<div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+			<div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-lg flex items-center justify-center shrink-0 mx-auto sm:mx-0">
 				{item.image ? (
 					<img
 						src={item.image}
@@ -122,7 +122,7 @@ export function CartItem({
 						className="w-full h-full object-cover rounded-lg"
 					/>
 				) : (
-					<Package className="h-8 w-8 text-gray-400" />
+					<Package className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
 				)}
 			</div>
 
@@ -131,17 +131,36 @@ export function CartItem({
 				<div>
 					<Link
 						href={`/products/${item.slug || item.productId}`}
-						className="font-semibold text-lg hover:text-blue-600 transition-colors">
+						className="font-semibold text-base sm:text-lg hover:text-blue-600 transition-colors line-clamp-2">
 						{item.name}
 					</Link>
-					<p className="text-gray-600">{item.variantName}</p>
-					<p className="text-sm text-gray-500">
+					<p className="text-sm sm:text-base text-gray-600">
+						{item.variantName}
+					</p>
+					<p className="text-xs sm:text-sm text-gray-500">
 						{item.packSize} {item.packType} • {item.brand}
 					</p>
 				</div>
 
-				{/* Price Info */}
-				<div className="flex items-center gap-2">
+				{/* Price Info - Mobile */}
+				<div className="flex items-center gap-2 sm:hidden">
+					<span className="font-semibold text-base">
+						{formatPrice(item.price)}
+					</span>
+					{discountPercent > 0 && (
+						<>
+							<span className="text-xs text-gray-500 line-through">
+								{formatPrice(item.mrp)}
+							</span>
+							<span className="text-xs text-green-600 font-medium">
+								{discountPercent}% off
+							</span>
+						</>
+					)}
+				</div>
+
+				{/* Price Info - Desktop */}
+				<div className="hidden sm:flex items-center gap-2">
 					<span className="font-semibold text-lg">
 						{formatPrice(item.price)}
 					</span>
@@ -159,18 +178,116 @@ export function CartItem({
 
 				{/* Stock Status */}
 				{item.stock <= 5 && item.stock > 0 && (
-					<p className="text-sm text-orange-600">
+					<p className="text-xs sm:text-sm text-orange-600">
 						Only {item.stock} left in stock
 					</p>
 				)}
 
 				{item.stock === 0 && (
-					<p className="text-sm text-red-600 font-medium">Out of stock</p>
+					<p className="text-xs sm:text-sm text-red-600 font-medium">
+						Out of stock
+					</p>
+				)}
+
+				{/* Mobile: Quantity Controls & Actions */}
+				<div className="flex items-center justify-between gap-3 sm:hidden">
+					{/* Quantity Controls */}
+					{showQuantityControls && (
+						<div className="flex items-center gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={handleDecrement}
+								disabled={isUpdating || item.quantity <= 1}
+								className="h-8 w-8 p-0"
+								aria-label="Decrease quantity">
+								<Minus className="h-3 w-3" />
+							</Button>
+
+							<div className="relative w-12 h-8">
+								{isUpdating ? (
+									<div className="absolute inset-0 flex items-center justify-center bg-white border rounded-md">
+										<Loader2 className="h-3 w-3 animate-spin text-primary" />
+									</div>
+								) : (
+									<Input
+										type="number"
+										value={item.quantity}
+										onChange={(e) => {
+											e.preventDefault();
+											e.stopPropagation();
+											const newQty = parseInt(e.target.value) || 0;
+											if (newQty !== item.quantity && newQty > 0) {
+												handleQuantityChange(newQty);
+											}
+										}}
+										className="w-full h-full text-center text-sm"
+										min={item.moq}
+										max={item.stock}
+										disabled={isUpdating}
+										aria-label="Quantity"
+									/>
+								)}
+							</div>
+
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={handleIncrement}
+								disabled={isUpdating || item.quantity >= item.stock}
+								className="h-8 w-8 p-0"
+								aria-label="Increase quantity">
+								<Plus className="h-3 w-3" />
+							</Button>
+						</div>
+					)}
+
+					{/* Total and Remove */}
+					<div className="flex items-center gap-2">
+						<div className="text-right">
+							<p className="font-semibold text-base">
+								{formatPrice(itemTotal)}
+							</p>
+							{itemSavings > 0 && (
+								<p className="text-xs text-green-600">
+									Save {formatPrice(itemSavings)}
+								</p>
+							)}
+						</div>
+
+						{/* Remove Button */}
+						{showRemoveButton && (
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								onClick={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									if (!isUpdating) {
+										removeItem(item.productId, item.variantId);
+									}
+								}}
+								disabled={isUpdating}
+								className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0">
+								<Trash2 className="h-4 w-4" />
+							</Button>
+						)}
+					</div>
+				</div>
+
+				{/* MOQ Info - Mobile */}
+				{item.moq > 1 && (
+					<p className="text-xs text-gray-500 sm:hidden">
+						Min: {item.moq} units
+					</p>
 				)}
 			</div>
 
-			{/* Quantity Controls & Actions */}
-			<div className="flex flex-col items-end gap-3">
+			{/* Desktop: Quantity Controls & Actions */}
+			<div className="hidden sm:flex flex-col items-end gap-3">
 				{/* Item Total */}
 				<div className="text-right">
 					<p className="font-semibold text-lg">{formatPrice(itemTotal)}</p>
