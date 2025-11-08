@@ -174,7 +174,9 @@ export default function CartPage() {
 										<span className="w-2 h-2 bg-purple-500 rounded-full"></span>
 										<span>Secure payment options</span>
 									</div>
+								 
 								</div>
+							
 							</CardContent>
 						</Card>
 					</div>
