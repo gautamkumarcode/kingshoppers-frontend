@@ -99,39 +99,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section
-        className="relative bg-cover bg-center bg-no-repeat py-20"
-        style={{
-          backgroundImage:
-            "url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSApRYg6X880zej2UlumRztM6qJj_zw29vu6Q&s')",
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">
-            Join the King Shopper Community
-          </h2>
-          <p className="text-lg text-muted-foreground mb-8">
-            Join the King Shopper community and enjoy early access to new
-            arrivals, members-only discounts, and royal shopping rewards!
-          </p>
-          <Link href="/auth/register">
-            <Button size="lg" className="bg-black rounded-3xl text-white hover:bg-blue-800">
-              Sign Up Today
-            </Button>
-          </Link>
-<br /><br />
-        
-          {/* <Button> Terms & Condition </Button> */}
-		    <Button size="sm"  className="bg-black rounded-3xl text-white hover:bg-blue-800" >
-            <Link href="/refund-policy">
-              <strong>Terms & Condition</strong>
-            </Link>
-            <br />
-            <br />
-          </Button>
-        </div>
-		
-      </section>
+    
     </main>
   );
 }

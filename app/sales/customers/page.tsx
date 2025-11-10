@@ -36,7 +36,7 @@ export default function CustomersPage() {
     try {
       const response = await apiCall("/api/sales/customers")
       const data = await response.json()
-      setCustomers(data)
+      setCustomers([])
     } catch (error) {
       console.error("Failed to fetch customers:", error)
     } finally {
@@ -99,7 +99,7 @@ export default function CustomersPage() {
   )
 
   return (
-    <AuthGuard requiredRole="sales_executive">
+    <AuthGuard requiredRole="admin">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Customers</h1>

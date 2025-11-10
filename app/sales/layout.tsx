@@ -26,10 +26,10 @@ export default function SalesLayout({
 
 	useEffect(() => {
 		if (loading) return;
-		if (!user || user.userTypes !== "sales_executive") {
-			router.push("/auth/login");
-			return;
-		}
+		// if (!user || user.userTypes !== "sales_executive") {
+		// 	router.push("/auth/login");
+		// 	return;
+		// }
 	}, [router]);
 
 	const handleLogout = () => {
