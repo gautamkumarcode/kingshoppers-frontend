@@ -163,10 +163,14 @@ export default function LoginPage() {
 					</form>
 				)}
 
-				<div className="mt-4 text-center text-sm">
-					Don't have an account?{" "}
-					<Link href="/auth/register" className="text-primary hover:underline">
-						Register here
+				<div className="mt-4 pt-4 border-t text-center text-sm">
+					<p className="text-muted-foreground mb-2">
+						Admin or Sales Executive?
+					</p>
+					<Link
+						href="/auth/admin-login"
+						className="text-primary hover:underline font-medium">
+						Login with Password →
 					</Link>
 				</div>
 			</CardContent>

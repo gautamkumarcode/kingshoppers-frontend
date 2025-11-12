@@ -49,8 +49,15 @@ export interface User {
 	specialPricing: any[];
 	createdAt: Date;
 	updatedAt: Date;
-	userTypes: string;
+	// Support both userTypes (Customer schema) and userType (User schema)
+	userTypes?: string;
+	userType?: string;
 	email: string;
+	// Admin/Sales Executive specific fields
+	firstName?: string;
+	lastName?: string;
+	assignedArea?: string;
+	incentivePercentage?: number;
 	__v: number;
 }
 

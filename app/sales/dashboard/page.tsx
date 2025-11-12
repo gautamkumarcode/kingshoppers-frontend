@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { apiCall } from "@/lib/auth"
-import { Users, ShoppingCart, TrendingUp, Award } from "lucide-react"
+import { Award, ShoppingCart, TrendingUp, Users } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function SalesDashboard() {
   const [stats, setStats] = useState({
@@ -20,7 +20,7 @@ export default function SalesDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await apiCall("/api/sales/dashboard")
+      const response = await apiCall("/sales/dashboard");
       const data = await response.json()
       setStats(data)
     } catch (error) {

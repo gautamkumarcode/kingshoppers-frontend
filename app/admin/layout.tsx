@@ -5,6 +5,7 @@ import type React from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import {
+	Briefcase,
 	Image,
 	LayoutDashboard,
 	LogOut,
@@ -53,11 +54,22 @@ export default function AdminLayout({
 	}, []);
 
 	useEffect(() => {
+		console.log("🔍 Admin layout auth check:", {
+			loading,
+			user,
+			userType: user?.userType,
+			userTypes: user?.userTypes,
+		});
 		if (loading) return;
-		if (!user || user.userTypes !== "admin") {
-			router.push("/auth/login");
+		// Check for both userType (User schema) and userTypes (Customer schema)
+		const userTypeField = user?.userType || user?.userTypes;
+		console.log("📋 Extracted userTypeField:", userTypeField);
+		if (!user || userTypeField !== "admin") {
+			console.log("❌ Not authorized, redirecting to admin login");
+			router.push("/auth/admin-login");
 			return;
 		}
+		console.log("✅ Admin authorized");
 	}, [router, loading, user]);
 
 	const handleLogout = () => {
@@ -83,7 +95,11 @@ export default function AdminLayout({
 			href: "/admin/homepage-sections",
 		},
 		{ icon: Users, label: "Users", href: "/admin/users" },
-
+		{
+			icon: Briefcase,
+			label: "Sales Executives",
+			href: "/admin/sales-executives",
+		},
 		{ icon: Settings, label: "Settings", href: "/admin/settings" },
 	];
 

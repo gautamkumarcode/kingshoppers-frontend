@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import type React from "react";
 
@@ -26,11 +26,13 @@ export default function SalesLayout({
 
 	useEffect(() => {
 		if (loading) return;
-		if (!user || user.userTypes !== "sales_executive") {
-			router.push("/auth/login");
+		// Check for both userType (User schema) and userTypes (Customer schema)
+		const userTypeField = user?.userType || user?.userTypes;
+		if (!user || userTypeField !== "sales_executive") {
+			router.push("/auth/admin-login");
 			return;
 		}
-	}, [router]);
+	}, [router, loading, user]);
 
 	const handleLogout = () => {
 		logout();
@@ -98,7 +100,9 @@ export default function SalesLayout({
 					<h1 className="text-2xl font-bold">Sales Executive Portal</h1>
 					<div className="flex items-center gap-4">
 						<span className="text-sm text-muted-foreground">
-							{user.ownerName}
+							{user.firstName && user.lastName
+								? `${user.firstName} ${user.lastName}`
+								: user.ownerName || user.phone}
 						</span>
 						<Button
 							variant="outline"
