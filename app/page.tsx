@@ -99,7 +99,6 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-    
     </main>
   );
 }

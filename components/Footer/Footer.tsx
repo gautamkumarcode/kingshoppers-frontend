@@ -15,7 +15,7 @@ import {
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-r from-blue-500 via-blue-200 to-white text-gray-800">
+    <footer className="bg-gradient-to-r from-blue-600 via-blue-300 to-blue-500 text-gray-800">
       {/* 🔹 Newsletter / CTA Section */}
       <section
         className="relative bg-cover bg-center bg-no-repeat py-20"
@@ -36,38 +36,39 @@ const Footer = () => {
           <Link href="/auth/register">
             <Button
               size="lg"
-              className="bg-blue-400 hover:bg-blue-800 text-white font-semibold rounded-xl"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-semibold rounded-xl"
             >
               Sign Up Today
             </Button>
           </Link>
         </div>
       </section>
-      <div className="bg-blue-300 text-gray-600">
-        {/* 🌟 Main Footer Section */}
+
+      {/* 🌟 Main Footer Section */}
+      <div className="bg-gradient-to-r from-blue-400 via-blue-200 to-blue-300 text-gray-700">
         <div className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* 🏬 Brand Info */}
           <div>
             <h3 className="text-2xl font-bold text-white mb-4">King Shopper</h3>
-            <p className="text-white-100 mb-4 leading-relaxed">
+            <p className="text-gray-900 mb-4 leading-relaxed">
               Your one-stop grocery store — fresh produce, daily essentials, and
               exclusive deals delivered right to your door.
             </p>
-            <div className="flex items-start gap-3 text-red-400">
+            <div className="flex items-start gap-3 text-blue-700">
               <Mail size={18} className="mt-1" />
               <span>support@kingshopper.com</span>
             </div>
-            <div className="flex items-start gap-3 text-white-100 mt-2">
+            <div className="flex items-start gap-3 text-blue-700 mt-2">
               <Phone size={18} className="mt-1" />
               <span>+91 9876543210</span>
             </div>
-            <div className="flex items-start gap-3 text-white-100 mt-2">
+            <div className="flex items-start gap-3 text-blue-700 mt-2">
               <MapPin size={18} className="mt-1" />
               <span>Kandwa Road, Varanasi, Uttar Pradesh 221011</span>
             </div>
           </div>
 
-          {/* 🔗 Links Section (2 Columns in One Row) */}
+          {/* 🔗 Links Section */}
           <div className="sm:col-span-2">
             <div className="grid grid-cols-2 gap-8">
               {/* Quick Links */}
@@ -79,7 +80,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/about-us"
-                      className="hover:text-red-400 transition-colors"
+                      className="hover:text-white transition-colors"
                     >
                       About Us
                     </Link>
@@ -87,7 +88,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/contact-us"
-                      className="hover:text-red-400 transition-colors"
+                      className="hover:text-white transition-colors"
                     >
                       Contact Us
                     </Link>
@@ -95,7 +96,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/cancellation"
-                      className="hover:text-red-400 transition-colors"
+                      className="hover:text-white transition-colors"
                     >
                       Cancellation & Return
                     </Link>
@@ -103,7 +104,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/refund-policy"
-                      className="hover:text-red-400 transition-colors"
+                      className="hover:text-white transition-colors"
                     >
                       Terms & Conditions
                     </Link>
@@ -119,32 +120,32 @@ const Footer = () => {
                 <ul className="space-y-2">
                   <li>
                     <Link
-                      href="/"
-                      className="hover:text-red-400 transition-colors"
+                      href="/faqs"
+                      className="hover:text-blue-500 transition-colors"
                     >
                       FAQs
                     </Link>
                   </li>
                   <li>
                     <Link
-                      href="/"
-                      className="hover:text-red-400 transition-colors"
+                      href="/shipping-policy"
+                      className="hover:text-blue-500 transition-colors"
                     >
                       Shipping Policy
                     </Link>
                   </li>
                   <li>
                     <Link
-                      href="/"
-                      className="hover:text-red-400 transition-colors"
+                      href="/privacy-policy"
+                      className="hover:text-blue-500 transition-colors"
                     >
                       Privacy Policy
                     </Link>
                   </li>
                   <li>
                     <Link
-                      href="/"
-                      className="hover:text-red-400 transition-colors"
+                      href="/help-desk"
+                      className="hover:text-blue-500 transition-colors"
                     >
                       Help Desk
                     </Link>
@@ -153,14 +154,13 @@ const Footer = () => {
               </div>
             </div>
           </div>
+
           {/* 🌐 Social Media */}
           <div>
             <h4 className="text-lg font-semibold text-white mb-4">
-              <strong className="text-4xl">Follow Us</strong>
+              <strong className="text-3xl">Follow Us</strong>
             </h4>
-            <br />
-            <br />
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4 mt-6">
               <Link
                 href="/"
                 className="bg-[#1877F2] p-2 rounded-full hover:opacity-80 transition-transform transform hover:scale-110"
@@ -181,7 +181,7 @@ const Footer = () => {
               </Link>
               <Link
                 href="/"
-                className="bg-[#e61f1f] p-2 rounded-full hover:opacity-80 transition-transform transform hover:scale-110"
+                className="bg-[#FF0000] p-2 rounded-full hover:opacity-80 transition-transform transform hover:scale-110"
               >
                 <Youtube size={20} className="text-white" />
               </Link>
@@ -190,9 +190,10 @@ const Footer = () => {
         </div>
 
         {/* 🔹 Bottom Bar */}
-        <div className="border-t border-white-700 py-6 text-center text-black-800 text-sm">
+        <div className="border-t border-green-300 py-6 text-center text-gray-700 text-sm">
           © {new Date().getFullYear()}{" "}
-          <span className="text-white">King Shopper</span>. All rights reserved.
+          <span className="text-blue-600 font-semibold">King Shopper</span>. All
+          rights reserved.
         </div>
       </div>
     </footer>

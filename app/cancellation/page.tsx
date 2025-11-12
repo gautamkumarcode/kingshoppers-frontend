@@ -14,10 +14,10 @@ export default function CancellationReturn() {
               🛍️ Order Cancellation
             </h2>
             <p>
-              Orders can be cancelled within <strong>30 minutes</strong> of placing them, 
-              provided they have not been packed or dispatched. To cancel, 
-              please visit the <strong>“My Orders”</strong> section of your account 
-              or contact our support team.
+              Orders can be cancelled within <strong>30 minutes</strong> of
+              placing them, provided they have not been packed or dispatched. To
+              cancel, please visit the <strong>“My Orders”</strong> section of
+              your account or contact our support team.
             </p>
           </div>
 
@@ -26,10 +26,11 @@ export default function CancellationReturn() {
               🍎 Return Policy
             </h2>
             <p>
-              We ensure top quality, but if you receive any damaged, expired, or incorrect items, 
-              you can request a return within <strong>24 hours</strong> of delivery. 
-              Perishable goods like fruits, vegetables, and dairy are not eligible 
-              for return once delivered unless they arrive in a damaged condition.
+              We ensure top quality, but if you receive any damaged, expired, or
+              incorrect items, you can request a return within
+              <strong>24 hours</strong> of delivery. Perishable goods like
+              fruits, vegetables, and dairy are not eligible for return once
+              delivered unless they arrive in a damaged condition.
             </p>
           </div>
 
@@ -38,9 +39,10 @@ export default function CancellationReturn() {
               🔁 Refund Process
             </h2>
             <p>
-              Once your return is approved, the refund will be processed within 
-              <strong>3–5 business days</strong> to your original payment method. 
-              For COD orders, refunds will be issued via UPI or bank transfer.
+              Once your return is approved, the refund will be processed within
+              <strong>3–5 business days</strong> to your original payment
+              method. For COD orders, refunds will be issued via UPI or bank
+              transfer.
             </p>
           </div>
 
@@ -49,9 +51,9 @@ export default function CancellationReturn() {
               📦 Exchange Policy
             </h2>
             <p>
-              In case of damaged or incorrect products, we offer a quick exchange 
-              wherever possible. Replacement will be initiated immediately 
-              after verification.
+              In case of damaged or incorrect products, we offer a quick
+              exchange wherever possible. Replacement will be initiated
+              immediately after verification.
             </p>
           </div>
 
@@ -60,7 +62,8 @@ export default function CancellationReturn() {
               📞 Need Help?
             </h2>
             <p>
-              For cancellations, returns, or refunds, contact our support team at{" "}
+              For cancellations, returns, or refunds, contact our support team
+              at{" "}
               <a
                 href="mailto:support@freshbasket.com"
                 className="text-blue-600 hover:underline"
@@ -68,7 +71,10 @@ export default function CancellationReturn() {
                 support@KingShopper.com
               </a>{" "}
               or call us at{" "}
-              <span className="font-semibold text-blue-600">+91 98765 43210</span>.
+              <span className="font-semibold text-blue-600">
+                +91 98765 43210
+              </span>
+              .
             </p>
           </div>
         </div>
