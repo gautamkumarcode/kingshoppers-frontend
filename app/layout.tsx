@@ -9,51 +9,53 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type React from "react";
 import "./globals.css";
+import Footer from "@/components/Footer/Footer";
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-	title: "King shoppers",
-	description: "Your one-step towards new shopping style",
-	generator: "Aradhya tech",
-	applicationName: "King shoppers",
-	authors: [{ name: "Aradhya tech", url: "https://aradhyatech.com" }],
-	creator: "Aradhya tech",
-	keywords: [
-		"ecommerce",
-		"shopping",
-		"online shopping",
-		"deals",
-		"discounts",
-		"fashion",
-		"electronics",
-		"home decor",
-		"King shoppers",
-	],
-	icons: "@/public/logo.png",
+  title: "King shoppers",
+  description: "Your one-step towards new shopping style",
+  generator: "Aradhya tech",
+  applicationName: "King shoppers",
+  authors: [{ name: "Aradhya tech", url: "https://aradhyatech.com" }],
+  creator: "Aradhya tech",
+  keywords: [
+    "ecommerce",
+    "shopping",
+    "online shopping",
+    "deals",
+    "discounts",
+    "fashion",
+    "electronics",
+    "home decor",
+    "King shoppers",
+  ],
+  icons: "@/public/logo.png",
 };
 export default function RootLayout({
-	children,
+  children,
 }: Readonly<{
-	children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-	return (
-		<html lang="en">
-			<head></head>
-			<body className={`font-sans antialiased`}>
-				<AuthProvider>
-					<CartProvider>
-						<AppInitializer>
-							<Navbar />
-							{children}
-							<BottomNav />
-							<Toaster />
-							<Analytics />
-						</AppInitializer>
-					</CartProvider>
-				</AuthProvider>
-			</body>
-		</html>
-	);
+  return (
+    <html lang="en">
+      <head></head>
+      <body className={`font-sans antialiased`}>
+        <AuthProvider>
+          <CartProvider>
+            <AppInitializer>  
+              <Navbar />
+              {children}
+              <Footer/>
+              <BottomNav />
+              <Toaster />
+              <Analytics />
+            </AppInitializer>
+          </CartProvider>
+        </AuthProvider>
+      </body>
+    </html>
+  );
 }
