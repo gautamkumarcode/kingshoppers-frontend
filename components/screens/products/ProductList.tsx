@@ -28,9 +28,12 @@ import {
 	Star,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function ProductsPage() {
+	const router = useRouter();
+	const searchParams = useSearchParams();
 	const [products, setProducts] = useState<Product[]>([]);
 	const [categories, setCategories] = useState<any[]>([]);
 	const [brands, setBrands] = useState<any[]>([]);
@@ -43,7 +46,18 @@ export default function ProductsPage() {
 	const [page, setPage] = useState(1);
 	const [totalPages, setTotalPages] = useState(1);
 
+	// Read URL parameters on mount
 	useEffect(() => {
+		const categoryParam = searchParams.get("category");
+		const brandParam = searchParams.get("brand");
+		const searchParam = searchParams.get("search");
+		const sortParam = searchParams.get("sortBy");
+
+		if (categoryParam) setSelectedCategory(categoryParam);
+		if (brandParam) setSelectedBrand(brandParam);
+		if (searchParam) setSearch(searchParam);
+		if (sortParam) setSortBy(sortParam);
+
 		fetchInitialData();
 	}, []);
 

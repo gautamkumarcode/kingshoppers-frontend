@@ -35,6 +35,7 @@ export default function ProductDetailPage() {
 	const [selectedVariant, setSelectedVariant] = useState<any>(null);
 	const [quantity, setQuantity] = useState(1);
 	const [inputValue, setInputValue] = useState("1");
+	const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
 	useEffect(() => {
 		fetchProduct();
@@ -264,8 +265,10 @@ export default function ProductDetailPage() {
 						<div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
 							<img
 								src={
-									product.thumbnail ||
-									"/placeholder.svg?height=400&width=400&text=Product+Image"
+									product.images && product.images.length > 0
+										? product.images[selectedImageIndex]
+										: product.thumbnail ||
+										  "/placeholder.svg?height=400&width=400&text=Product+Image"
 								}
 								alt={product.name}
 								className="w-full h-full object-cover"
@@ -276,11 +279,16 @@ export default function ProductDetailPage() {
 								{product.images.map((img: string, idx: number) => (
 									<div
 										key={idx}
-										className="aspect-square bg-gray-100 rounded overflow-hidden">
+										onClick={() => setSelectedImageIndex(idx)}
+										className={`aspect-square bg-gray-100 rounded overflow-hidden cursor-pointer transition-all ${
+											selectedImageIndex === idx
+												? "ring-2 ring-primary ring-offset-2"
+												: "hover:opacity-75"
+										}`}>
 										<img
 											src={img || "/placeholder.svg?height=100&width=100"}
 											alt={`View ${idx + 1}`}
-											className="w-full h-full object-cover cursor-pointer hover:opacity-75 transition-opacity"
+											className="w-full h-full object-cover"
 										/>
 									</div>
 								))}

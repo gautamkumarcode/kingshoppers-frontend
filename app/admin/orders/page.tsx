@@ -128,7 +128,7 @@ export default function AdminOrdersPage() {
 		if (!selectedOrder) return;
 
 		try {
-			await api.put(`/orders/${selectedOrder._id}/status`, {
+			await api.put(`/admin/orders/${selectedOrder._id}/status`, {
 				status: updateData.status,
 				notes: updateData.notes,
 			});
