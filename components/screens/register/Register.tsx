@@ -143,6 +143,14 @@ export default function RegisterPage() {
 			// Registration successful - user is now logged in via cookie
 			await login(data.user, data.token);
 
+			// Check for redirect URL from sessionStorage
+			const redirectUrl = sessionStorage.getItem("redirectAfterLogin");
+			if (redirectUrl) {
+				sessionStorage.removeItem("redirectAfterLogin");
+				router.push(redirectUrl);
+				return;
+			}
+
 			// Redirect to pending approval or products page
 			if (!data.user.isApproved) {
 				router.push("/pending-approval");

@@ -100,7 +100,11 @@ export default function AdminLayout({
 			label: "Sales Executives",
 			href: "/admin/sales-executives",
 		},
-		{ icon: Settings, label: "Settings", href: "/admin/settings" },
+		{
+			icon: Settings,
+			label: "Business Settings",
+			href: "/admin/business-settings",
+		},
 	];
 
 	// whether to show full labels (desktop expanded OR mobile overlay open)

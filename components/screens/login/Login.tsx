@@ -78,6 +78,14 @@ export default function LoginPage() {
 			// Update auth context with user data
 			await login(data.user, data.token);
 
+			// Check for redirect URL from sessionStorage
+			const redirectUrl = sessionStorage.getItem("redirectAfterLogin");
+			if (redirectUrl) {
+				sessionStorage.removeItem("redirectAfterLogin");
+				router.push(redirectUrl);
+				return;
+			}
+
 			if (data.user.userTypes == "admin") {
 				router.push("/admin/dashboard");
 				return;

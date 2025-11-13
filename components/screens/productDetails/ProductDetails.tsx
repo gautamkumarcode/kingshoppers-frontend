@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/useCart";
 import api from "@/lib/api";
@@ -20,12 +21,14 @@ import {
 	Truck,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function ProductDetailPage() {
 	const params = useParams();
+	const router = useRouter();
 	const { toast } = useToast();
+	const { user } = useAuth();
 	const { addProductToCart } = useCart();
 	const [product, setProduct] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
@@ -153,6 +156,25 @@ export default function ProductDetailPage() {
 	};
 
 	const handleAddToCart = () => {
+		// Check if user is logged in
+		if (!user) {
+			// Save current URL to redirect back after login
+			const currentPath = window.location.pathname;
+			sessionStorage.setItem("redirectAfterLogin", currentPath);
+
+			toast({
+				title: "Login Required",
+				description: "Please login to add items to your cart",
+				variant: "destructive",
+			});
+
+			// Redirect to login page after showing toast
+			setTimeout(() => {
+				router.push("/auth/login");
+			}, 1500);
+			return;
+		}
+
 		if (!selectedVariant) {
 			toast({
 				title: "Error",
@@ -190,12 +212,30 @@ export default function ProductDetailPage() {
 			});
 		} catch (error) {
 			console.error("Error adding to cart:", error);
-			toast({
-				title: "Error",
-				description:
-					error instanceof Error ? error.message : "Failed to add to cart",
-				variant: "destructive",
-			});
+
+			// Check if it's a login required error
+			if (error instanceof Error && error.message === "LOGIN_REQUIRED") {
+				// Save current URL to redirect back after login
+				const currentPath = window.location.pathname;
+				sessionStorage.setItem("redirectAfterLogin", currentPath);
+
+				toast({
+					title: "Login Required",
+					description: "Please login to add items to your cart",
+					variant: "destructive",
+				});
+
+				setTimeout(() => {
+					router.push("/auth/login");
+				}, 1500);
+			} else {
+				toast({
+					title: "Error",
+					description:
+						error instanceof Error ? error.message : "Failed to add to cart",
+					variant: "destructive",
+				});
+			}
 		}
 	};
 
@@ -275,7 +315,9 @@ export default function ProductDetailPage() {
 									<div className="flex items-center gap-2">
 										<span className="font-medium">Brand:</span>
 										<Badge variant="outline">
-											{product.brand.name || product.brand}
+											{typeof product.brand === "object"
+												? product.brand.name
+												: product.brand}
 										</Badge>
 									</div>
 								)}
@@ -283,7 +325,9 @@ export default function ProductDetailPage() {
 									<div className="flex items-center gap-2">
 										<span className="font-medium">Category:</span>
 										<Badge variant="outline">
-											{product.category.name || product.category}
+											{typeof product.category === "object"
+												? product.category.name
+												: product.category}
 										</Badge>
 									</div>
 								)}

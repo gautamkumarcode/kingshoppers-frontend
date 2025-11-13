@@ -17,6 +17,7 @@ export interface CartItem {
 	variantId: string;
 	name: string;
 	variantName: string;
+	slug?: string;
 	image?: string;
 	price: number;
 	mrp: number;
@@ -230,8 +231,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 				productId: product._id,
 				variantId: serverItem.variantId,
 				name: product.name,
+				slug: product.slug,
 				variantName: variant?.variantName || "Default Variant",
-				image: product.thumbnail || product.images?.[0],
+				image: product.thumbnail,
 				price: serverItem.price,
 				mrp: variant?.mrp || serverItem.price,
 				quantity: serverItem.quantity,
@@ -327,6 +329,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 		quantity: number = 1
 	) => {
 		try {
+			// Check if user is logged in
+			if (!user) {
+				throw new Error("LOGIN_REQUIRED");
+			}
+
 			// Validate required fields
 			if (!item.productId || !item.variantId || !item.name) {
 				throw new Error("Missing required product information");
@@ -353,12 +360,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 				} finally {
 					dispatch({ type: "SET_LOADING", payload: false });
 				}
-			} else {
-				// Add to local cart (for guest users)
-				dispatch({
-					type: "ADD_ITEM",
-					payload: { item, quantity: finalQuantity },
-				});
 			}
 		} catch (error) {
 			console.error("Error adding item to cart:", error);

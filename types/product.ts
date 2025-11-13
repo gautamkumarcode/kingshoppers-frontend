@@ -6,21 +6,22 @@ export interface ProductVariant {
 	packType: string;
 	mrp: number;
 	wholesalePrice: number;
-	costPrice: number;
-	discountPercentage: number;
-	discountedPrice: number;
 	stock: number;
-	lowStockAlert: number;
 	moq?: number;
 	weight?: number;
+	isActive: boolean;
+	isInStock: boolean;
+	// Fields below only available in admin/detail views
+	costPrice?: number;
+	discountPercentage?: number;
+	discountedPrice?: number;
+	lowStockAlert?: number;
 	dimensions?: {
 		length: number;
 		width: number;
 		height: number;
 	};
-	isActive: boolean;
-	isInStock: boolean;
-	tierPricing: TierPricing[];
+	tierPricing?: TierPricing[];
 }
 
 export interface TierPricing {
@@ -40,27 +41,33 @@ export interface Product {
 	_id: string;
 	name: string;
 	slug: string;
-	description: string;
 	shortDescription: string;
-	category: string | { _id: string; name: string; slug: string };
-	brand: string | { _id: string; name: string; slug: string; region?: string };
-	sku: string;
-	barcode?: string;
-	hsnCode?: string;
-	images: string[];
+	category: string | { _id: string; name: string; slug?: string } | null;
+	brand:
+		| string
+		| { _id: string; name: string; slug?: string; region?: string }
+		| null;
 	thumbnail: string;
 	variants: ProductVariant[];
-	specifications: ProductSpecification[];
-	moq: number;
-	isActive: boolean;
-	isFeatured: boolean;
 	gstPercentage: number;
+	isFeatured: boolean;
+	totalSold: number;
+	minPrice?: number; // Available in listing
+	// Fields below only available in detail views
+	description?: string;
+	images?: string[];
+	specifications?: ProductSpecification[];
+	keywords?: string[];
+	// Fields below only in admin views
+	sku?: string;
+	barcode?: string;
+	hsnCode?: string;
+	moq?: number;
+	isActive?: boolean;
 	metaTitle?: string;
 	metaDescription?: string;
-	keywords: string[];
-	totalSold: number;
-	viewCount: number;
+	viewCount?: number;
 	calculatedMargin?: number; // For high margin products
-	createdAt: string;
-	updatedAt: string;
+	createdAt?: string;
+	updatedAt?: string;
 }

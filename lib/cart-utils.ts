@@ -90,7 +90,10 @@ export function validateCartItems(items: CartItem[]): CartValidationError[] {
  * Format price with currency
  */
 export function formatPrice(amount: number, currency: string = "₹"): string {
-	return `${currency}${amount.toLocaleString("en-IN", {
+	// Round to 2 decimal places
+	const roundedAmount = Math.round(amount * 100) / 100;
+
+	return `${currency}${roundedAmount.toLocaleString("en-IN", {
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2,
 	})}`;

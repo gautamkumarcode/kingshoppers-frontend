@@ -3,7 +3,6 @@
 import { CartItem } from "@/components/cart/CartItem";
 import { CartSummary } from "@/components/cart/CartSummary";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCart } from "@/hooks/useCart";
 import { AlertTriangle, ArrowLeft, ShoppingCart } from "lucide-react";
 import Link from "next/link";
@@ -23,11 +22,13 @@ export default function CartPage() {
 
 	if (isLoading) {
 		return (
-			<div className="container mx-auto px-4 py-8">
-				<div className="flex items-center justify-center min-h-[400px]">
-					<div className="text-center">
-						<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-						<p className="text-gray-600">Loading your cart...</p>
+			<div className="min-h-screen bg-gray-50">
+				<div className="container mx-auto px-4 py-8">
+					<div className="flex items-center justify-center min-h-[500px]">
+						<div className="text-center">
+							<div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-blue-600 mx-auto mb-4"></div>
+							<p className="text-gray-600 text-lg">Loading your cart...</p>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -36,149 +37,184 @@ export default function CartPage() {
 
 	if (isEmpty) {
 		return (
-			<div className="container mx-auto px-4 py-8">
-				<div className="max-w-2xl mx-auto">
-					<Card>
-						<CardContent className="flex flex-col items-center justify-center py-12">
-							<ShoppingCart className="h-16 w-16 text-gray-400 mb-6" />
-							<h2 className="text-2xl font-semibold text-gray-900 mb-2">
-								Your cart is empty
-							</h2>
-							<p className="text-gray-600 mb-6 text-center">
-								Looks like you haven't added any items to your cart yet. Start
-								shopping to fill it up!
-							</p>
-							<Link href="/products">
-								<Button size="lg">Start Shopping</Button>
-							</Link>
-						</CardContent>
-					</Card>
+			<div className="min-h-screen bg-gray-50">
+				<div className="container mx-auto px-4 py-8 md:py-16">
+					<div className="max-w-2xl mx-auto">
+						<div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12">
+							<div className="flex flex-col items-center justify-center text-center">
+								<div className="w-20 h-20 md:w-24 md:h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+									<ShoppingCart className="h-10 w-10 md:h-12 md:w-12 text-gray-400" />
+								</div>
+								<h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+									Your cart is empty
+								</h2>
+								<p className="text-gray-600 mb-8 text-base md:text-lg max-w-md">
+									Looks like you haven't added any items to your cart yet. Start
+									shopping to fill it up!
+								</p>
+								<Link href="/products">
+									<Button size="lg" className="px-8">
+										<ShoppingCart className="h-5 w-5 mr-2" />
+										Start Shopping
+									</Button>
+								</Link>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="container mx-auto px-4 py-4 md:py-8 mb-20 md:mb-0">
-			{/* Header */}
-			<div className="mb-4 md:mb-8">
-				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-					<div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-						<Link href="/products" className="w-fit">
-							<Button variant="outline" size="sm">
-								<ArrowLeft className="h-4 w-4 mr-2" />
-								<span className="hidden sm:inline">Continue Shopping</span>
-								<span className="sm:hidden">Back</span>
-							</Button>
-						</Link>
+		<div className="min-h-screen bg-gray-50">
+			<div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 pb-24 md:pb-8">
+				{/* Header */}
+				<div className="mb-4 sm:mb-6">
+					<Link href="/products" className="inline-block mb-3 sm:mb-4">
+						<Button
+							variant="ghost"
+							size="sm"
+							className="gap-2 hover:bg-white -ml-2 sm:ml-0">
+							<ArrowLeft className="h-4 w-4" />
+							<span className="text-sm">Back to Shopping</span>
+						</Button>
+					</Link>
+
+					<div className="flex items-center justify-between gap-3">
 						<div>
-							<h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+							<h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1">
 								Shopping Cart
 							</h1>
-							<p className="text-sm md:text-base text-gray-600">
-								{items.length} {items.length === 1 ? "item" : "items"} in your
-								cart
+							<p className="text-xs sm:text-sm text-gray-600">
+								{items.length} {items.length === 1 ? "item" : "items"}
 							</p>
 						</div>
-					</div>
 
-					{items.length > 0 && (
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={clearCart}
-							className="text-red-600 hover:text-red-700 hover:bg-red-50 w-fit">
-							Clear Cart
-						</Button>
-					)}
-				</div>
-			</div>
-
-			{/* Validation Errors */}
-			{hasErrors && (
-				<Card className="mb-4 md:mb-6 border-red-200 bg-red-50">
-					<CardHeader className="pb-3">
-						<CardTitle className="flex items-center gap-2 text-red-800 text-base md:text-lg">
-							<AlertTriangle className="h-4 w-4 md:h-5 md:w-5" />
-							Cart Issues
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="pt-0">
-						<div className="space-y-2">
-							{validationErrors.map((error, index) => (
-								<div key={index} className="text-xs md:text-sm text-red-700">
-									• {error.message}
-								</div>
-							))}
-						</div>
-					</CardContent>
-				</Card>
-			)}
-
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
-				{/* Cart Items */}
-				<div className="lg:col-span-2 space-y-4">
-					<Card>
-						<CardHeader className="pb-3 md:pb-6">
-							<CardTitle className="text-lg md:text-xl">Cart Items</CardTitle>
-						</CardHeader>
-						<CardContent className="pt-0">
-							<div className="space-y-3 md:space-y-4">
-								{items.map((item) => (
-									<CartItem
-										key={item.id}
-										item={item}
-										showRemoveButton={true}
-										showQuantityControls={true}
-									/>
-								))}
-							</div>
-						</CardContent>
-					</Card>
-
-					{/* Additional Actions - Desktop Only */}
-					<div className="hidden md:flex flex-col sm:flex-row gap-4">
-						<Link href="/products" className="flex-1">
-							<Button variant="outline" className="w-full">
-								Continue Shopping
+						{items.length > 0 && (
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={clearCart}
+								className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3">
+								Clear
 							</Button>
-						</Link>
-
-						<Button
-							variant="outline"
-							onClick={clearCart}
-							className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50">
-							Clear All Items
-						</Button>
+						)}
 					</div>
 				</div>
 
-				{/* Cart Summary */}
-				<div className="lg:col-span-1">
-					<div className="lg:sticky lg:top-4">
-						<CartSummary />
-
-						{/* Additional Info */}
-						<Card className="mt-4 hidden md:block">
-							<CardContent className="p-4">
-								<div className="space-y-3 text-sm text-gray-600">
-									<div className="flex items-center gap-2">
-										<span className="w-2 h-2 bg-green-500 rounded-full"></span>
-										<span>Free delivery on orders above ₹500</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-										<span>Easy returns within 7 days</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-										<span>Secure payment options</span>
-									</div>
-								 
+				{/* Validation Errors */}
+				{hasErrors && (
+					<div className="mb-4 sm:mb-6 bg-red-50 border border-red-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
+						<div className="flex items-start gap-2 sm:gap-3">
+							<AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 shrink-0 mt-0.5" />
+							<div className="flex-1">
+								<h3 className="font-semibold text-sm sm:text-base text-red-900 mb-1.5">
+									Cart Issues
+								</h3>
+								<div className="space-y-1">
+									{validationErrors.map((error, index) => (
+										<p key={index} className="text-xs sm:text-sm text-red-700">
+											• {error.message}
+										</p>
+									))}
 								</div>
-							
-							</CardContent>
-						</Card>
+							</div>
+						</div>
+					</div>
+				)}
+
+				<div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 lg:gap-6">
+					{/* Cart Items */}
+					<div className="lg:col-span-8 space-y-3 sm:space-y-4">
+						{items.map((item) => (
+							<CartItem
+								key={item.id}
+								item={item}
+								showRemoveButton={true}
+								showQuantityControls={true}
+							/>
+						))}
+
+						{/* Additional Actions - Desktop Only */}
+						<div className="hidden md:flex gap-4 pt-2">
+							<Link href="/products" className="flex-1">
+								<Button variant="outline" className="w-full h-11">
+									<ArrowLeft className="h-4 w-4 mr-2" />
+									Continue Shopping
+								</Button>
+							</Link>
+
+							<Button
+								variant="outline"
+								onClick={clearCart}
+								className="flex-1 h-11 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200">
+								Clear All Items
+							</Button>
+						</div>
+					</div>
+
+					{/* Cart Summary Sidebar */}
+					<div className="lg:col-span-4">
+						<div className="lg:sticky lg:top-6 space-y-3 sm:space-y-4">
+							<CartSummary />
+
+							{/* Benefits Card - Hidden on mobile */}
+							<div className="hidden sm:block bg-white rounded-xl border border-gray-200 p-4 sm:p-5 shadow-sm">
+								<h3 className="font-semibold text-gray-900 mb-3 sm:mb-4 text-sm sm:text-base">
+									Why shop with us?
+								</h3>
+								<div className="space-y-3">
+									<div className="flex items-start gap-2.5 sm:gap-3">
+										<div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
+											<span className="text-green-600 text-base sm:text-lg">
+												✓
+											</span>
+										</div>
+										<div>
+											<p className="text-xs sm:text-sm font-medium text-gray-900">
+												Free Delivery
+											</p>
+											<p className="text-xs text-gray-600">
+												On orders above ₹500
+											</p>
+										</div>
+									</div>
+
+									<div className="flex items-start gap-2.5 sm:gap-3">
+										<div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
+											<span className="text-blue-600 text-base sm:text-lg">
+												↻
+											</span>
+										</div>
+										<div>
+											<p className="text-xs sm:text-sm font-medium text-gray-900">
+												Easy Returns
+											</p>
+											<p className="text-xs text-gray-600">
+												Within 7 days of delivery
+											</p>
+										</div>
+									</div>
+
+									<div className="flex items-start gap-2.5 sm:gap-3">
+										<div className="w-7 h-7 sm:w-8 sm:h-8 bg-purple-100 rounded-lg flex items-center justify-center shrink-0">
+											<span className="text-purple-600 text-base sm:text-lg">
+												🔒
+											</span>
+										</div>
+										<div>
+											<p className="text-xs sm:text-sm font-medium text-gray-900">
+												Secure Payment
+											</p>
+											<p className="text-xs text-gray-600">
+												100% secure transactions
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
