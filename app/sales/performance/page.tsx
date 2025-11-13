@@ -6,7 +6,7 @@ import { TrendingUp, Award, Target } from "lucide-react"
 
 export default function PerformancePage() {
   return (
-    <AuthGuard requiredRole="admin">
+    <AuthGuard requiredRole="sales_executive">
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Performance</h1>
 
