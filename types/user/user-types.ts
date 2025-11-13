@@ -6,8 +6,10 @@ export interface User {
 	shopName: string;
 	ownerName: string;
 	phone: string;
+	alternatePhone?: string;
 	shopType: string;
 	gstNumber: string;
+	panNumber?: string;
 	creditLimit: number;
 	creditUsed: number;
 	availableCredit: number;

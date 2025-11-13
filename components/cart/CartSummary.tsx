@@ -54,35 +54,28 @@ export function CartSummary() {
 						</div>
 					</div>
 				</div>
-
 				{/* Price Breakdown */}
 				<div className="space-y-2 border-t pt-3 md:pt-4">
-					<div className="flex justify-between text-xs md:text-sm">
-						<span>Subtotal</span>
-						<span className="font-medium">{formatted.subtotal}</span>
+					<div className="flex justify-between text-xs md:text-sm text-gray-600">
+						<span>Total MRP</span>
+						<span className="font-medium">{formatted.totalMRP}</span>
 					</div>
 
 					{summary.savings > 0 && (
 						<div className="flex justify-between text-xs md:text-sm text-green-600">
 							<span className="flex items-center gap-1">
 								<Percent className="h-3 w-3" />
-								Savings
+								Discount on MRP
 							</span>
 							<span className="font-medium">-{formatted.savings}</span>
 						</div>
 					)}
 
-					<div className="flex justify-between text-xs md:text-sm">
-						<span>GST</span>
-						<span className="font-medium">{formatted.totalGST}</span>
-					</div>
-
 					<div className="flex justify-between font-semibold text-base md:text-lg border-t pt-2">
-						<span>Total</span>
+						<span>Grand Total</span>
 						<span>{formatted.total}</span>
 					</div>
-				</div>
-
+				</div>{" "}
 				{/* Discount Info */}
 				{summary.averageDiscount > 0 && (
 					<div className="bg-green-50 p-2.5 md:p-3 rounded-lg">
@@ -91,7 +84,6 @@ export function CartSummary() {
 						</p>
 					</div>
 				)}
-
 				{/* Checkout Button */}
 				<Button
 					className="w-full h-10 md:h-11 text-sm md:text-base"
@@ -103,7 +95,6 @@ export function CartSummary() {
 						<span>Cannot Checkout</span>
 					)}
 				</Button>
-
 				{/* Continue Shopping - Desktop Only */}
 				<Link href="/products" className="hidden md:block">
 					<Button variant="outline" className="w-full">

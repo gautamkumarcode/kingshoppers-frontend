@@ -93,16 +93,27 @@ export function CartItem({
 						<Package className="h-6 w-6 text-gray-400" />
 					)}
 				</div>
-
 				{/* Product Info */}
 				<div className="flex-1 min-w-0">
 					<h4 className="font-medium text-sm truncate">{item.name}</h4>
 					<p className="text-xs text-gray-600 truncate">{item.variantName}</p>
-					<p className="text-sm font-semibold">
-						{formatPrice(item.price)} × {item.quantity}
+					<div className="flex items-center gap-2">
+						<p className="text-sm font-semibold">
+							{formatPrice(item.price)} × {item.quantity}
+						</p>
+						{discountPercent > 0 && (
+							<span className="text-xs text-green-600">
+								{discountPercent}% off
+							</span>
+						)}
+					</div>
+					<p className="text-xs text-gray-500">
+						MRP:{" "}
+						<span className={discountPercent > 0 ? "line-through" : ""}>
+							{formatPrice(item.mrp)}
+						</span>
 					</p>
-				</div>
-
+				</div>{" "}
 				{/* Total */}
 				<div className="text-right">
 					<p className="font-semibold">{formatPrice(itemTotal)}</p>
@@ -143,37 +154,43 @@ export function CartItem({
 				</div>
 
 				{/* Price Info - Mobile */}
-				<div className="flex items-center gap-2 sm:hidden">
-					<span className="font-semibold text-base">
-						{formatPrice(item.price)}
-					</span>
-					{discountPercent > 0 && (
-						<>
-							<span className="text-xs text-gray-500 line-through">
-								{formatPrice(item.mrp)}
-							</span>
+				<div className="flex flex-col gap-1 sm:hidden">
+					<div className="flex items-center gap-2">
+						<span className="font-semibold text-base">
+							{formatPrice(item.price)}
+						</span>
+						{discountPercent > 0 && (
 							<span className="text-xs text-green-600 font-medium">
 								{discountPercent}% off
 							</span>
-						</>
-					)}
+						)}
+					</div>
+					<div className="flex items-center gap-1 text-xs text-gray-500">
+						<span>MRP:</span>
+						<span className={discountPercent > 0 ? "line-through" : ""}>
+							{formatPrice(item.mrp)}
+						</span>
+					</div>
 				</div>
 
 				{/* Price Info - Desktop */}
-				<div className="hidden sm:flex items-center gap-2">
-					<span className="font-semibold text-lg">
-						{formatPrice(item.price)}
-					</span>
-					{discountPercent > 0 && (
-						<>
-							<span className="text-sm text-gray-500 line-through">
-								{formatPrice(item.mrp)}
-							</span>
+				<div className="hidden sm:flex flex-col gap-1">
+					<div className="flex items-center gap-2">
+						<span className="font-semibold text-lg">
+							{formatPrice(item.price)}
+						</span>
+						{discountPercent > 0 && (
 							<span className="text-sm text-green-600 font-medium">
 								{discountPercent}% off
 							</span>
-						</>
-					)}
+						)}
+					</div>
+					<div className="flex items-center gap-1 text-sm text-gray-500">
+						<span>MRP:</span>
+						<span className={discountPercent > 0 ? "line-through" : ""}>
+							{formatPrice(item.mrp)}
+						</span>
+					</div>
 				</div>
 
 				{/* Stock Status */}

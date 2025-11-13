@@ -460,36 +460,12 @@ export default function ProductDetailPage() {
 												{quantity} {selectedVariant.packType}(s)
 											</span>
 										</div>
-										<div className="flex justify-between">
-											<span>Subtotal:</span>
-											<span>
-												₹
-												{(selectedVariant.wholesalePrice * quantity).toFixed(2)}
-											</span>
-										</div>
-										<div className="flex justify-between text-sm text-muted-foreground">
-											<span>GST ({product.gstPercentage}%):</span>
-											<span>
-												₹
-												{(
-													(selectedVariant.wholesalePrice *
-														quantity *
-														product.gstPercentage) /
-													100
-												).toFixed(2)}
-											</span>
-										</div>
 									</div>
 									<Separator />
 									<div className="flex justify-between font-bold text-lg">
 										<span>Total Amount:</span>
 										<span className="text-primary">
-											₹
-											{(
-												selectedVariant.wholesalePrice *
-												quantity *
-												(1 + product.gstPercentage / 100)
-											).toFixed(2)}
+											₹{(selectedVariant.wholesalePrice * quantity).toFixed(2)}
 										</span>
 									</div>
 									<div className="text-xs text-muted-foreground text-center">

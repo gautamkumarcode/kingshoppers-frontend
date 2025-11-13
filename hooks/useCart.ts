@@ -109,6 +109,7 @@ export function useCart() {
 	 */
 	const getFormattedSummary = () => ({
 		subtotal: formatPrice(summary.subtotal),
+		totalMRP: formatPrice(summary.totalMRP),
 		totalGST: formatPrice(summary.totalGST),
 		total: formatPrice(summary.total),
 		savings: formatPrice(summary.savings),

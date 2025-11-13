@@ -20,9 +20,13 @@ export interface CartItem {
 
 export interface CartSummary {
 	subtotal: number;
+	totalMRP: number;
 	totalItems: number;
 	totalQuantity: number;
 	totalGST: number;
+	cgst: number;
+	sgst: number;
+	igst: number;
 	total: number;
 	savings: number;
 	averageDiscount: number;

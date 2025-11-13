@@ -2,33 +2,39 @@ import { CartItem, CartSummary, CartValidationError } from "@/types/cart";
 
 /**
  * Calculate cart summary with detailed breakdown
+ * Wholesale prices include GST
  */
 export function calculateCartSummary(items: CartItem[]): CartSummary {
+	// Calculate subtotal (sum of wholesale prices × quantities) - GST already included
 	const subtotal = items.reduce(
 		(sum, item) => sum + item.price * item.quantity,
 		0
 	);
-	const totalItems = items.length;
-	const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+	
+	// Calculate total MRP for display and savings calculation
 	const totalMRP = items.reduce(
 		(sum, item) => sum + item.mrp * item.quantity,
 		0
 	);
+	
+	const totalItems = items.length;
+	const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+	
 	const savings = totalMRP - subtotal;
 	const averageDiscount = totalMRP > 0 ? (savings / totalMRP) * 100 : 0;
 
-	const totalGST = items.reduce((sum, item) => {
-		const itemTotal = item.price * item.quantity;
-		return sum + (itemTotal * item.gstPercentage) / 100;
-	}, 0);
-
-	const total = subtotal + totalGST;
+	// Total = Subtotal (GST already included)
+	const total = subtotal;
 
 	return {
 		subtotal,
+		totalMRP,
 		totalItems,
 		totalQuantity,
-		totalGST,
+		totalGST: 0, // Not calculated separately
+		cgst: 0, // Not calculated separately
+		sgst: 0, // Not calculated separately
+		igst: 0, // Not calculated separately
 		total,
 		savings,
 		averageDiscount,
@@ -169,7 +175,6 @@ export function generateCartSummaryText(
 
 	text += `📊 Summary:\n`;
 	text += `Subtotal: ${formatPrice(summary.subtotal)}\n`;
-	text += `GST: ${formatPrice(summary.totalGST)}\n`;
 	text += `Total: ${formatPrice(summary.total)}\n`;
 	text += `Savings: ${formatPrice(summary.savings)}\n`;
 	text += `Items: ${summary.totalItems} | Quantity: ${summary.totalQuantity}`;

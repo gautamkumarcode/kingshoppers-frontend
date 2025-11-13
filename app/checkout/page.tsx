@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/useCart";
 import api from "@/lib/api";
+import { formatPrice } from "@/lib/cart-utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -20,7 +21,7 @@ export default function CheckoutPage() {
 	const router = useRouter();
 	const { toast } = useToast();
 	const { user, loading: authLoading } = useAuth();
-	const { items: cart, isEmpty, clearCart } = useCart();
+	const { items: cart, isEmpty, clearCart, summary } = useCart();
 	const [loading, setLoading] = useState(false);
 	const [paymentMethod, setPaymentMethod] = useState("cod");
 	const [walletBalance, setWalletBalance] = useState(0);
@@ -74,12 +75,10 @@ export default function CheckoutPage() {
 		setLoading(true);
 
 		try {
-			const subtotal = cart.reduce(
-				(sum, item) => sum + item.price * item.quantity,
-				0
-			);
-			const tax = Math.round(subtotal * 0.18);
-			let total = subtotal + tax;
+			// Use summary from useCart hook which has proper calculations
+			const subtotal = summary.subtotal;
+			const tax = 0; // GST is included in prices
+			let total = summary.total;
 
 			// Apply wallet discount if using wallet
 			if (useWallet && walletAmount > 0) {
@@ -94,13 +93,9 @@ export default function CheckoutPage() {
 
 			const orderData = {
 				items: cart.map((item) => ({
-					product: item.productId,
+					productId: item.productId,
 					variantId: item.variantId,
-					variantName: item.variantName,
 					quantity: item.quantity,
-					unitPrice: item.price,
-					subtotal: item.price * item.quantity,
-					total: item.price * item.quantity,
 				})),
 				deliveryAddress,
 				paymentMethod: useWallet ? "wallet" : paymentMethod,
@@ -160,12 +155,10 @@ export default function CheckoutPage() {
 		return <div className="text-center py-12">Loading...</div>;
 	}
 
-	const subtotal = cart.reduce(
-		(sum, item) => sum + item.price * item.quantity,
-		0
-	);
-	const tax = Math.round(subtotal * 0.18);
-	let total = subtotal + tax;
+	// Use properly calculated summary from useCart hook
+	const subtotal = summary.subtotal;
+	const tax = 0; // GST is included in prices
+	let total = summary.total;
 
 	if (useWallet && walletAmount > 0) {
 		total = Math.max(0, total - walletAmount);
@@ -336,39 +329,59 @@ export default function CheckoutPage() {
 							</CardHeader>
 							<CardContent className="space-y-4">
 								{/* Items */}
-								<div className="space-y-2 max-h-64 overflow-y-auto">
-									{cart.map((item, index) => (
-										<div key={index} className="flex justify-between text-sm">
-											<span className="text-muted-foreground">
-												{item.name} x {item.quantity}
-											</span>
-											<span>₹{item.price * item.quantity}</span>
-										</div>
-									))}
-								</div>
+								<div className="space-y-3 max-h-64 overflow-y-auto">
+									{cart.map((item, index) => {
+										const discountPercent =
+											item.mrp > item.price
+												? Math.round(((item.mrp - item.price) / item.mrp) * 100)
+												: 0;
 
+										return (
+											<div
+												key={index}
+												className="flex flex-col gap-1 pb-2 border-b last:border-0">
+												<div className="flex justify-between">
+													<span className="text-sm font-medium">
+														{item.name} x {item.quantity}
+													</span>
+													<span className="text-sm font-semibold">
+														{formatPrice(item.price * item.quantity)}
+													</span>
+												</div>
+												<div className="flex items-center gap-2 text-xs text-gray-500">
+													<span>{item.variantName}</span>
+													{discountPercent > 0 && (
+														<>
+															<span className="line-through">
+																MRP: {formatPrice(item.mrp * item.quantity)}
+															</span>
+															<span className="text-green-600 font-medium">
+																{discountPercent}% off
+															</span>
+														</>
+													)}
+												</div>
+											</div>
+										);
+									})}
+								</div>{" "}
 								{/* Totals */}
 								<div className="border-t pt-4 space-y-2 text-sm">
 									<div className="flex justify-between">
 										<span className="text-muted-foreground">Subtotal:</span>
-										<span>₹{subtotal}</span>
-									</div>
-									<div className="flex justify-between">
-										<span className="text-muted-foreground">Tax (18%):</span>
-										<span>₹{tax}</span>
+										<span>{formatPrice(subtotal)}</span>
 									</div>
 									{useWallet && walletAmount > 0 && (
 										<div className="flex justify-between text-green-600">
 											<span>Wallet Discount:</span>
-											<span>-₹{walletAmount}</span>
+											<span>-{formatPrice(walletAmount)}</span>
 										</div>
 									)}
 									<div className="border-t pt-2 flex justify-between font-bold text-lg">
-										<span>Total:</span>
-										<span className="text-primary">₹{total}</span>
+										<span>Grand Total:</span>
+										<span className="text-primary">{formatPrice(total)}</span>
 									</div>
-								</div>
-
+								</div>{" "}
 								{/* Place Order Button */}
 								<Button
 									className="w-full"
@@ -377,7 +390,6 @@ export default function CheckoutPage() {
 									disabled={loading || !user.shopAddress}>
 									{loading ? "Placing Order..." : "Place Order"}
 								</Button>
-
 								{!user.shopAddress && (
 									<p className="text-xs text-red-600 text-center mt-2">
 										Please update your profile with a shop address to place
@@ -387,8 +399,7 @@ export default function CheckoutPage() {
 							</CardContent>
 						</Card>
 
-
-						   <Link href="/invoice">Invoice</Link>
+						<Link href="/invoice">Invoice</Link>
 					</div>
 				</div>
 			</div>
