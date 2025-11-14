@@ -47,6 +47,15 @@ export interface User {
 		uploadedAt: string;
 	};
 	walletBalance?: number;
+	businessSettings?: {
+		businessName?: string;
+		bankDetails?: {
+			upiId?: string;
+			accountNumber?: string;
+			ifscCode?: string;
+			bankName?: string;
+		};
+	};
 	customerSince: Date;
 	specialPricing: any[];
 	createdAt: Date;

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import {
 	Briefcase,
+	CheckCircle,
+	CreditCard,
 	Image,
 	LayoutDashboard,
 	LogOut,
@@ -99,6 +101,16 @@ export default function AdminLayout({
 			icon: Briefcase,
 			label: "Sales Executives",
 			href: "/admin/sales-executives",
+		},
+		{
+			icon: CreditCard,
+			label: "Wallet Topups",
+			href: "/admin/wallet-topups",
+		},
+		{
+			icon: CheckCircle,
+			label: "Payment Verifications",
+			href: "/admin/payment-verifications",
 		},
 		{
 			icon: Settings,

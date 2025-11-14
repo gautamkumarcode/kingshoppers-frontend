@@ -12,22 +12,44 @@ import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/useCart";
 import api from "@/lib/api";
 import { formatPrice } from "@/lib/cart-utils";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check, Copy, Download, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { QRCodeCanvas } from "qrcode.react";
+import { useEffect, useRef, useState } from "react";
+
+interface BusinessSettings {
+	bankDetails?: {
+		upiId?: string;
+		accountNumber?: string;
+		ifscCode?: string;
+		bankName?: string;
+		accountHolderName?: string;
+	};
+	businessName?: string;
+}
 
 export default function CheckoutPage() {
 	const router = useRouter();
 	const { toast } = useToast();
-	const { user, loading: authLoading } = useAuth();
+	const { user, loading: authLoading, refreshUser } = useAuth();
 	const { items: cart, isEmpty, clearCart, summary } = useCart();
 	const [loading, setLoading] = useState(false);
 	const [paymentMethod, setPaymentMethod] = useState("cod");
 	const [walletBalance, setWalletBalance] = useState(0);
 	const [useWallet, setUseWallet] = useState(false);
-	const [walletAmount, setWalletAmount] = useState(0);
+	const [walletAmount, setWalletAmount] = useState<string>("");
 	const [deliverySlot, setDeliverySlot] = useState("morning");
+	const [showPaymentModal, setShowPaymentModal] = useState(false);
+	const [copiedField, setCopiedField] = useState<string | null>(null);
+	const qrRef = useRef<HTMLDivElement>(null);
+	const [showQR, setShowQR] = useState(false);
+	const [upiUrl, setUpiUrl] = useState("");
+	const [paymentReferenceId, setPaymentReferenceId] = useState("");
+	const [bankingName, setBankingName] = useState("");
+	const [businessSettings, setBusinessSettings] = useState<BusinessSettings>(
+		{}
+	);
 
 	useEffect(() => {
 		if (authLoading) return;
@@ -41,8 +63,9 @@ export default function CheckoutPage() {
 			return;
 		}
 
-		// Fetch wallet balance
+		// Fetch wallet balance and business settings
 		fetchWalletBalance();
+		fetchBusinessSettings();
 	}, [router, authLoading, user, isEmpty]);
 
 	const fetchWalletBalance = async () => {
@@ -51,6 +74,56 @@ export default function CheckoutPage() {
 			setWalletBalance(response.data.balance || 0);
 		} catch (error) {
 			console.error("Failed to fetch wallet:", error);
+		}
+	};
+
+	const fetchBusinessSettings = async () => {
+		try {
+			const response = await api.get("/business-settings");
+			setBusinessSettings(response.data || {});
+		} catch (error) {
+			console.error("Failed to fetch business settings:", error);
+		}
+	};
+
+	const generateQRCode = () => {
+		const amt = summary.total;
+		const vpa = businessSettings.bankDetails?.upiId || "business@upi";
+		const name = businessSettings.businessName || "King Shoppers";
+		const tn = "Order Payment";
+
+		const params = new URLSearchParams({
+			pa: vpa,
+			pn: name,
+			am: String(amt),
+			cu: "INR",
+			tn: tn,
+		});
+
+		const url = "upi://pay?" + params.toString();
+		setUpiUrl(url);
+		setShowQR(true);
+		setShowPaymentModal(true);
+	};
+
+	const copyToClipboard = async (text: string, field: string) => {
+		try {
+			await navigator.clipboard.writeText(text);
+			setCopiedField(field);
+			setTimeout(() => setCopiedField(null), 2000);
+		} catch (error) {
+			alert("Failed to copy");
+		}
+	};
+
+	const downloadQRCode = () => {
+		const canvas = qrRef.current?.querySelector("canvas");
+		if (canvas) {
+			const url = canvas.toDataURL("image/png");
+			const link = document.createElement("a");
+			link.download = `order-payment-qr-${summary.total}.png`;
+			link.href = url;
+			link.click();
 		}
 	};
 
@@ -68,9 +141,11 @@ export default function CheckoutPage() {
 			return;
 		}
 
-		console.log("User object:", user);
-		console.log("Shop address:", user.shopAddress);
-		console.log("Cart items:", cart);
+		// If online payment is selected and no payment reference, show payment modal
+		if (paymentMethod === "online" && !paymentReferenceId && !useWallet) {
+			generateQRCode();
+			return;
+		}
 
 		setLoading(true);
 
@@ -81,8 +156,9 @@ export default function CheckoutPage() {
 			let total = summary.total;
 
 			// Apply wallet discount if using wallet
-			if (useWallet && walletAmount > 0) {
-				total = Math.max(0, total - walletAmount);
+			const walletAmountNum = Number.parseFloat(walletAmount) || 0;
+			if (useWallet && walletAmountNum > 0) {
+				total = Math.max(0, total - walletAmountNum);
 			}
 
 			// Use the shop address as delivery address
@@ -98,7 +174,20 @@ export default function CheckoutPage() {
 					quantity: item.quantity,
 				})),
 				deliveryAddress,
-				paymentMethod: useWallet ? "wallet" : paymentMethod,
+				paymentMethod: useWallet
+					? walletAmountNum >= summary.total
+						? "wallet"
+						: "cod"
+					: paymentMethod,
+				walletAdvance: useWallet ? walletAmountNum : 0,
+				...(paymentMethod === "online" && paymentReferenceId
+					? {
+							paymentDetails: {
+								transactionId: paymentReferenceId,
+								bankingName: bankingName,
+							},
+					  }
+					: {}),
 			};
 
 			console.log("Order data being sent:", orderData);
@@ -120,15 +209,35 @@ export default function CheckoutPage() {
 			const data = response.data;
 
 			// If using wallet, process wallet payment
-			if (useWallet && walletAmount > 0) {
-				await api.post("/wallet/use-for-payment", {
-					amount: walletAmount,
+			if (useWallet && walletAmountNum > 0) {
+				console.log("Processing wallet payment:", {
+					amount: walletAmountNum,
 					orderId: data.order._id,
 				});
+				try {
+					const walletResponse = await api.post("/wallet/use-for-payment", {
+						amount: walletAmountNum,
+						orderId: data.order._id,
+					});
+					console.log("Wallet payment response:", walletResponse.data);
+					// Refresh user to update wallet balance
+					await refreshUser();
+				} catch (walletError: any) {
+					console.error("Wallet payment error:", walletError);
+					throw new Error(
+						walletError.response?.data?.message || "Wallet payment failed"
+					);
+				}
 			}
 
 			// Clear cart
 			clearCart();
+
+			// Close payment modal and reset payment fields
+			setShowPaymentModal(false);
+			setShowQR(false);
+			setPaymentReferenceId("");
+			setBankingName("");
 
 			toast({
 				title: "Success",
@@ -158,10 +267,11 @@ export default function CheckoutPage() {
 	// Use properly calculated summary from useCart hook
 	const subtotal = summary.subtotal;
 	const tax = 0; // GST is included in prices
+	const walletAmountNum = Number.parseFloat(walletAmount) || 0;
 	let total = summary.total;
 
-	if (useWallet && walletAmount > 0) {
-		total = Math.max(0, total - walletAmount);
+	if (useWallet && walletAmountNum > 0) {
+		total = Math.max(0, total - walletAmountNum);
 	}
 
 	return (
@@ -290,7 +400,7 @@ export default function CheckoutPage() {
 											checked={useWallet}
 											onChange={(e) => {
 												setUseWallet(e.target.checked);
-												if (!e.target.checked) setWalletAmount(0);
+												if (!e.target.checked) setWalletAmount("");
 											}}
 											className="w-4 h-4"
 										/>
@@ -303,16 +413,22 @@ export default function CheckoutPage() {
 												id="walletAmount"
 												type="number"
 												value={walletAmount}
-												onChange={(e) =>
-													setWalletAmount(
-														Math.min(
+												onChange={(e) => {
+													const value = e.target.value;
+													if (value === "") {
+														setWalletAmount("");
+													} else {
+														const numValue = Number.parseFloat(value) || 0;
+														const cappedValue = Math.min(
 															walletBalance,
-															Number.parseFloat(e.target.value) || 0
-														)
-													)
-												}
+															Math.max(0, numValue)
+														);
+														setWalletAmount(cappedValue.toString());
+													}
+												}}
 												max={walletBalance}
 												min={0}
+												placeholder="Enter amount"
 											/>
 										</div>
 									)}
@@ -371,10 +487,10 @@ export default function CheckoutPage() {
 										<span className="text-muted-foreground">Subtotal:</span>
 										<span>{formatPrice(subtotal)}</span>
 									</div>
-									{useWallet && walletAmount > 0 && (
+									{useWallet && walletAmountNum > 0 && (
 										<div className="flex justify-between text-green-600">
 											<span>Wallet Discount:</span>
-											<span>-{formatPrice(walletAmount)}</span>
+											<span>-{formatPrice(walletAmountNum)}</span>
 										</div>
 									)}
 									<div className="border-t pt-2 flex justify-between font-bold text-lg">
@@ -402,6 +518,243 @@ export default function CheckoutPage() {
 						<Link href="/invoice">Invoice</Link>
 					</div>
 				</div>
+
+				{/* Payment Modal */}
+				{showPaymentModal && (
+					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+						<Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
+							<CardHeader className="flex flex-row items-center justify-between">
+								<CardTitle>Complete Payment</CardTitle>
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => {
+										setShowPaymentModal(false);
+										setShowQR(false);
+										setPaymentReferenceId("");
+										setBankingName("");
+									}}
+									className="h-8 w-8 p-0">
+									<X className="h-4 w-4" />
+								</Button>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								{!showQR ? (
+									<>
+										<div>
+											<Label className="text-lg font-semibold">
+												Payment Amount: ₹{total.toLocaleString()}
+											</Label>
+											<p className="text-sm text-gray-600 mt-1">
+												Choose your payment method below
+											</p>
+										</div>{" "}
+										{businessSettings?.bankDetails && (
+											<div className="bg-gray-50 p-4 rounded-lg space-y-3">
+												<h3 className="font-medium text-sm">Payment Details</h3>
+
+												{businessSettings.bankDetails.upiId && (
+													<div>
+														<p className="text-xs text-gray-600">UPI ID:</p>
+														<div className="flex items-center gap-2">
+															<p className="text-sm font-mono flex-1">
+																{businessSettings.bankDetails.upiId}
+															</p>
+															<Button
+																variant="ghost"
+																size="sm"
+																onClick={() =>
+																	copyToClipboard(
+																		businessSettings.bankDetails?.upiId || "",
+																		"upiId"
+																	)
+																}
+																className="h-8 px-2">
+																{copiedField === "upiId" ? (
+																	<Check className="w-4 h-4 text-green-600" />
+																) : (
+																	<Copy className="w-4 h-4" />
+																)}
+															</Button>
+														</div>
+													</div>
+												)}
+
+												{businessSettings.bankDetails.accountNumber && (
+													<>
+														<div>
+															<p className="text-xs text-gray-600">
+																Account Number:
+															</p>
+															<div className="flex items-center gap-2">
+																<p className="text-sm font-mono flex-1">
+																	{businessSettings.bankDetails.accountNumber}
+																</p>
+																<Button
+																	variant="ghost"
+																	size="sm"
+																	onClick={() =>
+																		copyToClipboard(
+																			businessSettings.bankDetails
+																				?.accountNumber || "",
+																			"accountNumber"
+																		)
+																	}
+																	className="h-8 px-2">
+																	{copiedField === "accountNumber" ? (
+																		<Check className="w-4 h-4 text-green-600" />
+																	) : (
+																		<Copy className="w-4 h-4" />
+																	)}
+																</Button>
+															</div>
+														</div>
+														<div>
+															<p className="text-xs text-gray-600">
+																IFSC Code:
+															</p>
+															<div className="flex items-center gap-2">
+																<p className="text-sm font-mono flex-1">
+																	{businessSettings.bankDetails.ifscCode}
+																</p>
+																<Button
+																	variant="ghost"
+																	size="sm"
+																	onClick={() =>
+																		copyToClipboard(
+																			businessSettings.bankDetails?.ifscCode ||
+																				"",
+																			"ifscCode"
+																		)
+																	}
+																	className="h-8 px-2">
+																	{copiedField === "ifscCode" ? (
+																		<Check className="w-4 h-4 text-green-600" />
+																	) : (
+																		<Copy className="w-4 h-4" />
+																	)}
+																</Button>
+															</div>
+														</div>
+														<div>
+															<p className="text-xs text-gray-600">
+																Bank Name:
+															</p>
+															<p className="text-sm">
+																{businessSettings.bankDetails.bankName}
+															</p>
+														</div>
+													</>
+												)}
+											</div>
+										)}
+										<Button
+											onClick={() => setShowQR(true)}
+											className="w-full"
+											size="lg">
+											Generate Payment QR Code
+										</Button>
+									</>
+								) : (
+									<>
+										<div className="text-center space-y-4">
+											<div
+												ref={qrRef}
+												className="bg-white p-4 rounded-lg inline-block border">
+												<QRCodeCanvas value={upiUrl} size={256} />
+											</div>
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={downloadQRCode}
+												className="gap-2">
+												<Download className="w-4 h-4" />
+												Download QR Code
+											</Button>
+											<div>
+												<p className="font-medium text-lg">
+													Amount: ₹{total.toLocaleString()}
+												</p>
+												<p className="text-sm text-gray-600 mt-2">
+													Scan this QR code with any UPI app
+												</p>
+												<p className="text-xs text-gray-500 mt-1">
+													(Google Pay, PhonePe, Paytm, etc.)
+												</p>
+											</div>
+										</div>
+
+										<div className="space-y-3">
+											<div>
+												<Label htmlFor="paymentRef">
+													UPI Transaction ID / Reference Number
+												</Label>
+												<Input
+													id="paymentRef"
+													type="text"
+													placeholder="Enter UPI Reference/UTR Number"
+													value={paymentReferenceId}
+													onChange={(e) =>
+														setPaymentReferenceId(e.target.value)
+													}
+													className="mt-1"
+												/>
+												<p className="text-xs text-gray-500 mt-1">
+													Enter the transaction ID from your payment app
+												</p>
+											</div>
+
+											<div>
+												<Label htmlFor="bankingName">
+													Account Holder Name / Sender Name
+												</Label>
+												<Input
+													id="bankingName"
+													type="text"
+													placeholder="Enter name used for payment"
+													value={bankingName}
+													onChange={(e) => setBankingName(e.target.value)}
+													className="mt-1"
+												/>
+												<p className="text-xs text-gray-500 mt-1">
+													Enter the name from which payment was made
+												</p>
+											</div>
+
+											<Button
+												onClick={handlePlaceOrder}
+												className="w-full bg-green-600 hover:bg-green-700"
+												disabled={
+													loading ||
+													!paymentReferenceId.trim() ||
+													!bankingName.trim()
+												}>
+												{loading
+													? "Processing..."
+													: "Confirm Payment & Place Order"}
+											</Button>
+
+											<Button
+												onClick={() => {
+													setShowQR(false);
+													setPaymentReferenceId("");
+													setBankingName("");
+												}}
+												variant="outline"
+												className="w-full">
+												Back
+											</Button>
+										</div>
+
+										<p className="text-xs text-gray-500 text-center">
+											Complete the payment and enter the transaction ID above
+										</p>
+									</>
+								)}
+							</CardContent>
+						</Card>
+					</div>
+				)}
 			</div>
 		</main>
 	);

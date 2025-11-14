@@ -477,17 +477,90 @@ export default function OrderConfirmationPage() {
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<div className="space-y-2">
+								<div className="space-y-3">
 									<div className="flex justify-between">
 										<span>Payment Method</span>
-										<span className="capitalize">{order.paymentMethod}</span>
+										<span className="capitalize font-medium">
+											{order.paymentMethod}
+										</span>
 									</div>
 									<div className="flex justify-between">
 										<span>Payment Status</span>
-										<span className="capitalize text-green-600">
-											{order.paymentStatus || "Pending"}
-										</span>
+										<Badge
+											variant={
+												order.paymentStatus === "completed"
+													? "default"
+													: order.paymentStatus === "partial"
+													? "secondary"
+													: "outline"
+											}>
+											{order.paymentStatus === "completed"
+												? "Paid"
+												: order.paymentStatus === "partial"
+												? "Partially Paid"
+												: "Pending"}
+										</Badge>
 									</div>
+
+									{/* Show advance payment if exists */}
+									{order.advancePayment && order.advancePayment > 0 && (
+										<>
+											<Separator />
+											<div className="space-y-2 bg-green-50 p-3 rounded-lg">
+												<div className="flex justify-between text-sm">
+													<span className="text-green-700 font-medium">
+														Advance Paid (Wallet)
+													</span>
+													<span className="text-green-700 font-bold">
+														₹{order.advancePayment.toFixed(2)}
+													</span>
+												</div>
+												{order.advancePaymentDate && (
+													<div className="text-xs text-green-600">
+														Paid on{" "}
+														{new Date(
+															order.advancePaymentDate
+														).toLocaleDateString()}
+													</div>
+												)}
+											</div>
+										</>
+									)}
+
+									{/* Show balance amount if exists */}
+									{order.balanceAmount && order.balanceAmount > 0 && (
+										<div className="bg-orange-50 p-3 rounded-lg">
+											<div className="flex justify-between text-sm">
+												<span className="text-orange-700 font-medium">
+													Balance Due
+													{order.paymentMethod === "cod"
+														? " (At Delivery)"
+														: ""}
+												</span>
+												<span className="text-orange-700 font-bold">
+													₹{order.balanceAmount.toFixed(2)}
+												</span>
+											</div>
+											{order.paymentMethod === "cod" && (
+												<p className="text-xs text-orange-600 mt-1">
+													Pay the remaining amount when you receive your order
+												</p>
+											)}
+										</div>
+									)}
+
+									{/* Show full payment confirmation */}
+									{order.paymentStatus === "completed" &&
+										order.advancePayment > 0 && (
+											<div className="bg-green-50 p-3 rounded-lg border border-green-200">
+												<div className="flex items-center gap-2 text-green-700">
+													<CheckCircle className="w-4 h-4" />
+													<span className="text-sm font-medium">
+														Fully Paid via Wallet
+													</span>
+												</div>
+											</div>
+										)}
 								</div>
 							</CardContent>
 						</Card>

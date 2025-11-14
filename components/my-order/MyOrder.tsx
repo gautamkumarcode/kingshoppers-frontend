@@ -29,6 +29,8 @@ interface Order {
 	orderStatus: string;
 	paymentMethod: string;
 	paymentStatus: string;
+	advancePayment?: number;
+	balanceAmount?: number;
 	items: Array<{
 		product: {
 			name: string;
@@ -287,25 +289,54 @@ export default function OrdersPage() {
 												<Separator className="mb-4" />
 
 												{/* Order Footer */}
-												<div className="flex flex-col sm:flex-row sm:items-center justify-between">
-													<div className="flex items-center gap-4 mb-2 sm:mb-0">
-														<div className="flex items-center gap-1 text-sm text-gray-600">
-															<Truck className="w-4 h-4" />
-															<span>
-																Delivery to {order.deliveryAddress.city},{" "}
-																{order.deliveryAddress.state}
-															</span>
+												<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+													<div className="flex flex-col gap-2">
+														<div className="flex items-center gap-4">
+															<div className="flex items-center gap-1 text-sm text-gray-600">
+																<Truck className="w-4 h-4" />
+																<span>
+																	Delivery to {order.deliveryAddress.city},{" "}
+																	{order.deliveryAddress.state}
+																</span>
+															</div>
+															<div className="flex items-center gap-1 text-sm text-gray-600">
+																<Calendar className="w-4 h-4" />
+																<span>
+																	{order.expectedDeliveryDate
+																		? `Expected: ${new Date(
+																				order.expectedDeliveryDate
+																		  ).toLocaleDateString()}`
+																		: "3-5 business days"}
+																</span>
+															</div>
 														</div>
-														<div className="flex items-center gap-1 text-sm text-gray-600">
-															<Calendar className="w-4 h-4" />
-															<span>
-																{order.expectedDeliveryDate
-																	? `Expected: ${new Date(
-																			order.expectedDeliveryDate
-																	  ).toLocaleDateString()}`
-																	: "3-5 business days"}
-															</span>
-														</div>
+														{/* Payment Status */}
+														{order.paymentStatus && (
+															<div className="flex items-center gap-2 text-sm">
+																<span className="text-gray-600">Payment:</span>
+																<Badge
+																	variant={
+																		order.paymentStatus === "completed"
+																			? "default"
+																			: order.paymentStatus === "partial"
+																			? "secondary"
+																			: "outline"
+																	}>
+																	{order.paymentStatus === "completed"
+																		? "Paid"
+																		: order.paymentStatus === "partial"
+																		? "Partially Paid"
+																		: "Pending"}
+																</Badge>
+																{order.advancePayment &&
+																	order.advancePayment > 0 && (
+																		<span className="text-xs text-gray-500">
+																			(Advance: ₹
+																			{order.advancePayment.toFixed(2)})
+																		</span>
+																	)}
+															</div>
+														)}
 													</div>
 													<div className="text-right">
 														<p className="text-sm text-gray-600">
@@ -314,6 +345,11 @@ export default function OrdersPage() {
 														<p className="text-xl font-bold text-primary">
 															₹{calculateOrderTotal(order).toFixed(2)}
 														</p>
+														{order.balanceAmount && order.balanceAmount > 0 && (
+															<p className="text-sm text-orange-600 font-medium">
+																Balance: ₹{order.balanceAmount.toFixed(2)}
+															</p>
+														)}
 													</div>
 												</div>
 											</CardContent>

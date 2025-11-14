@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -95,6 +96,7 @@ interface OrderDetails {
 }
 
 export default function AdminOrderDetailsPage() {
+<<<<<<< Updated upstream
   const params = useParams();
   const router = useRouter();
   const [order, setOrder] = useState<OrderDetails | null>(null);
@@ -106,6 +108,34 @@ export default function AdminOrderDetailsPage() {
     notes: "",
   });
   const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+=======
+	const params = useParams();
+	const router = useRouter();
+	const [order, setOrder] = useState<OrderDetails | null>(null);
+	const [loading, setLoading] = useState(true);
+	const [updating, setUpdating] = useState(false);
+	const [showUpdateModal, setShowUpdateModal] = useState(false);
+	const [showPaymentModal, setShowPaymentModal] = useState(false);
+	const [showAdvancePaymentModal, setShowAdvancePaymentModal] = useState(false);
+	const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+	const [updateData, setUpdateData] = useState({
+		status: "",
+		notes: "",
+	});
+	const [paymentData, setPaymentData] = useState({
+		paymentStatus: "",
+		transactionId: "",
+		paymentGateway: "",
+		notes: "",
+	});
+	const [advancePaymentData, setAdvancePaymentData] = useState({
+		amount: "",
+		paymentMethod: "online",
+		transactionId: "",
+		notes: "",
+	});
+	const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+>>>>>>> Stashed changes
 
   useEffect(() => {
     fetchOrderDetails();
@@ -132,6 +162,7 @@ export default function AdminOrderDetailsPage() {
         notes: updateData.notes,
       });
 
+<<<<<<< Updated upstream
       // Refresh order details
       fetchOrderDetails();
       setShowUpdateModal(false);
@@ -145,6 +176,154 @@ export default function AdminOrderDetailsPage() {
 
   const handleDownloadInvoice = async () => {
     if (!order) return;
+=======
+			// Refresh order details
+			fetchOrderDetails();
+			setShowUpdateModal(false);
+			setUpdateData({ status: "", notes: "" });
+		} catch (error) {
+			console.error("Failed to update order status:", error);
+			alert("Failed to update order status");
+		} finally {
+			setUpdating(false);
+		}
+	};
+
+	const handlePaymentStatusUpdate = async () => {
+		if (!order) return;
+
+		setUpdating(true);
+		try {
+			const payload: any = {
+				paymentStatus: paymentData.paymentStatus,
+				notes: paymentData.notes,
+			};
+
+			// Add payment details if provided
+			if (paymentData.transactionId || paymentData.paymentGateway) {
+				payload.paymentDetails = {
+					transactionId: paymentData.transactionId,
+					paymentGateway: paymentData.paymentGateway,
+				};
+			}
+
+			await api.put(`/orders/${order._id}/payment-status`, payload);
+
+			// Refresh order details
+			fetchOrderDetails();
+			setShowPaymentModal(false);
+			setPaymentData({
+				paymentStatus: "",
+				transactionId: "",
+				paymentGateway: "",
+				notes: "",
+			});
+			alert("Payment status updated successfully");
+		} catch (error) {
+			console.error("Failed to update payment status:", error);
+			alert("Failed to update payment status");
+		} finally {
+			setUpdating(false);
+		}
+	};
+
+	const handleAdvancePayment = async () => {
+		if (!order) return;
+
+		const amount = parseFloat(advancePaymentData.amount);
+		if (!amount || amount <= 0) {
+			alert("Please enter a valid amount");
+			return;
+		}
+
+		setUpdating(true);
+		try {
+			await api.post(`/orders/${order._id}/advance-payment`, {
+				amount,
+				paymentMethod: advancePaymentData.paymentMethod,
+				transactionId: advancePaymentData.transactionId,
+				notes: advancePaymentData.notes,
+			});
+
+			// Refresh order details
+			fetchOrderDetails();
+			setShowAdvancePaymentModal(false);
+			setAdvancePaymentData({
+				amount: "",
+				paymentMethod: "online",
+				transactionId: "",
+				notes: "",
+			});
+			alert("Advance payment recorded successfully");
+		} catch (error) {
+			console.error("Failed to record advance payment:", error);
+			alert("Failed to record advance payment");
+		} finally {
+			setUpdating(false);
+		}
+	};
+
+	const handleMarkDelivered = async () => {
+		if (!order) return;
+
+		// For COD orders, ask if cash was received
+		if (order.paymentMethod === "cod") {
+			const cashReceived = confirm(
+				"Did the customer pay cash at the time of delivery?\n\nClick OK if payment was received, or Cancel if payment is still pending."
+			);
+
+			setUpdating(true);
+			try {
+				await api.post(`/orders/${order._id}/mark-delivered`, {
+					notes: cashReceived
+						? "Order delivered and cash payment received"
+						: "Order delivered, payment pending",
+					paymentReceived: cashReceived,
+				});
+
+				// Refresh order details
+				fetchOrderDetails();
+				setShowDeliveryModal(false);
+				alert(
+					cashReceived
+						? "Order marked as delivered and payment completed!"
+						: "Order marked as delivered. Payment status remains pending."
+				);
+			} catch (error) {
+				console.error("Failed to mark order as delivered:", error);
+				alert("Failed to mark order as delivered");
+			} finally {
+				setUpdating(false);
+			}
+		} else {
+			// For other payment methods, just confirm delivery
+			if (!confirm("Are you sure you want to mark this order as delivered?")) {
+				return;
+			}
+
+			setUpdating(true);
+			try {
+				await api.post(`/orders/${order._id}/mark-delivered`, {
+					notes: "Order marked as delivered by admin",
+					paymentReceived: false,
+				});
+
+				// Refresh order details
+				fetchOrderDetails();
+				setShowDeliveryModal(false);
+				alert("Order marked as delivered successfully");
+			} catch (error) {
+				console.error("Failed to mark order as delivered:", error);
+				alert("Failed to mark order as delivered");
+			} finally {
+				setUpdating(false);
+			}
+		}
+	};
+
+	const handleDownloadInvoice = async () => {
+		if (!order) return;
+>>>>>>> Stashed changes
 
     setDownloadingInvoice(true);
     try {
@@ -600,6 +779,7 @@ export default function AdminOrderDetailsPage() {
               </CardContent>
             </Card>
 
+<<<<<<< Updated upstream
             {/* Actions */}
             <div className="space-y-2 sm:space-y-3">
               <Button
@@ -698,4 +878,487 @@ export default function AdminOrderDetailsPage() {
       </div>
     </div>
   );
+=======
+						{/* Payment Information */}
+						<Card>
+							<CardHeader>
+								<CardTitle className="flex items-center justify-between text-base sm:text-lg">
+									<div className="flex items-center gap-2">
+										<CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
+										Payment Details
+									</div>
+									<Button
+										variant="ghost"
+										size="sm"
+										onClick={() => {
+											setPaymentData({
+												paymentStatus: order.paymentStatus || "pending",
+												transactionId: "",
+												paymentGateway: "",
+												notes: "",
+											});
+											setShowPaymentModal(true);
+										}}
+										className="text-xs">
+										<Edit className="w-3 h-3 mr-1" />
+										Edit
+									</Button>
+								</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<div className="space-y-3 text-sm sm:text-base">
+									<div className="flex justify-between">
+										<span>Payment Method</span>
+										<span className="capitalize">{order.paymentMethod}</span>
+									</div>
+									<div className="flex justify-between">
+										<span>Payment Status</span>
+										<Badge
+											variant={
+												order.paymentStatus === "completed"
+													? "default"
+													: order.paymentStatus === "partial"
+													? "secondary"
+													: "outline"
+											}>
+											{order.paymentStatus || "Pending"}
+										</Badge>
+									</div>
+									<Separator />
+									<div className="space-y-2">
+										<Button
+											variant="outline"
+											size="sm"
+											className="w-full text-xs"
+											onClick={() => setShowAdvancePaymentModal(true)}
+											disabled={order.paymentStatus === "completed"}>
+											Record Advance Payment
+										</Button>
+										{/* Button to record COD cash payment after delivery */}
+										{order.paymentMethod === "cod" &&
+											order.orderStatus === "delivered" &&
+											order.paymentStatus !== "completed" && (
+												<Button
+													variant="default"
+													size="sm"
+													className="w-full text-xs bg-green-600 hover:bg-green-700"
+													onClick={async () => {
+														if (
+															!confirm(
+																"Confirm that cash payment has been received from the customer?"
+															)
+														) {
+															return;
+														}
+														setUpdating(true);
+														try {
+															await api.put(
+																`/orders/${order._id}/payment-status`,
+																{
+																	paymentStatus: "completed",
+																	notes: "Cash payment received after delivery",
+																}
+															);
+															fetchOrderDetails();
+															alert("Cash payment recorded successfully!");
+														} catch (error) {
+															console.error(
+																"Failed to record cash payment:",
+																error
+															);
+															alert("Failed to record cash payment");
+														} finally {
+															setUpdating(false);
+														}
+													}}
+													disabled={updating}>
+													Record Cash Payment
+												</Button>
+											)}
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+
+						{/* Delivery Information */}
+						<Card>
+							<CardHeader>
+								<CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+									<Truck className="w-4 h-4 sm:w-5 sm:h-5" />
+									Delivery Information
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2 sm:space-y-3 text-sm sm:text-base">
+								<div>
+									<Label className="text-sm font-medium text-gray-600">
+										Expected Delivery
+									</Label>
+									<div className="flex items-center gap-2 mt-1">
+										<Calendar className="w-4 h-4 text-gray-400" />
+										<span className="text-sm">
+											{order.expectedDeliveryDate
+												? new Date(
+														order.expectedDeliveryDate
+												  ).toLocaleDateString()
+												: "3-5 business days"}
+										</span>
+									</div>
+								</div>
+								{order.deliveryPersonnel && (
+									<div>
+										<Label className="text-sm font-medium text-gray-600">
+											Delivery Personnel
+										</Label>
+										<div className="mt-1">
+											<p className="font-medium">
+												{order.deliveryPersonnel.firstName}{" "}
+												{order.deliveryPersonnel.lastName}
+											</p>
+											<p className="text-sm text-gray-600">
+												{order.deliveryPersonnel.phone}
+											</p>
+										</div>
+									</div>
+								)}
+							</CardContent>
+						</Card>
+
+						{/* Actions */}
+						<div className="space-y-2 sm:space-y-3">
+							<Button
+								variant="outline"
+								className="w-full text-sm"
+								onClick={handleDownloadInvoice}
+								disabled={downloadingInvoice}>
+								<Download className="w-4 h-4 mr-2" />
+								{downloadingInvoice ? "Downloading..." : "Download Invoice"}
+							</Button>
+							<Button variant="outline" className="w-full text-sm">
+								Print Order Details
+							</Button>
+							{order.orderStatus !== "delivered" && (
+								<Button
+									className="w-full text-sm"
+									onClick={handleMarkDelivered}
+									disabled={updating}>
+									<CheckCircle className="w-4 h-4 mr-2" />
+									Mark as Delivered
+								</Button>
+							)}
+						</div>
+					</div>
+				</div>
+
+				{/* Update Status Modal */}
+				{showUpdateModal && (
+					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50">
+						<Card className="w-full max-w-md mx-2">
+							<CardHeader>
+								<CardTitle className="text-lg sm:text-xl">
+									Update Order Status
+								</CardTitle>
+								<p className="text-xs sm:text-sm text-gray-600">
+									Order #{order.orderNumber}
+								</p>
+							</CardHeader>
+							<CardContent className="space-y-3 sm:space-y-4">
+								<div>
+									<Label htmlFor="status" className="text-sm">
+										Order Status
+									</Label>
+									<Select
+										value={updateData.status}
+										onValueChange={(value) =>
+											setUpdateData((prev) => ({ ...prev, status: value }))
+										}>
+										<SelectTrigger className="text-sm">
+											<SelectValue placeholder="Select status" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="pending">Pending</SelectItem>
+											<SelectItem value="confirmed">Confirmed</SelectItem>
+											<SelectItem value="processing">Processing</SelectItem>
+											<SelectItem value="shipped">Shipped</SelectItem>
+											<SelectItem value="delivered">Delivered</SelectItem>
+											<SelectItem value="cancelled">Cancelled</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+								<div>
+									<Label htmlFor="notes" className="text-sm">
+										Notes (Optional)
+									</Label>
+									<Textarea
+										id="notes"
+										placeholder="Add any notes about this status update..."
+										value={updateData.notes}
+										onChange={(e) =>
+											setUpdateData((prev) => ({
+												...prev,
+												notes: e.target.value,
+											}))
+										}
+										className="text-sm"
+									/>
+								</div>
+								<div className="flex flex-col sm:flex-row gap-2">
+									<Button
+										onClick={handleStatusUpdate}
+										className="flex-1 text-sm"
+										disabled={updating}>
+										{updating ? "Updating..." : "Update Status"}
+									</Button>
+									<Button
+										variant="outline"
+										onClick={() => {
+											setShowUpdateModal(false);
+											setUpdateData({ status: "", notes: "" });
+										}}
+										disabled={updating}
+										className="text-sm">
+										Cancel
+									</Button>
+								</div>
+							</CardContent>
+						</Card>
+					</div>
+				)}
+
+				{/* Payment Status Modal */}
+				{showPaymentModal && (
+					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50">
+						<Card className="w-full max-w-md mx-2">
+							<CardHeader>
+								<CardTitle className="text-lg sm:text-xl">
+									Update Payment Status
+								</CardTitle>
+								<p className="text-xs sm:text-sm text-gray-600">
+									Order #{order.orderNumber}
+								</p>
+							</CardHeader>
+							<CardContent className="space-y-3 sm:space-y-4">
+								<div>
+									<Label htmlFor="paymentStatus" className="text-sm">
+										Payment Status
+									</Label>
+									<Select
+										value={paymentData.paymentStatus}
+										onValueChange={(value) =>
+											setPaymentData((prev) => ({
+												...prev,
+												paymentStatus: value,
+											}))
+										}>
+										<SelectTrigger className="text-sm">
+											<SelectValue placeholder="Select payment status" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="pending">Pending</SelectItem>
+											<SelectItem value="partial">Partial</SelectItem>
+											<SelectItem value="completed">Completed</SelectItem>
+											<SelectItem value="failed">Failed</SelectItem>
+											<SelectItem value="overdue">Overdue</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+								<div>
+									<Label htmlFor="transactionId" className="text-sm">
+										Transaction ID (Optional)
+									</Label>
+									<Input
+										id="transactionId"
+										placeholder="Enter transaction ID"
+										value={paymentData.transactionId}
+										onChange={(e) =>
+											setPaymentData((prev) => ({
+												...prev,
+												transactionId: e.target.value,
+											}))
+										}
+										className="text-sm"
+									/>
+								</div>
+								<div>
+									<Label htmlFor="paymentGateway" className="text-sm">
+										Payment Gateway (Optional)
+									</Label>
+									<Input
+										id="paymentGateway"
+										placeholder="e.g., Razorpay, PayTM"
+										value={paymentData.paymentGateway}
+										onChange={(e) =>
+											setPaymentData((prev) => ({
+												...prev,
+												paymentGateway: e.target.value,
+											}))
+										}
+										className="text-sm"
+									/>
+								</div>
+								<div>
+									<Label htmlFor="paymentNotes" className="text-sm">
+										Notes (Optional)
+									</Label>
+									<Textarea
+										id="paymentNotes"
+										placeholder="Add any notes about this payment update..."
+										value={paymentData.notes}
+										onChange={(e) =>
+											setPaymentData((prev) => ({
+												...prev,
+												notes: e.target.value,
+											}))
+										}
+										className="text-sm"
+									/>
+								</div>
+								<div className="flex flex-col sm:flex-row gap-2">
+									<Button
+										onClick={handlePaymentStatusUpdate}
+										className="flex-1 text-sm"
+										disabled={updating}>
+										{updating ? "Updating..." : "Update Payment"}
+									</Button>
+									<Button
+										variant="outline"
+										onClick={() => {
+											setShowPaymentModal(false);
+											setPaymentData({
+												paymentStatus: "",
+												transactionId: "",
+												paymentGateway: "",
+												notes: "",
+											});
+										}}
+										disabled={updating}
+										className="text-sm">
+										Cancel
+									</Button>
+								</div>
+							</CardContent>
+						</Card>
+					</div>
+				)}
+
+				{/* Advance Payment Modal */}
+				{showAdvancePaymentModal && (
+					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50">
+						<Card className="w-full max-w-md mx-2">
+							<CardHeader>
+								<CardTitle className="text-lg sm:text-xl">
+									Record Advance Payment
+								</CardTitle>
+								<p className="text-xs sm:text-sm text-gray-600">
+									Order #{order.orderNumber} | Total: ₹{computedGrandTotal}
+								</p>
+							</CardHeader>
+							<CardContent className="space-y-3 sm:space-y-4">
+								<div>
+									<Label htmlFor="amount" className="text-sm">
+										Payment Amount *
+									</Label>
+									<Input
+										id="amount"
+										type="number"
+										placeholder="Enter amount"
+										value={advancePaymentData.amount}
+										onChange={(e) =>
+											setAdvancePaymentData((prev) => ({
+												...prev,
+												amount: e.target.value,
+											}))
+										}
+										className="text-sm"
+									/>
+								</div>
+								<div>
+									<Label htmlFor="paymentMethod" className="text-sm">
+										Payment Method
+									</Label>
+									<Select
+										value={advancePaymentData.paymentMethod}
+										onValueChange={(value) =>
+											setAdvancePaymentData((prev) => ({
+												...prev,
+												paymentMethod: value,
+											}))
+										}>
+										<SelectTrigger className="text-sm">
+											<SelectValue placeholder="Select payment method" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="online">Online Payment</SelectItem>
+											<SelectItem value="bank_transfer">
+												Bank Transfer
+											</SelectItem>
+											<SelectItem value="cheque">Cheque</SelectItem>
+											<SelectItem value="cash">Cash</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+								<div>
+									<Label htmlFor="advanceTransactionId" className="text-sm">
+										Transaction ID (Optional)
+									</Label>
+									<Input
+										id="advanceTransactionId"
+										placeholder="Enter transaction ID"
+										value={advancePaymentData.transactionId}
+										onChange={(e) =>
+											setAdvancePaymentData((prev) => ({
+												...prev,
+												transactionId: e.target.value,
+											}))
+										}
+										className="text-sm"
+									/>
+								</div>
+								<div>
+									<Label htmlFor="advanceNotes" className="text-sm">
+										Notes (Optional)
+									</Label>
+									<Textarea
+										id="advanceNotes"
+										placeholder="Add any notes about this payment..."
+										value={advancePaymentData.notes}
+										onChange={(e) =>
+											setAdvancePaymentData((prev) => ({
+												...prev,
+												notes: e.target.value,
+											}))
+										}
+										className="text-sm"
+									/>
+								</div>
+								<div className="flex flex-col sm:flex-row gap-2">
+									<Button
+										onClick={handleAdvancePayment}
+										className="flex-1 text-sm"
+										disabled={updating}>
+										{updating ? "Recording..." : "Record Payment"}
+									</Button>
+									<Button
+										variant="outline"
+										onClick={() => {
+											setShowAdvancePaymentModal(false);
+											setAdvancePaymentData({
+												amount: "",
+												paymentMethod: "online",
+												transactionId: "",
+												notes: "",
+											});
+										}}
+										disabled={updating}
+										className="text-sm">
+										Cancel
+									</Button>
+								</div>
+							</CardContent>
+						</Card>
+					</div>
+				)}
+			</div>
+		</div>
+	);
+>>>>>>> Stashed changes
 }
