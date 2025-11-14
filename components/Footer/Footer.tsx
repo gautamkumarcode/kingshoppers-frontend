@@ -65,55 +65,13 @@ const Footer = () => {
 						</div>
 						<div className="flex items-start gap-3 text-blue-700 mt-2">
 							<Phone size={18} className="mt-1" />
-							<span>+91 9876543210</span>
+							<span>‪+91 9876543210‬</span>
 						</div>
 						<div className="flex items-start gap-3 text-blue-700 mt-2">
 							<MapPin size={18} className="mt-1" />
 							<span>Kandwa Road, Varanasi, Uttar Pradesh 221011</span>
 						</div>
 					</div>
-              {/* Customer Support */}
-              <div>
-                <h4 className="text-lg font-semibold text-white mb-4">
-                  Customer Support
-                </h4>
-                <ul className="space-y-2">
-                  <li>
-                    <Link
-                      href="/faqs"
-                      className="hover:text-blue-500 transition-colors"
-                    >
-                      FAQs
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/shipping-policy"
-                      className="hover:text-blue-500 transition-colors"
-                    >
-                      Shipping Policy
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/privacy-policy"
-                      className="hover:text-blue-500 transition-colors"
-                    >
-                      Privacy Policy
-                    </Link>
-                  </li>
-                  <li>
-                    {/* <Link
-                      href="/help-desk"
-                      className="hover:text-blue-500 transition-colors"
-                    >
-                      Help Desk
-                    </Link> */}
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
 
 					{/* 🔗 Links Section */}
 					<div className="sm:col-span-2">
@@ -222,7 +180,7 @@ const Footer = () => {
 							</Link>
 						</div>
 					</div>
-				
+				</div>
 
 				{/* 🔹 Bottom Bar */}
 				<div className="border-t border-green-300 py-6 text-center text-gray-700 text-sm">
@@ -230,9 +188,9 @@ const Footer = () => {
 					<span className="text-blue-600 font-semibold">King Shopper</span>. All
 					rights reserved.
 				</div>
-		
+			</div>
 		</footer>
 	);
 };
 
-export default Footer;
+export default Footer;

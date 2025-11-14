@@ -170,191 +170,204 @@ export default function SalesOrdersPage() {
                                 <Eye className="w-4 h-4" />
                               </Button>
                             </DialogTrigger>
+                            <DialogContent className="max-w-lg p-0 overflow-hidden rounded-xl border shadow-xl">
+                              <div className="bg-primary text-primary-foreground px-5 py-4">
+                                <DialogTitle className="text-lg font-semibold">
+                                  Order Details
+                                </DialogTitle>
+                                <DialogDescription className="opacity-90 text-sm">
+                                  Complete customer & order summary
+                                </DialogDescription>
+                              </div>
 
-                          <DialogContent className="max-w-md max-h-[75vh] overflow-y-auto p-4">
-  <DialogHeader>
-    <DialogTitle>Order Details</DialogTitle>
-    <DialogDescription>
-      You can view and update the order details here. Once updated, the
-      customer will be notified.
-    </DialogDescription>
-  </DialogHeader>
+                              <div className="p-5 space-y-5 max-h-[70vh] overflow-y-auto">
+                                {/* Order Header */}
+                                <div className="grid grid-cols-2 gap-3 bg-muted/40 p-3 rounded-lg">
+                                  <p className="text-sm">
+                                    <span className="font-semibold">
+                                      Order #:
+                                    </span>{" "}
+                                    {selectedOrder.orderNumber}
+                                  </p>
+                                  <p className="text-sm">
+                                    <span className="font-semibold">Date:</span>{" "}
+                                    {new Date(
+                                      selectedOrder.createdAt
+                                    ).toLocaleString()}
+                                  </p>
+                                  <p className="text-sm">
+                                    <span className="font-semibold">
+                                      Status:
+                                    </span>{" "}
+                                    <span className="capitalize font-medium">
+                                      {selectedOrder.orderStatus}
+                                    </span>
+                                  </p>
+                                  <p className="text-sm">
+                                    <span className="font-semibold">
+                                      Payment:
+                                    </span>{" "}
+                                    <span className="capitalize">
+                                      {selectedOrder.paymentStatus}
+                                    </span>
+                                  </p>
+                                </div>
 
-  {selectedOrder && (
-    <div className="space-y-3 text-sm">
-      {/* 🧾 Basic Info */}
-      <p>
-        <b>Order #:</b> {selectedOrder.orderNumber || "N/A"}
-      </p>
+                                {/* Customer Info */}
+                                <div className="p-4 rounded-lg border">
+                                  <h3 className="font-semibold text-base mb-3">
+                                    👤 Customer Information
+                                  </h3>
+                                  <p>
+                                    <b>Name:</b> {selectedOrder.user?.ownerName}
+                                  </p>
+                                  <p>
+                                    <b>Email:</b> {selectedOrder.user?.email}
+                                  </p>
+                                  <p>
+                                    <b>Phone:</b> {selectedOrder.user?.phone}
+                                  </p>
+                                </div>
 
-      {/* 👤 Customer Info */}
-      <p>
-        <b>Customer:</b>{" "}
-        {selectedOrder.user
-          ? `${selectedOrder.user.firstName || ""} ${
-              selectedOrder.user.lastName || ""
-            }`
-          : "N/A"}
-      </p>
-      <p>
-        <b>Phone:</b> {selectedOrder.user?.phone || "N/A"}
-      </p>
-      <p>
-        <b>Email:</b> {selectedOrder.user?.email || "N/A"}
-      </p>
+                                {/* Address */}
+                                <div className="p-4 rounded-lg border">
+                                  <h3 className="font-semibold text-base mb-2">
+                                    📍 Delivery Address
+                                  </h3>
+                                  <p className="text-sm leading-6">
+                                    {selectedOrder.deliveryAddress
+                                      ? `${
+                                          selectedOrder.deliveryAddress
+                                            .street || ""
+                                        }, 
+             ${selectedOrder.deliveryAddress.city || ""}, 
+             ${selectedOrder.deliveryAddress.state || ""} - 
+             ${selectedOrder.deliveryAddress.pincode || ""}`
+                                      : "No address available"}
+                                  </p>
+                                </div>
 
-      {/* 🏠 Address */}
-      <p>
-        <b>Address:</b>{" "}
-        {selectedOrder.address
-          ? typeof selectedOrder.address === "object"
-            ? `${selectedOrder.address.street || ""}, ${
-                selectedOrder.address.city || ""
-              }, ${selectedOrder.address.state || ""} ${
-                selectedOrder.address.zip || ""
-              }`
-            : selectedOrder.address
-          : "N/A"}
-      </p>
+                                {/* Items Table */}
+                                <div className="rounded-lg border overflow-hidden">
+                                  <h3 className="font-semibold text-base p-3 border-b">
+                                    🧾 Items
+                                  </h3>
+                                  <table className="w-full text-sm">
+                                    <thead className="bg-muted">
+                                      <tr>
+                                        <th className="text-left py-2 px-3">
+                                          Product
+                                        </th>
+                                        <th className="text-center py-2 px-3">
+                                          Qty
+                                        </th>
+                                        <th className="text-right py-2 px-3">
+                                          Price
+                                        </th>
+                                        <th className="text-right py-2 px-3">
+                                          Total
+                                        </th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {selectedOrder.items.map((item, i) => (
+                                        <tr key={i} className="border-t">
+                                          <td className="py-2 px-3">
+                                            {item.productName ||
+                                              item.product?.name}
+                                          </td>
+                                          <td className="text-center py-2 px-3">
+                                            {item.quantity}
+                                          </td>
+                                          <td className="text-right py-2 px-3">
+                                            ₹{item.unitPrice?.toFixed(2)}
+                                          </td>
+                                          <td className="text-right py-2 px-3 font-medium">
+                                            ₹{item.total?.toFixed(2)}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
 
-      {/* 💵 Order Summary */}
-      <p>
-        <b>Subtotal:</b> ₹{selectedOrder.subtotal?.toFixed(2) || "0.00"}
-      </p>
-      {selectedOrder.shippingCharge && (
-        <p>
-          <b>Shipping:</b> ₹
-          {selectedOrder.shippingCharge.toFixed(2)}
-        </p>
-      )}
-      <p className="font-semibold">
-        <b>Total:</b> ₹{selectedOrder.total?.toFixed(2) || "0.00"}
-      </p>
+                                {/* Summary */}
+                                <div className="text-right space-y-2 p-4 border rounded-lg">
+                                  <p>
+                                    <b>Subtotal:</b> ₹
+                                    {selectedOrder.subtotal?.toFixed(2)}
+                                  </p>
+                                  {selectedOrder.shippingCost > 0 && (
+                                    <p>
+                                      <b>Shipping:</b> ₹
+                                      {selectedOrder.shippingCost.toFixed(2)}
+                                    </p>
+                                  )}
+                                  <p className="text-lg font-bold">
+                                    <b>Total:</b> ₹
+                                    {selectedOrder.grandTotal?.toFixed(2)}
+                                  </p>
+                                </div>
 
-      {/* 🕒 Dates */}
-      <p>
-        <b>Created:</b>{" "}
-        {new Date(selectedOrder.createdAt).toLocaleString()}
-      </p>
-      <p>
-        <b>Updated:</b>{" "}
-        {new Date(selectedOrder.updatedAt).toLocaleString()}
-      </p>
+                                {/* Status Update */}
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <b>Order Status</b>
+                                    <Select
+                                      value={selectedOrder.orderStatus}
+                                      onValueChange={(v) =>
+                                        updateOrderField("orderStatus", v)
+                                      }
+                                    >
+                                      <SelectTrigger className="w-full mt-1" />
+                                      <SelectContent>
+                                        <SelectItem value="pending">
+                                          Pending
+                                        </SelectItem>
+                                        <SelectItem value="confirmed">
+                                          Confirmed
+                                        </SelectItem>
+                                        <SelectItem value="processing">
+                                          Processing
+                                        </SelectItem>
+                                        <SelectItem value="shipped">
+                                          Shipped
+                                        </SelectItem>
+                                        <SelectItem value="delivered">
+                                          Delivered
+                                        </SelectItem>
+                                        <SelectItem value="cancelled">
+                                          Cancelled
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
 
-      {/* 🔄 Order Status */}
-      <div className="pt-2">
-        <b>Order Status:</b>
-        <Select
-          value={selectedOrder.orderStatus || "pending"}
-          onValueChange={(val) => updateOrderField("orderStatus", val)}
-        >
-          <SelectTrigger className="w-full mt-1">
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="confirmed">Confirmed</SelectItem>
-            <SelectItem value="processing">Processing</SelectItem>
-            <SelectItem value="shipped">Shipped</SelectItem>
-            <SelectItem value="delivered">Delivered</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* 💳 Payment Status */}
-      <div className="pt-2">
-        <b>Payment Status:</b>
-        <Select
-          value={selectedOrder.paymentStatus || "unpaid"}
-          onValueChange={(val) => updateOrderField("paymentStatus", val)}
-        >
-          <SelectTrigger className="w-full mt-1">
-            <SelectValue placeholder="Select payment status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="unpaid">Unpaid</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
-            <SelectItem value="refunded">Refunded</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {updating && (
-        <p className="text-xs text-muted-foreground">
-          Updating order info...
-        </p>
-      )}
-
-      {/* 🧾 Items Table */}
-      {selectedOrder?.items?.length > 0 && (
-        <div className="mt-4 border-t pt-3">
-          <p className="font-semibold mb-2 text-base">
-            🧾 Items in this Order:
-          </p>
-          <div className="rounded-md border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="text-left py-2 px-3">Product</th>
-                  <th className="text-center py-2 px-3">Qty</th>
-                  <th className="text-right py-2 px-3">Price</th>
-                  <th className="text-right py-2 px-3">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedOrder.items.map((item: any, i: number) => {
-                  const name =
-                    item.productName ||
-                    item.product?.name ||
-                    "N/A";
-                  const qty = item.qty || item.quantity || 0;
-                  const price =
-                    item.price ||
-                    item.product?.price ||
-                    0;
-                  const total = qty * price;
-
-                  return (
-                    <tr key={i} className="border-t">
-                      <td className="py-2 px-3">{name}</td>
-                      <td className="text-center py-2 px-3">{qty}</td>
-                      <td className="text-right py-2 px-3">
-                        ₹{price.toFixed(2)}
-                      </td>
-                      <td className="text-right py-2 px-3 font-medium">
-                        ₹{total.toFixed(2)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* 🧮 Table Summary */}
-          <div className="mt-3 text-right space-y-1">
-            <p className="text-sm">
-              <b>Subtotal:</b> ₹
-              {selectedOrder.subtotal?.toFixed(2) || "0.00"}
-            </p>
-            {selectedOrder.shippingCharge && (
-              <p className="text-sm">
-                <b>Shipping:</b> ₹
-                {selectedOrder.shippingCharge.toFixed(2)}
-              </p>
-            )}
-            <p className="text-base font-semibold">
-              <b>Total:</b> ₹
-              {selectedOrder.total?.toFixed(2) || "0.00"}
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  )}
-</DialogContent>
-
+                                  <div>
+                                    <b>Payment Status</b>
+                                    <Select
+                                      value={selectedOrder.paymentStatus}
+                                      onValueChange={(v) =>
+                                        updateOrderField("paymentStatus", v)
+                                      }
+                                    >
+                                      <SelectTrigger className="w-full mt-1" />
+                                      <SelectContent>
+                                        <SelectItem value="unpaid">
+                                          Unpaid
+                                        </SelectItem>
+                                        <SelectItem value="paid">
+                                          Paid
+                                        </SelectItem>
+                                        <SelectItem value="refunded">
+                                          Refunded
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+                              </div>
+                            </DialogContent>
                           </Dialog>
                         </td>
                       </tr>
