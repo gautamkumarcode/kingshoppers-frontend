@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -8,6 +9,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -26,15 +34,18 @@ import {
 	Bell,
 	Building2,
 	CreditCard,
+	Download,
 	FileText,
 	Loader2,
 	MapPin,
+	QrCode,
 	RefreshCw,
 	Save,
 	Truck,
 	Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { QRCodeCanvas } from "qrcode.react";
+import { useEffect, useRef, useState } from "react";
 
 interface Address {
 	street: string;
@@ -50,6 +61,7 @@ interface BankDetails {
 	bankName: string;
 	accountHolderName: string;
 	upiId: string;
+	qrCodeImage: string;
 }
 
 interface DeliverySettings {
@@ -155,6 +167,7 @@ const defaultSettings: BusinessSettings = {
 		bankName: "",
 		accountHolderName: "",
 		upiId: "",
+		qrCodeImage: "",
 	},
 	defaultCreditTerms: "cash",
 	defaultCreditLimit: 50000,
@@ -219,6 +232,9 @@ export default function BusinessSettingsPage() {
 	const [saving, setSaving] = useState(false);
 	const [uploadingLogo, setUploadingLogo] = useState(false);
 	const [uploadingFavicon, setUploadingFavicon] = useState(false);
+	const [showQRPreview, setShowQRPreview] = useState(false);
+	const [qrAmount, setQrAmount] = useState("1000");
+	const qrRef = useRef<HTMLCanvasElement>(null);
 	const { toast } = useToast();
 
 	useEffect(() => {
@@ -315,6 +331,42 @@ export default function BusinessSettingsPage() {
 				[field]: value,
 			},
 		}));
+	};
+
+	const generateUPIQRCode = () => {
+		if (!settings.bankDetails.upiId) {
+			toast({
+				title: "UPI ID Required",
+				description: "Please enter a UPI ID first",
+				variant: "destructive",
+			});
+			return;
+		}
+		setShowQRPreview(true);
+	};
+
+	const saveQRCodeToSettings = () => {
+		const canvas = qrRef.current?.querySelector("canvas");
+		if (canvas) {
+			const qrCodeDataUrl = canvas.toDataURL("image/png");
+			updateNestedField("bankDetails", "qrCodeImage", qrCodeDataUrl);
+			toast({
+				title: "Success",
+				description: "QR code saved! Don't forget to save settings.",
+			});
+			setShowQRPreview(false);
+		}
+	};
+
+	const downloadQRCode = () => {
+		const canvas = qrRef.current?.querySelector("canvas");
+		if (canvas) {
+			const url = canvas.toDataURL("image/png");
+			const link = document.createElement("a");
+			link.download = `payment-qr-${settings.bankDetails.upiId}.png`;
+			link.href = url;
+			link.click();
+		}
 	};
 
 	const updateDeepNestedField = (
@@ -906,6 +958,76 @@ export default function BusinessSettingsPage() {
 									placeholder="kingshoppers@upi"
 								/>
 							</div>
+
+							{/* QR Code Generation Section */}
+							<div className="space-y-4 pt-4 border-t">
+								<div className="flex items-center justify-between">
+									<div>
+										<Label className="text-base">Payment QR Code</Label>
+										<p className="text-sm text-muted-foreground">
+											Generate a UPI QR code for customer payments
+										</p>
+									</div>
+									{settings.bankDetails.qrCodeImage && (
+										<Badge variant="secondary" className="gap-1">
+											<QrCode className="w-3 h-3" />
+											QR Saved
+										</Badge>
+									)}
+								</div>
+
+								{settings.bankDetails.qrCodeImage && (
+									<div className="flex gap-4 items-start">
+										<div className="border-2 border-gray-200 rounded-lg p-2 bg-white">
+											<img
+												src={settings.bankDetails.qrCodeImage}
+												alt="Payment QR Code"
+												className="w-32 h-32"
+											/>
+										</div>
+										<div className="flex-1 space-y-2">
+											<p className="text-sm text-gray-600">
+												Current QR code will be shown to customers for payments
+											</p>
+											<div className="flex gap-2">
+												<Button
+													type="button"
+													variant="outline"
+													size="sm"
+													onClick={generateUPIQRCode}>
+													<RefreshCw className="w-4 h-4 mr-2" />
+													Regenerate
+												</Button>
+												<Button
+													type="button"
+													variant="outline"
+													size="sm"
+													onClick={() => {
+														updateNestedField("bankDetails", "qrCodeImage", "");
+														toast({
+															title: "QR Code Removed",
+															description: "Don't forget to save settings",
+														});
+													}}>
+													Remove
+												</Button>
+											</div>
+										</div>
+									</div>
+								)}
+
+								{!settings.bankDetails.qrCodeImage && (
+									<Button
+										type="button"
+										variant="outline"
+										onClick={generateUPIQRCode}
+										disabled={!settings.bankDetails.upiId}
+										className="w-full">
+										<QrCode className="w-4 h-4 mr-2" />
+										Generate UPI QR Code
+									</Button>
+								)}
+							</div>
 						</CardContent>
 					</Card>
 				</TabsContent>
@@ -1333,6 +1455,85 @@ export default function BusinessSettingsPage() {
 					Save All Changes
 				</Button>
 			</div>
+
+			{/* QR Code Preview Modal */}
+			<Dialog open={showQRPreview} onOpenChange={setShowQRPreview}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle>UPI QR Code Preview</DialogTitle>
+						<DialogDescription>
+							Preview and save your UPI QR code for payment collection
+						</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-4">
+						{/* QR Code Display */}
+						<div className="flex justify-center p-4 bg-white rounded-lg">
+							<QRCodeCanvas
+								ref={qrRef}
+								value={`upi://pay?pa=${settings.bankDetails.upiId}&pn=${
+									settings.businessName || "Merchant"
+								}&cu=INR&tn=Payment`}
+								size={256}
+								level="H"
+								includeMargin={true}
+							/>
+						</div>
+
+						{/* UPI ID Display */}
+						<div className="space-y-2">
+							<Label>UPI ID</Label>
+							<div className="p-3 bg-muted rounded-md font-mono text-sm">
+								{settings.bankDetails.upiId}
+							</div>
+						</div>
+
+						{/* Optional Amount Input */}
+						<div className="space-y-2">
+							<Label htmlFor="qrAmount">Amount (Optional - for testing)</Label>
+							<Input
+								id="qrAmount"
+								type="number"
+								placeholder="Enter amount"
+								value={qrAmount}
+								onChange={(e) => setQrAmount(e.target.value)}
+							/>
+							<p className="text-xs text-muted-foreground">
+								Leave empty for open amount QR code
+							</p>
+						</div>
+
+						{/* Action Buttons */}
+						<div className="flex flex-col sm:flex-row gap-2">
+							<Button
+								onClick={saveQRCodeToSettings}
+								className="flex-1"
+								disabled={saving}>
+								{saving ? (
+									<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+								) : (
+									<Save className="w-4 h-4 mr-2" />
+								)}
+								Save to Settings
+							</Button>
+							<Button
+								onClick={downloadQRCode}
+								variant="outline"
+								className="flex-1">
+								<Download className="w-4 h-4 mr-2" />
+								Download QR
+							</Button>
+						</div>
+
+						{/* Close Button */}
+						<Button
+							onClick={() => setShowQRPreview(false)}
+							variant="ghost"
+							className="w-full">
+							Close
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

@@ -15,6 +15,7 @@ import {
 	Package,
 	Settings,
 	ShoppingCart,
+	Truck,
 	Users,
 	X,
 } from "lucide-react";
@@ -101,6 +102,11 @@ export default function AdminLayout({
 			icon: Briefcase,
 			label: "Sales Executives",
 			href: "/admin/sales-executives",
+		},
+		{
+			icon: Truck,
+			label: "Delivery Agents",
+			href: "/admin/delivery-agents",
 		},
 		{
 			icon: CreditCard,

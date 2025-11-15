@@ -54,6 +54,7 @@ export interface User {
 			accountNumber?: string;
 			ifscCode?: string;
 			bankName?: string;
+			qrCodeImage?: string;
 		};
 	};
 	customerSince: Date;

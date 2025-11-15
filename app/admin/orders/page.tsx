@@ -64,6 +64,13 @@ interface Order {
 		pincode: string;
 		landmark: string;
 	};
+	deliveryPersonnel?: {
+		_id: string;
+		firstName: string;
+		lastName: string;
+		phone: string;
+		deliveryArea?: string;
+	};
 	total: number;
 	createdAt: string;
 	expectedDeliveryDate?: string;
@@ -94,6 +101,9 @@ export default function AdminOrdersPage() {
 	const [statusFilter, setStatusFilter] = useState("all");
 	const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 	const [showUpdateModal, setShowUpdateModal] = useState(false);
+	const [showAssignModal, setShowAssignModal] = useState(false);
+	const [deliveryAgents, setDeliveryAgents] = useState<any[]>([]);
+	const [selectedAgent, setSelectedAgent] = useState("");
 	const [updateData, setUpdateData] = useState({
 		status: "",
 		notes: "",
@@ -102,6 +112,7 @@ export default function AdminOrdersPage() {
 	useEffect(() => {
 		fetchOrders();
 		fetchStats();
+		fetchDeliveryAgents();
 	}, []);
 
 	const fetchOrders = async () => {
@@ -121,6 +132,33 @@ export default function AdminOrdersPage() {
 			setStats(response.data);
 		} catch (error) {
 			console.error("Failed to fetch stats:", error);
+		}
+	};
+
+	const fetchDeliveryAgents = async () => {
+		try {
+			const response = await api.get("/admin/delivery-agents");
+			setDeliveryAgents(response.data.data || []);
+		} catch (error) {
+			console.error("Failed to fetch delivery agents:", error);
+		}
+	};
+
+	const handleAssignDeliveryAgent = async () => {
+		if (!selectedOrder || !selectedAgent) return;
+
+		try {
+			await api.put(`/admin/orders/${selectedOrder._id}/assign-delivery`, {
+				deliveryAgentId: selectedAgent,
+			});
+
+			// Refresh orders
+			fetchOrders();
+			setShowAssignModal(false);
+			setSelectedOrder(null);
+			setSelectedAgent("");
+		} catch (error) {
+			console.error("Failed to assign delivery agent:", error);
 		}
 	};
 
@@ -362,6 +400,16 @@ export default function AdminOrdersPage() {
 													size="sm"
 													onClick={() => {
 														setSelectedOrder(order);
+														setShowAssignModal(true);
+													}}>
+													<Truck className="w-4 h-4 mr-2" />
+													Assign Delivery
+												</Button>
+												<Button
+													variant="outline"
+													size="sm"
+													onClick={() => {
+														setSelectedOrder(order);
 														setUpdateData({
 															status: order.orderStatus,
 															notes: "",
@@ -385,18 +433,20 @@ export default function AdminOrdersPage() {
 										{/* Customer Info */}
 										{order.user && (
 											<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-												<h4 className="font-medium text-sm text-gray-600 mb-1">
-													Customer
-												</h4>
-												<div className="flex items-center gap-2">
-													<User className="w-4 h-4 text-gray-400" />
-													<div>
-														<p className="font-medium">
-															{order.user?.shopName}
-														</p>
-														<p className="text-sm text-gray-600">
-															{order.user?.ownerName}
-														</p>
+												<div>
+													<h4 className="font-medium text-sm text-gray-600 mb-1">
+														Customer
+													</h4>
+													<div className="flex items-center gap-2">
+														<User className="w-4 h-4 text-gray-400" />
+														<div>
+															<p className="font-medium">
+																{order.user?.shopName}
+															</p>
+															<p className="text-sm text-gray-600">
+																{order.user?.ownerName}
+															</p>
+														</div>
 													</div>
 												</div>
 												<div>
@@ -408,6 +458,25 @@ export default function AdminOrdersPage() {
 														<p className="text-sm">{order.user.phone}</p>
 													</div>
 												</div>
+												{order.deliveryPersonnel && (
+													<div>
+														<h4 className="font-medium text-sm text-gray-600 mb-1">
+															Delivery Agent
+														</h4>
+														<div className="flex items-center gap-2">
+															<Truck className="w-4 h-4 text-gray-400" />
+															<div>
+																<p className="font-medium">
+																	{order.deliveryPersonnel.firstName}{" "}
+																	{order.deliveryPersonnel.lastName}
+																</p>
+																<p className="text-sm text-gray-600">
+																	{order.deliveryPersonnel.phone}
+																</p>
+															</div>
+														</div>
+													</div>
+												)}
 											</div>
 										)}
 
@@ -561,6 +630,58 @@ export default function AdminOrdersPage() {
 											setShowUpdateModal(false);
 											setSelectedOrder(null);
 											setUpdateData({ status: "", notes: "" });
+										}}>
+										Cancel
+									</Button>
+								</div>
+							</CardContent>
+						</Card>
+					</div>
+				)}
+
+				{/* Assign Delivery Agent Modal */}
+				{showAssignModal && selectedOrder && (
+					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+						<Card className="w-full max-w-md">
+							<CardHeader>
+								<CardTitle>Assign Delivery Agent</CardTitle>
+								<p className="text-sm text-gray-600">
+									Order #{selectedOrder.orderNumber}
+								</p>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								<div>
+									<Label htmlFor="agent">Select Delivery Agent</Label>
+									<Select
+										value={selectedAgent}
+										onValueChange={setSelectedAgent}>
+										<SelectTrigger>
+											<SelectValue placeholder="Choose a delivery agent" />
+										</SelectTrigger>
+										<SelectContent>
+											{deliveryAgents.map((agent) => (
+												<SelectItem key={agent._id} value={agent._id}>
+													{agent.firstName} {agent.lastName} -{" "}
+													{agent.deliveryArea || "No area"}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+								<div className="flex gap-2">
+									<Button
+										onClick={handleAssignDeliveryAgent}
+										className="flex-1"
+										disabled={!selectedAgent}>
+										<Truck className="w-4 h-4 mr-2" />
+										Assign Agent
+									</Button>
+									<Button
+										variant="outline"
+										onClick={() => {
+											setShowAssignModal(false);
+											setSelectedOrder(null);
+											setSelectedAgent("");
 										}}>
 										Cancel
 									</Button>

@@ -51,8 +51,11 @@ export default function AdminLoginPage() {
 			// Redirect based on user type
 			if (data.user.userType === "admin") {
 				router.push("/admin/dashboard");
-			} else if (data.user.userType === "sales_executive") {
-				router.push("/sales/dashboard");
+			} else if (
+				data.user.userType === "sales_executive" ||
+				data.user.userType === "delivery"
+			) {
+				router.push("/agent/dashboard");
 			} else {
 				router.push("/");
 			}
@@ -78,7 +81,8 @@ export default function AdminLoginPage() {
 						Admin & Staff Login
 					</CardTitle>
 					<CardDescription className="text-center">
-						Sign in to access the admin panel or sales executive dashboard
+						Sign in to access the admin panel, sales executive, or delivery
+						agent dashboard
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
