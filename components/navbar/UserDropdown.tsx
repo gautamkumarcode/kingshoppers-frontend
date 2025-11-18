@@ -16,9 +16,11 @@ import {
 	ChevronDown,
 	CreditCard,
 	FileText,
+	LayoutDashboard,
 	LogOut,
 	ShoppingBag,
 	Store,
+	Truck,
 	User,
 } from "lucide-react";
 import Link from "next/link";
@@ -100,89 +102,164 @@ export function UserDropdown() {
 					<div className="flex flex-col space-y-2">
 						<div className="flex items-center justify-between">
 							<p className="text-sm font-medium leading-none">
-								{user.ownerName || "Shop Owner"}
+								{user.firstName && user.lastName
+									? `${user.firstName} ${user.lastName}`
+									: user.ownerName || "User"}
 							</p>
-							{getStatusBadge()}
+							{/* Show status badge only for customers */}
+							{!user.userType &&
+								user.userTypes !== "admin" &&
+								user.userTypes !== "sales_executive" &&
+								user.userTypes !== "delivery" &&
+								getStatusBadge()}
 						</div>
 						<div className="flex flex-col space-y-1">
-							{user.shopName && (
-								<p className="text-xs text-muted-foreground flex items-center gap-1">
-									<Store className="h-3 w-3" />
-									{user.shopName}
-								</p>
-							)}
+							{/* Show shop name only for customers */}
+							{user.shopName &&
+								!user.userType &&
+								user.userTypes !== "admin" &&
+								user.userTypes !== "sales_executive" &&
+								user.userTypes !== "delivery" && (
+									<p className="text-xs text-muted-foreground flex items-center gap-1">
+										<Store className="h-3 w-3" />
+										{user.shopName}
+									</p>
+								)}
 							<p className="text-xs text-muted-foreground">{user.phone}</p>
-							{user.customerTier && (
-								<p className="text-xs text-muted-foreground">
-									{user.customerTier.toUpperCase()} Tier
+							{/* Show role for admin/agents */}
+							{(user.userType === "admin" || user.userTypes === "admin") && (
+								<p className="text-xs font-medium text-primary">
+									Administrator
 								</p>
 							)}
+							{user.userType === "sales_executive" && (
+								<p className="text-xs font-medium text-primary">
+									Sales Executive
+								</p>
+							)}
+							{user.userType === "delivery" && (
+								<p className="text-xs font-medium text-primary">
+									Delivery Agent
+								</p>
+							)}
+							{/* Show customer tier only for customers */}
+							{user.customerTier &&
+								!user.userType &&
+								user.userTypes !== "admin" &&
+								user.userTypes !== "sales_executive" &&
+								user.userTypes !== "delivery" && (
+									<p className="text-xs text-muted-foreground">
+										{user.customerTier.toUpperCase()} Tier
+									</p>
+								)}
 						</div>
 					</div>
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 
-				{/* Dashboard */}
-				<DropdownMenuItem asChild>
-					<Link
-						href="/profile"
-						className="flex items-center gap-2 cursor-pointer">
-						<User className="h-4 w-4" />
-						<span>Profile</span>
-					</Link>
-				</DropdownMenuItem>
-
-				{/* Profile */}
+				{/* Dashboard Links */}
 				{user.userTypes === "admin" && (
 					<DropdownMenuItem asChild>
 						<Link
 							href="/admin/dashboard"
 							className="flex items-center gap-2 cursor-pointer">
-							<User className="h-4 w-4" />
+							<LayoutDashboard className="h-4 w-4" />
 							<span>Admin Dashboard</span>
 						</Link>
 					</DropdownMenuItem>
 				)}
 
-				{/* Orders */}
-				<DropdownMenuItem asChild>
-					<Link
-						href="/my-orders"
-						className="flex items-center gap-2 cursor-pointer">
-						<ShoppingBag className="h-4 w-4" />
-						<span>My Orders</span>
-					</Link>
-				</DropdownMenuItem>
+				{user.userType === "admin" && (
+					<DropdownMenuItem asChild>
+						<Link
+							href="/admin/dashboard"
+							className="flex items-center gap-2 cursor-pointer">
+							<LayoutDashboard className="h-4 w-4" />
+							<span>Admin Dashboard</span>
+						</Link>
+					</DropdownMenuItem>
+				)}
 
-				{/* Wallet */}
-				<DropdownMenuItem asChild>
-					<Link
-						href="/wallet"
-						className="flex items-center gap-2 cursor-pointer">
-						<CreditCard className="h-4 w-4" />
-						<span>Wallet</span>
-						{user.walletBalance !== undefined && user.walletBalance > 0 && (
-							<span className="ml-auto text-xs text-green-600 font-medium">
-								₹{user.walletBalance.toLocaleString()}
-							</span>
-						)}
-					</Link>
-				</DropdownMenuItem>
+				{user.userType === "sales_executive" && (
+					<DropdownMenuItem asChild>
+						<Link
+							href="/agent/dashboard"
+							className="flex items-center gap-2 cursor-pointer">
+							<LayoutDashboard className="h-4 w-4" />
+							<span>Sales Dashboard</span>
+						</Link>
+					</DropdownMenuItem>
+				)}
 
-				{/* Documents */}
-				<DropdownMenuItem asChild>
-					<Link
-						href="/profile?tab=documents"
-						className="flex items-center gap-2 cursor-pointer">
-						<FileText className="h-4 w-4" />
-						<span>Documents</span>
-						{(!user.aadhaarPhoto || !user.panCardPhoto) && (
-							<Badge variant="destructive" className="ml-auto text-xs">
-								!
-							</Badge>
-						)}
-					</Link>
-				</DropdownMenuItem>
+				{user.userType === "delivery" && (
+					<DropdownMenuItem asChild>
+						<Link
+							href="/agent/orders"
+							className="flex items-center gap-2 cursor-pointer">
+							<Truck className="h-4 w-4" />
+							<span>Delivery Dashboard</span>
+						</Link>
+					</DropdownMenuItem>
+				)}
+
+				{/* Customer-only options */}
+				{!user.userType &&
+					user.userTypes !== "admin" &&
+					user.userTypes !== "sales_executive" &&
+					user.userTypes !== "delivery" && (
+						<>
+							{/* Profile */}
+							<DropdownMenuItem asChild>
+								<Link
+									href="/profile"
+									className="flex items-center gap-2 cursor-pointer">
+									<User className="h-4 w-4" />
+									<span>Profile</span>
+								</Link>
+							</DropdownMenuItem>
+
+							{/* Orders */}
+							<DropdownMenuItem asChild>
+								<Link
+									href="/my-orders"
+									className="flex items-center gap-2 cursor-pointer">
+									<ShoppingBag className="h-4 w-4" />
+									<span>My Orders</span>
+								</Link>
+							</DropdownMenuItem>
+
+							{/* Wallet */}
+							<DropdownMenuItem asChild>
+								<Link
+									href="/wallet"
+									className="flex items-center gap-2 cursor-pointer">
+									<CreditCard className="h-4 w-4" />
+									<span>Wallet</span>
+									{user.walletBalance !== undefined &&
+										user.walletBalance > 0 && (
+											<span className="ml-auto text-xs text-green-600 font-medium">
+												₹{user.walletBalance.toLocaleString()}
+											</span>
+										)}
+								</Link>
+							</DropdownMenuItem>
+
+							{/* Documents */}
+							<DropdownMenuItem asChild>
+								<Link
+									href="/profile?tab=documents"
+									className="flex items-center gap-2 cursor-pointer">
+									<FileText className="h-4 w-4" />
+									<span>Documents</span>
+									{(!user.aadhaarPhoto || !user.panCardPhoto) && (
+										<Badge variant="destructive" className="ml-auto text-xs">
+											!
+										</Badge>
+									)}
+								</Link>
+							</DropdownMenuItem>
+						</>
+					)}
 
 				<DropdownMenuSeparator />
 

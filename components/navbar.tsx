@@ -15,10 +15,12 @@ export function Navbar() {
 	const { user, loading } = useAuth();
 	const pathname = usePathname();
 
-	// Hide navbar on admin and sales routes
+	// Hide navbar on admin, sales, and agent routes
 	if (
 		typeof pathname === "string" &&
-		(pathname.startsWith("/admin") || pathname.startsWith("/sales"))
+		(pathname.startsWith("/admin") ||
+			pathname.startsWith("/sales") ||
+			pathname.startsWith("/agent"))
 	) {
 		return null;
 	}
