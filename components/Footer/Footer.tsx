@@ -162,7 +162,6 @@ const Footer = () => {
               </div>
             </div>
           </div>
-
           {/* 🌐 Social Media */}
           <div>
             <h4 className="text-lg font-semibold text-white mb-4">
