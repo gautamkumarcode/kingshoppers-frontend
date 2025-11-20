@@ -41,7 +41,10 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<head></head>
+			<head>
+				<link rel="manifest" href="/manifest.json" />
+				<link rel="icon" href="/logoIcon.png" />
+			</head>
 			<body className={`font-sans antialiased`}>
 				<AuthProvider>
 					<CartProvider>
