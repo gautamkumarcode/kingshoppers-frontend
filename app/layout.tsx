@@ -1,5 +1,6 @@
 import { AppInitializer } from "@/components/auth/AppInitializer";
 import Footer from "@/components/Footer/Footer";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { Navbar } from "@/components/navbar";
 import BottomNav from "@/components/navbar/BottomNav";
 import { Toaster } from "@/components/ui/toaster";
@@ -49,6 +50,8 @@ export default function RootLayout({
 				<AuthProvider>
 					<CartProvider>
 						<AppInitializer>
+							<InstallPrompt />
+
 							<div className="flex flex-col min-h-screen">
 								<Navbar />
 								<main className="flex-1">{children}</main>
