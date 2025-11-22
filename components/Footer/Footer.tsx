@@ -17,7 +17,7 @@ const Footer = () => {
   const pathname = usePathname();
 
   // Hide footer for admin and sales pages
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/agents")) {
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/agent")) {
 		return null;
 	}
 
