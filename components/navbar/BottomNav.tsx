@@ -152,7 +152,7 @@ export default function BottomNav() {
 	};
 
 	// Hide BottomNav on admin and sales pages (they have their own sidebar)
-	if (pathname?.startsWith("/admin") || pathname?.startsWith("/sales")) {
+	if (pathname?.startsWith("/admin") || pathname?.startsWith("/agents")) {
 		return null;
 	}
 
