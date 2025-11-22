@@ -18,7 +18,7 @@ import { AlertCircle, Briefcase, Lock, Phone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function AdminLoginPage() {
+export default function AgentLoginPage() {
 	const router = useRouter();
 	const { login } = useAuth();
 	const [phone, setPhone] = useState("");
@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
 	};
 
 	return (
-		<div className="flex my-10">
+		<div className="flex items-center justify-center p-4">
 			<Card className="w-full max-w-lg shadow-xl">
 				<CardHeader className="space-y-3">
 					<div className="flex justify-center">
@@ -76,9 +76,9 @@ export default function AdminLoginPage() {
 							<Briefcase className="w-8 h-8 text-primary" />
 						</div>
 					</div>
-					<CardTitle className="text-2xl text-center">Admin</CardTitle>
+					<CardTitle className="text-2xl text-center">Agents & Staff</CardTitle>
 					<CardDescription className="text-center w-full">
-						Sign in to access the admin panel,dashboard
+						Sign in to access the agents and staff dashboard
 					</CardDescription>
 				</CardHeader>
 				<CardContent>

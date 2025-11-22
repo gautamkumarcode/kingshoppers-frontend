@@ -47,9 +47,10 @@ export const InstallPrompt = () => {
 				borderRadius: "10px",
 				zIndex: 9999,
 			}}>
-			<p>Install Kingshoppers App</p>
+			<p className="flex text-xs ">Install Kingshoppers App</p>
 			<button
 				onClick={installApp}
+				className="text-xs font-semibold"
 				style={{
 					marginTop: "10px",
 					padding: "10px 15px",

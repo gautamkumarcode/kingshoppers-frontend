@@ -25,6 +25,15 @@ export function Navbar() {
 		return null;
 	}
 
+	const dynamicAuthRoutes = ["/auth/admin-login", "/auth/agents-login"];
+	if (typeof pathname === "string" && dynamicAuthRoutes.includes(pathname)) {
+		return (
+			<div className="flex h-24 w-full justify-center items-center font-semibold">
+				Kingshppers
+			</div>
+		);
+	}
+
 	return (
 		<nav className="border-b border-border bg-background sticky top-0 z-50">
 			<div className="max-w-7xl mx-auto px-4 py-4">

@@ -17,9 +17,14 @@ const Footer = () => {
   const pathname = usePathname();
 
   // Hide footer for admin and sales pages
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/sales")) {
-    return null;
-  }
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/agents")) {
+		return null;
+	}
+
+	const dynamicAuthRoutes = ["/auth/admin-login", "/auth/agents-login"];
+	if (typeof pathname === "string" && dynamicAuthRoutes.includes(pathname)) {
+		return null;
+	}
 
   return (
     <footer className="bg-linear-to-r from-blue-600 via-blue-300 to-blue-500 text-gray-800">

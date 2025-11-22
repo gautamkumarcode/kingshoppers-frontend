@@ -1,4 +1,4 @@
-import { ProductCard } from "@/components/products/ProductCart";
+import { ProductCard } from "@/components/products/ProductCard";
 import api from "@/lib/api";
 import Link from "next/link";
 

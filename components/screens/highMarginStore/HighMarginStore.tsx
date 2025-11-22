@@ -1,4 +1,4 @@
-import { ProductCard } from "@/components/products/ProductCart";
+import { ProductCard } from "@/components/products/ProductCard";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Product } from "@/types/product";
