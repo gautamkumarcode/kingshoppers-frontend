@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useCart } from "@/hooks/useCart";
 import { calculateDiscountPercentage, formatPrice } from "@/lib/cart-utils";
 import { CartItem as CartItemType } from "@/types/cart";
-import { Loader2, Minus, Package, Plus, Trash2 } from "lucide-react";
+import { Loader2, Minus, Plus, Trash2 } from "lucide-react";
 import NextImage from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -30,18 +30,6 @@ export function CartItem({
 	const discountPercent = calculateDiscountPercentage(item.mrp, item.price);
 	const itemTotal = item.price * item.quantity;
 	const itemSavings = (item.mrp - item.price) * item.quantity;
-
-	// Get full image URL
-	const getImageUrl = (imagePath?: string) => {
-		if (!imagePath) return null;
-		if (imagePath.startsWith("http")) return imagePath;
-		const baseUrl =
-			process.env.NEXT_PUBLIC_API_BASE_URL?.replace("/api", "") ||
-			"http://localhost:5000";
-		return `${baseUrl}${imagePath}`;
-	};
-
-	const imageUrl = getImageUrl(item.image);
 
 	const handleQuantityChange = async (newQuantity: number) => {
 		if (newQuantity === item.quantity) return;
@@ -95,17 +83,13 @@ export function CartItem({
 			<div className="flex items-start gap-3 p-3 border rounded-lg bg-white hover:shadow-sm transition-shadow">
 				{/* Product Image */}
 				<div className="relative w-16 h-16 bg-gray-100 rounded-md flex items-center justify-center shrink-0 overflow-hidden">
-					{imageUrl ? (
-						<NextImage
-							src={imageUrl}
-							alt={item.name}
-							fill
-							className="object-cover"
-							sizes="64px"
-						/>
-					) : (
-						<Package className="h-6 w-6 text-gray-400" />
-					)}
+					<NextImage
+						src={item?.images?.[0] || ""}
+						alt={item.name}
+						fill
+						className="object-cover"
+						sizes="64px"
+					/>
 				</div>
 
 				{/* Product Info */}
@@ -146,17 +130,13 @@ export function CartItem({
 					href={`/products/${item.slug || item.productId}`}
 					className="shrink-0">
 					<div className="relative w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border border-gray-100">
-						{imageUrl ? (
-							<NextImage
-								src={imageUrl}
-								alt={item.name}
-								fill
-								className="object-cover"
-								sizes="80px"
-							/>
-						) : (
-							<Package className="h-8 w-8 text-gray-300" />
-						)}
+						<NextImage
+							src={item?.images?.[0] || ""}
+							alt={item.name}
+							fill
+							className="object-cover"
+							sizes="80px"
+						/>
 					</div>
 				</Link>
 
@@ -198,17 +178,13 @@ export function CartItem({
 				href={`/products/${item.slug || item.productId}`}
 				className="hidden sm:block shrink-0">
 				<div className="relative w-24 h-24 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border border-gray-100 hover:border-gray-200 transition-colors">
-					{imageUrl ? (
-						<NextImage
-							src={imageUrl}
-							alt={item.name}
-							fill
-							className="object-cover"
-							sizes="96px"
-						/>
-					) : (
-						<Package className="h-10 w-10 text-gray-300" />
-					)}
+					<NextImage
+						src={item?.images?.[0] || ""}
+						alt={item.name}
+						fill
+						className="object-cover"
+						sizes="96px"
+					/>
 				</div>
 			</Link>
 

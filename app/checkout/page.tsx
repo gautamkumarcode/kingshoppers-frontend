@@ -515,7 +515,6 @@ export default function CheckoutPage() {
 							</CardContent>
 						</Card>
 
-						<Link href="/invoice">Invoice</Link>
 					</div>
 				</div>
 

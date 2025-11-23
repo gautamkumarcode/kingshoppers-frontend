@@ -206,9 +206,13 @@ export default function RegisterPage() {
 							type="tel"
 							placeholder="+91 98765 43210"
 							value={phone}
-							onChange={(e) => setPhone(e.target.value)}
+							onChange={(e) => {
+								const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+								setPhone(value);
+							}}
 							disabled={!!searchParams.get("phone")}
 							required
+							maxLength={10}
 						/>
 						{searchParams.get("phone") && (
 							<p className="text-xs text-green-600">

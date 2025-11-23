@@ -4,7 +4,6 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
@@ -15,12 +14,13 @@ import {
 	Eye,
 	Filter,
 	Package,
-	Search,
 	ShoppingBag,
 	Truck,
 	X,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface Order {
@@ -35,6 +35,7 @@ interface Order {
 		product: {
 			name: string;
 			_id: string;
+			images: string[];
 		};
 		variantName: string;
 		quantity: number;
@@ -61,6 +62,7 @@ export default function OrdersPage() {
 	const [loading, setLoading] = useState(true);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
+	const router = useRouter();
 
 	useEffect(() => {
 		if (user?.isApproved) {
@@ -167,7 +169,7 @@ export default function OrdersPage() {
 			<div className="min-h-screen bg-gray-50 p-4">
 				<div className="max-w-6xl mx-auto space-y-6">
 					{/* Header */}
-					<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+					<div className="flex  sm:flex-row sm:items-center justify-between gap-4">
 						<div>
 							<h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
 							<p className="text-gray-600">Track and manage your orders</p>
@@ -184,36 +186,24 @@ export default function OrdersPage() {
 					{user?.isApproved ? (
 						<>
 							{/* Search and Filter */}
-							<Card>
-								<CardContent className="pt-6">
-									<div className="flex flex-col sm:flex-row gap-4">
-										<div className="flex-1 relative">
-											<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-											<Input
-												placeholder="Search by order number or product name..."
-												value={searchTerm}
-												onChange={(e) => setSearchTerm(e.target.value)}
-												className="pl-10"
-											/>
-										</div>
-										<div className="flex items-center gap-2">
-											<Filter className="w-4 h-4 text-gray-500" />
-											<select
-												value={statusFilter}
-												onChange={(e) => setStatusFilter(e.target.value)}
-												className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-												<option value="all">All Orders</option>
-												<option value="pending">Pending</option>
-												<option value="confirmed">Confirmed</option>
-												<option value="processing">Processing</option>
-												<option value="shipped">Shipped</option>
-												<option value="delivered">Delivered</option>
-												<option value="cancelled">Cancelled</option>
-											</select>
-										</div>
-									</div>
-								</CardContent>
-							</Card>
+
+							<div className="flex flex-col sm:flex-row gap-4 justify-self-end">
+								<div className="flex items-center gap-2">
+									<Filter className="w-4 h-4 text-gray-500" />
+									<select
+										value={statusFilter}
+										onChange={(e) => setStatusFilter(e.target.value)}
+										className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+										<option value="all">All Orders</option>
+										<option value="pending">Pending</option>
+										<option value="confirmed">Confirmed</option>
+										<option value="processing">Processing</option>
+										<option value="shipped">Shipped</option>
+										<option value="delivered">Delivered</option>
+										<option value="cancelled">Cancelled</option>
+									</select>
+								</div>
+							</div>
 
 							{/* Orders List */}
 							{filteredOrders.length > 0 ? (
@@ -221,16 +211,16 @@ export default function OrdersPage() {
 									{filteredOrders.map((order) => (
 										<Card
 											key={order._id}
-											className="hover:shadow-md transition-shadow">
-											<CardContent className="p-6">
+											className="hover:shadow-md transition-shadow ">
+											<CardContent className="px-4">
 												{/* Order Header */}
 												<div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
-													<div className="flex items-center gap-4 mb-2 sm:mb-0">
+													<div className="flex items-center gap-4 mb-2 sm:mb-0 justify-between">
 														<div>
-															<h3 className="font-semibold text-lg">
+															<h3 className="font-semibold lg:text-lg text-sm">
 																Order #{order.orderNumber}
 															</h3>
-															<p className="text-sm text-gray-600">
+															<p className="text-xs text-gray-600">
 																Placed on{" "}
 																{new Date(order.createdAt).toLocaleDateString()}
 															</p>
@@ -245,7 +235,7 @@ export default function OrdersPage() {
 															</span>
 														</Badge>
 													</div>
-													<div className="flex items-center gap-2">
+													<div className="flex items-center gap-2 justify-end">
 														<Link href={`/order-confirmation/${order._id}`}>
 															<Button variant="outline" size="sm">
 																<Eye className="w-4 h-4 mr-2" />
@@ -262,20 +252,31 @@ export default function OrdersPage() {
 													{order.items.slice(0, 2).map((item, index) => (
 														<div
 															key={index}
+															onClick={() =>
+																router.push(`/products/${item.product._id}`)
+															}
 															className="flex items-center gap-4">
 															<div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-																<Package className="w-6 h-6 text-gray-400" />
+																<Image
+																	src={item.product.images[0]}
+																	alt={item.product.name}
+																	width={48}
+																	height={48}
+																	className="object-contain rounded-lg h-12 w-12"
+																/>
 															</div>
 															<div className="flex-1">
-																<h4 className="font-medium">
+																<h4 className="font-medium text-sm">
 																	{item.product.name}
 																</h4>
-																<p className="text-sm text-gray-600">
+																<p className="text-xs text-gray-600">
 																	{item.variantName} • Qty: {item.quantity}
 																</p>
 															</div>
-															<div className="text-right">
-																<p className="font-semibold">₹{item.total}</p>
+															<div className="text-right ">
+																<p className="font-semibold text-sm">
+																	₹{item.total}
+																</p>
 															</div>
 														</div>
 													))}
@@ -294,14 +295,14 @@ export default function OrdersPage() {
 														<div className="flex items-center gap-4">
 															<div className="flex items-center gap-1 text-sm text-gray-600">
 																<Truck className="w-4 h-4" />
-																<span>
+																<span className="text-xs lg:text-sm">
 																	Delivery to {order.deliveryAddress.city},{" "}
 																	{order.deliveryAddress.state}
 																</span>
 															</div>
 															<div className="flex items-center gap-1 text-sm text-gray-600">
 																<Calendar className="w-4 h-4" />
-																<span>
+																<span className="text-xs lg:text-sm">
 																	{order.expectedDeliveryDate
 																		? `Expected: ${new Date(
 																				order.expectedDeliveryDate
@@ -312,9 +313,10 @@ export default function OrdersPage() {
 														</div>
 														{/* Payment Status */}
 														{order.paymentStatus && (
-															<div className="flex items-center gap-2 text-sm">
+															<div className="flex items-center gap-2 text-xs">
 																<span className="text-gray-600">Payment:</span>
 																<Badge
+																	className="text-xs"
 																	variant={
 																		order.paymentStatus === "completed"
 																			? "default"
@@ -329,12 +331,12 @@ export default function OrdersPage() {
 																		: "Pending"}
 																</Badge>
 																{order.advancePayment &&
-																	order.advancePayment > 0 && (
-																		<span className="text-xs text-gray-500">
-																			(Advance: ₹
-																			{order.advancePayment.toFixed(2)})
-																		</span>
-																	)}
+																order.advancePayment > 0 ? (
+																	<span className="text-xs text-gray-500">
+																		(Advance: ₹{order.advancePayment.toFixed(2)}
+																		)
+																	</span>
+																) : null}
 															</div>
 														)}
 													</div>
@@ -342,7 +344,7 @@ export default function OrdersPage() {
 														<p className="text-sm text-gray-600">
 															Total Amount
 														</p>
-														<p className="text-xl font-bold text-primary">
+														<p className="text-sm font-bold text-primary">
 															₹{calculateOrderTotal(order).toFixed(2)}
 														</p>
 														{order.balanceAmount && order.balanceAmount > 0 && (

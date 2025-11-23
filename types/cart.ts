@@ -4,7 +4,7 @@ export interface CartItem {
 	variantId: string;
 	name: string;
 	variantName: string;
-	image?: string;
+	images?: string[];
 	price: number;
 	mrp: number;
 	quantity: number;

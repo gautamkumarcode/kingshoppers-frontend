@@ -99,12 +99,23 @@ export default function AdminLoginPage() {
 									type="tel"
 									placeholder="Enter your phone number"
 									value={phone}
-									onChange={(e) => setPhone(e.target.value)}
+									onChange={(e) => {
+										const value = e.target.value
+											.replace(/\D/g, "")
+											.slice(0, 10);
+										setPhone(value);
+									}}
 									required
 									className="pl-10"
 									disabled={loading}
+									maxLength={10}
 								/>
 							</div>
+							{phone && phone.length !== 10 && (
+								<p className="text-xs text-red-500">
+									Phone number must be 10 digits
+								</p>
+							)}
 						</div>
 
 						<div className="space-y-2">

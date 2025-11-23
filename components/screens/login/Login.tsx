@@ -128,9 +128,18 @@ export default function LoginPage() {
 								type="tel"
 								placeholder="+91 98765 43210"
 								value={phone}
-								onChange={(e) => setPhone(e.target.value)}
+								onChange={(e) => {
+									const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+									setPhone(value);
+								}}
 								required
+								maxLength={10}
 							/>
+							{phone && phone.length !== 10 && (
+								<p className="text-xs text-red-500">
+									Phone number must be 10 digits
+								</p>
+							)}
 						</div>
 						{error && <p className="text-sm text-destructive">{error}</p>}
 						<Button type="submit" className="w-full" disabled={loading}>
