@@ -19,13 +19,23 @@ const Footer = () => {
 	const [isStandalone, setIsStandalone] = useState(false);
 
 	useEffect(() => {
-		// Check if app is running in standalone mode (PWA)
+		// Check if app is running in standalone mode (PWA) or Flutter WebView
 		const checkStandalone = () => {
-			const isInStandaloneMode =
+			// Check for Flutter WebView indicators
+			const isFlutterApp =
+				// Check if running in Flutter WebView
+				(window as any).flutter_inappwebview !== undefined ||
+				(window as any).FlutterChannel !== undefined ||
+				// Check user agent for Flutter
+				/flutter/i.test(navigator.userAgent) ||
+				// Check if app mode is set in localStorage
+				localStorage.getItem("isFlutterApp") === "true" ||
+				// Check for PWA standalone mode
 				window.matchMedia("(display-mode: standalone)").matches ||
 				(window.navigator as any).standalone ||
 				document.referrer.includes("android-app://");
-			setIsStandalone(isInStandaloneMode);
+
+			setIsStandalone(isFlutterApp);
 		};
 
 		checkStandalone();
