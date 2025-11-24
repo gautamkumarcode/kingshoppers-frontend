@@ -43,7 +43,7 @@ export default function RootLayout({
 		<html lang="en">
 			<head>
 				<link rel="manifest" href="/manifest.json" />
-				<link rel="icon" href="/logoIcon.png" />
+				<link rel="icon" href="/logo1.png" />
 			</head>
 			<body className={`font-sans antialiased`}>
 				<AuthProvider>

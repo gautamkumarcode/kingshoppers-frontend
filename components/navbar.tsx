@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import logo from "@/public/logo.png";
+import logo from "@/public/logo2.png";
 import { StoreIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";

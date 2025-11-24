@@ -37,14 +37,15 @@ export default function AgentLayout({
 	useEffect(() => {
 		if (loading) return;
 		// Allow both sales_executive and delivery agents
-		if (!user || (!isSalesAgent && !isDeliveryAgent)) {
-			router.push("/auth/admin-login");
+		if (!user) {
+			router.push("/auth/agents-login");
 			return;
 		}
 	}, [router, loading, user, isSalesAgent, isDeliveryAgent]);
 
 	const handleLogout = () => {
 		logout();
+		router.push("/auth/agents-login");
 	};
 
 	if (!user) {

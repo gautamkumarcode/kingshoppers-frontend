@@ -56,7 +56,7 @@ export default function AgentLoginPage() {
 			) {
 				router.push("/agent/dashboard");
 			} else {
-				router.push("/");
+				router.push("/agents-login");
 			}
 		} catch (err: any) {
 			const errorMessage =
