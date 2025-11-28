@@ -468,14 +468,6 @@ export default function RegisterPage() {
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-2 gap-2">
 							<h3 className="text-lg font-semibold">Shop Address</h3>
 							<div className="flex gap-2">
-								<Button
-									type="button"
-									variant="outline"
-									size="sm"
-									onClick={handleGetLocation}
-									disabled={locationLoading}>
-									{locationLoading ? "Getting..." : "📍 Auto-Detect"}
-								</Button>
 								<LocationPicker
 									latitude={latitude}
 									longitude={longitude}
@@ -497,13 +489,6 @@ export default function RegisterPage() {
 								<p className="text-xs text-green-800 font-medium mb-1">
 									✅ Location: {latitude.toFixed(6)}, {longitude.toFixed(6)}
 								</p>
-								<a
-									href={`https://www.google.com/maps?q=${latitude},${longitude}`}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="text-xs text-blue-600 hover:underline">
-									🔗 Verify on Google Maps
-								</a>
 							</div>
 						)}
 

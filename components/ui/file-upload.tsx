@@ -170,7 +170,6 @@ export function FileUpload({
 								id={`file-${fileType}`}
 								type="file"
 								accept={accept}
-								capture="environment"
 								onChange={handleFileInput}
 								className="hidden"
 							/>

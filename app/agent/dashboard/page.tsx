@@ -75,7 +75,7 @@ export default function AgentDashboard() {
 	return (
 		<div className="space-y-6">
 			{/* Header */}
-			<div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-lg shadow-lg -mx-4 sm:mx-0 sm:rounded-lg">
+			<div className="bg-linear-to-r from-blue-600 to-blue-700 text-white p-6 rounded-lg shadow-lg -mx-4 sm:mx-0 sm:rounded-lg">
 				<h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">
 					Welcome back,{" "}
 					{user?.firstName || user?.ownerName || user?.shopName || "Agent"}! 👋
