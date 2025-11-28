@@ -48,6 +48,17 @@ export default function AgentOrderDetailPage() {
 	const isSalesAgent = userTypeField === "sales_executive";
 	const isDeliveryAgent = userTypeField === "delivery";
 
+	// Debug logging
+	useEffect(() => {
+		console.log("=== Order Detail Page Debug ===");
+		console.log("User:", user);
+		console.log("User Type Field:", userTypeField);
+		console.log("Is Sales Agent:", isSalesAgent);
+		console.log("Is Delivery Agent:", isDeliveryAgent);
+		console.log("Order:", order);
+		console.log("Delivery Address:", order?.deliveryAddress);
+	}, [user, userTypeField, isSalesAgent, isDeliveryAgent, order]);
+
 	const handleCallCustomer = (phoneNumber: string) => {
 		if (!phoneNumber) {
 			toast({
@@ -58,6 +69,49 @@ export default function AgentOrderDetailPage() {
 			return;
 		}
 		window.location.href = `tel:${phoneNumber}`;
+	};
+
+	const handleNavigate = () => {
+		if (!order?.deliveryAddress) {
+			toast({
+				title: "Error",
+				description: "Delivery address not available",
+				variant: "destructive",
+			});
+			return;
+		}
+
+		const addr = order.deliveryAddress;
+		let mapsUrl;
+
+		// Check if customer has stored coordinates in shopAddress
+		if (
+			order.user?.shopAddress?.location?.coordinates &&
+			order.user.shopAddress.location.coordinates.length === 2
+		) {
+			// Use exact coordinates from customer's shop location
+			const [lng, lat] = order.user.shopAddress.location.coordinates;
+			mapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+			console.log("=== Navigation with Coordinates ===");
+			console.log("Using stored coordinates:", lat, lng);
+		} else {
+			// Fallback to address string
+			const addressParts = [];
+			if (addr.street) addressParts.push(addr.street);
+			if (addr.city) addressParts.push(addr.city);
+			if (addr.state) addressParts.push(addr.state);
+			if (addr.pincode) addressParts.push(addr.pincode);
+
+			const destination = addressParts.join(", ");
+			mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+				destination
+			)}`;
+			console.log("=== Navigation with Address ===");
+			console.log("Using address string:", destination);
+		}
+
+		console.log("Maps URL:", mapsUrl);
+		window.open(mapsUrl, "_blank");
 	};
 
 	useEffect(() => {
@@ -316,10 +370,10 @@ export default function AgentOrderDetailPage() {
 							<CardHeader>
 								<CardTitle>Delivery Address</CardTitle>
 							</CardHeader>
-							<CardContent>
+							<CardContent className="space-y-4">
 								<div className="flex items-start gap-3">
 									<MapPin className="w-5 h-5 text-primary mt-1 shrink-0" />
-									<div>
+									<div className="flex-1">
 										<p className="font-semibold">
 											{order.deliveryAddress?.street}
 										</p>
@@ -337,6 +391,13 @@ export default function AgentOrderDetailPage() {
 										)}
 									</div>
 								</div>
+								{/* Navigate Button for Delivery Agents */}
+								{isDeliveryAgent && order.orderStatus !== "delivered" && (
+									<Button className="w-full" onClick={handleNavigate}>
+										<MapPin className="w-4 h-4 mr-2" />
+										Navigate to Customer
+									</Button>
+								)}
 							</CardContent>
 						</Card>
 					)}

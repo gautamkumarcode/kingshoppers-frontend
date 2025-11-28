@@ -6,9 +6,11 @@ import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import { Eye, MapPin, Package, Phone, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function AgentOrdersPage() {
+	const router = useRouter();
 	const [orders, setOrders] = useState<any[]>([]);
 	const [loading, setLoading] = useState(true);
 	const { user } = useAuth();
@@ -18,12 +20,82 @@ export default function AgentOrdersPage() {
 	const isSalesAgent = userTypeField === "sales_executive";
 	const isDeliveryAgent = userTypeField === "delivery";
 
+	// Debug logging
+	useEffect(() => {
+		console.log("=== Agent Orders Page Debug ===");
+		console.log("User:", user);
+		console.log("User Type Field:", userTypeField);
+		console.log("Is Sales Agent:", isSalesAgent);
+		console.log("Is Delivery Agent:", isDeliveryAgent);
+	}, [user, userTypeField, isSalesAgent, isDeliveryAgent]);
+
 	const handleCallCustomer = (phoneNumber: string) => {
 		if (!phoneNumber) {
 			alert("Phone number not available");
 			return;
 		}
 		window.location.href = `tel:${phoneNumber}`;
+	};
+
+	const handleNavigate = (order: any) => {
+		if (!order?.deliveryAddress) {
+			alert("Delivery address not available");
+			return;
+		}
+
+		const addr = order.deliveryAddress;
+		let mapsUrl;
+
+		// Check if customer has stored coordinates in shopAddress
+		if (
+			order.user?.shopAddress?.location?.coordinates &&
+			order.user.shopAddress.location.coordinates.length === 2
+		) {
+			// Use exact coordinates from customer's shop location
+			const [lng, lat] = order.user.shopAddress.location.coordinates;
+			mapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+			console.log("=== Navigation with Coordinates ===");
+			console.log("Using stored coordinates:", lat, lng);
+		} else {
+			// Fallback to address string
+			const addressParts = [];
+			if (addr.street) addressParts.push(addr.street);
+			if (addr.city) addressParts.push(addr.city);
+			if (addr.state) addressParts.push(addr.state);
+			if (addr.pincode) addressParts.push(addr.pincode);
+
+			const destination = addressParts.join(", ");
+			mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+				destination
+			)}`;
+			console.log("=== Navigation with Address ===");
+			console.log("Using address string:", destination);
+		}
+
+		console.log("Maps URL:", mapsUrl);
+		window.open(mapsUrl, "_blank");
+	};
+
+	const handleStartDelivery = async (orderId: any) => {
+		try {
+			// Update status to out_for_delivery
+
+			if (orderId.orderStatus !== "out_for_delivery") {
+				await api.put(`/orders/${orderId._id}/status`, {
+					status: "out_for_delivery",
+					notes: "Delivery started by agent",
+				});
+			}
+			// Navigate to order detail page
+			router.push(`/agent/orders/${orderId._id}`);
+		} catch (error: any) {
+			console.error("Failed to update order status:", error);
+			// Only show alert on error
+			alert(
+				error.response?.data?.message ||
+					"Failed to start delivery. Please try again."
+			);
+		}
 	};
 
 	useEffect(() => {
@@ -193,18 +265,29 @@ export default function AgentOrdersPage() {
 
 									{/* Actions */}
 									<div className="flex gap-2 flex-wrap">
-										{isDeliveryAgent &&
-										(order.orderStatus === "shipped" ||
-											order.orderStatus === "out_for_delivery" ||
-											"Confirm") ? (
-											<Link
-												href={`/agent/orders/${order._id}`}
-												className="flex-1 md:flex-none">
-												<Button size="sm" className="w-full md:w-auto">
+										{isDeliveryAgent && order.orderStatus !== "delivered" ? (
+											<>
+												<Button
+													size="sm"
+													className="flex-1 md:flex-none"
+													onClick={() => handleStartDelivery(order)}>
 													<Package className="w-4 h-4 mr-2" />
-													Start Delivery
+													{order.orderStatus === "out_for_delivery"
+														? "Continue Delivery"
+														: "Start Delivery"}
 												</Button>
-											</Link>
+												<Link
+													href={`/agent/orders/${order._id}`}
+													className="flex-1 md:flex-none">
+													<Button
+														size="sm"
+														variant="outline"
+														className="w-full md:w-auto">
+														<Eye className="w-4 h-4 mr-2" />
+														Details
+													</Button>
+												</Link>
+											</>
 										) : (
 											<Link
 												href={`/agent/orders/${order._id}`}
@@ -237,38 +320,6 @@ export default function AgentOrdersPage() {
 															handleCallCustomer(order.user?.alternatePhone)
 														}>
 														<Phone className="w-4 h-4" />
-													</Button>
-												)}
-												{order.deliveryAddress && (
-													<Button
-														size="sm"
-														variant="outline"
-														className="flex-1 md:flex-none"
-														onClick={() => {
-															// Use geolocation coordinates if available, otherwise use address
-															if (
-																order.deliveryAddress.location?.coordinates &&
-																order.deliveryAddress.location.coordinates
-																	.length === 2
-															) {
-																const [lng, lat] =
-																	order.deliveryAddress.location.coordinates;
-																window.open(
-																	`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
-																	"_blank"
-																);
-															} else {
-																const address = `${order.deliveryAddress.street}, ${order.deliveryAddress.city}, ${order.deliveryAddress.state} ${order.deliveryAddress.pincode}`;
-																window.open(
-																	`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-																		address
-																	)}`,
-																	"_blank"
-																);
-															}
-														}}>
-														<MapPin className="w-4 h-4 mr-2" />
-														Navigate
 													</Button>
 												)}
 											</>

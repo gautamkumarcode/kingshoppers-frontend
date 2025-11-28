@@ -22,9 +22,16 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+
+const LocationPicker = dynamic(
+	() =>
+		import("@/components/ui/location-picker").then((mod) => mod.LocationPicker),
+	{ ssr: false }
+);
 
 export default function RegisterPage() {
 	const router = useRouter();
@@ -458,38 +465,45 @@ export default function RegisterPage() {
 
 					{/* Address Section */}
 					<div className="space-y-4">
-						<div className="flex items-center justify-between border-b pb-2">
+						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-2 gap-2">
 							<h3 className="text-lg font-semibold">Shop Address</h3>
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={handleGetLocation}
-								disabled={locationLoading}>
-								{locationLoading
-									? "Getting Location..."
-									: latitude && longitude
-									? "📍 Location Captured"
-									: "📍 Get My Location"}
-							</Button>
+							<div className="flex gap-2">
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={handleGetLocation}
+									disabled={locationLoading}>
+									{locationLoading ? "Getting..." : "📍 Auto-Detect"}
+								</Button>
+								<LocationPicker
+									latitude={latitude}
+									longitude={longitude}
+									onLocationSelect={(lat, lng) => {
+										setLatitude(lat);
+										setLongitude(lng);
+										reverseGeocode(lat, lng);
+									}}
+								/>
+							</div>
 						</div>
 
 						{locationError && (
-							<p className="text-xs text-destructive">{locationError}</p>
+							<p className="text-xs text-orange-600">{locationError}</p>
 						)}
 
 						{latitude && longitude && (
 							<div className="bg-green-50 border border-green-200 rounded-md p-3">
-								<p className="text-xs text-green-800 font-medium">
-									✅ Location captured successfully!
+								<p className="text-xs text-green-800 font-medium mb-1">
+									✅ Location: {latitude.toFixed(6)}, {longitude.toFixed(6)}
 								</p>
-								<p className="text-xs text-green-700 mt-1">
-									Lat: {latitude.toFixed(6)}, Long: {longitude.toFixed(6)}
-								</p>
-								<p className="text-xs text-gray-600 mt-1">
-									💡 Tip: Verify the auto-filled address below and edit if
-									needed
-								</p>
+								<a
+									href={`https://www.google.com/maps?q=${latitude},${longitude}`}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="text-xs text-blue-600 hover:underline">
+									🔗 Verify on Google Maps
+								</a>
 							</div>
 						)}
 

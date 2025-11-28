@@ -80,4 +80,8 @@ export interface ShopAddress {
 	state: string;
 	pincode: string;
 	landmark: string;
+	location?: {
+		type: string;
+		coordinates: [number, number]; // [longitude, latitude]
+	};
 }
