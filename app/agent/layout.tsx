@@ -11,7 +11,6 @@ import {
 	Package,
 	ShoppingCart,
 	TrendingUp,
-	Truck,
 	Users,
 	X,
 } from "lucide-react";
@@ -61,8 +60,8 @@ export default function AgentLayout({
 	];
 
 	const deliveryMenuItems = [
-		{ icon: Package, label: "Assigned Orders", href: "/agent/orders" },
-		{ icon: Truck, label: "Deliveries", href: "/agent/deliveries" },
+		{ icon: LayoutDashboard, label: "Dashboard", href: "/agent/dashboard" },
+		{ icon: Package, label: "Orders", href: "/agent/orders" },
 	];
 
 	const menuItems = isSalesAgent ? salesMenuItems : deliveryMenuItems;
@@ -92,7 +91,7 @@ export default function AgentLayout({
 				{/* Logo */}
 				<div className="p-4 border-b border-border">
 					<Link
-						href={isSalesAgent ? "/agent/dashboard" : "/agent/orders"}
+						href="/agent/dashboard"
 						className="text-xl font-bold text-primary">
 						{isOpen ? logoText : logoShort}
 					</Link>
@@ -134,7 +133,7 @@ export default function AgentLayout({
 				{/* Logo */}
 				<div className="p-4 border-b border-border flex justify-between items-center">
 					<Link
-						href={isSalesAgent ? "/agent/dashboard" : "/agent/orders"}
+						href="/agent/dashboard"
 						className="text-xl font-bold text-primary"
 						onClick={() => setIsMobileMenuOpen(false)}>
 						{logoText}

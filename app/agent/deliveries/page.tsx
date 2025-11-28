@@ -163,9 +163,14 @@ export default function DeliveriesPage() {
 
 								{/* Actions */}
 								<div className="flex gap-2 flex-wrap">
-									<Button size="sm" variant="outline">
+									<Button
+										size="sm"
+										variant="default"
+										onClick={() =>
+											(window.location.href = `/agent/orders/${delivery._id}`)
+										}>
 										<Package className="w-4 h-4 mr-2" />
-										Mark as Picked
+										Start Delivery
 									</Button>
 									<Button
 										size="sm"

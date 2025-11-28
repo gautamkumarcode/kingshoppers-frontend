@@ -35,7 +35,12 @@ export default function AgentOrderDetailPage() {
 	const [showQRCode, setShowQRCode] = useState(false);
 	const [transactionId, setTransactionId] = useState("");
 	const [verifyingPayment, setVerifyingPayment] = useState(false);
+	const [paymentOTP, setPaymentOTP] = useState("");
+	const [paymentOTPSubmitted, setPaymentOTPSubmitted] = useState(false);
+	const [verifyingPaymentOTP, setVerifyingPaymentOTP] = useState(false);
 	const [cashReceived, setCashReceived] = useState(false);
+	const [generatingOTP, setGeneratingOTP] = useState(false);
+	const [otpGenerated, setOtpGenerated] = useState(false);
 	const qrRef = useRef<HTMLCanvasElement>(null);
 
 	// Determine agent type
@@ -60,6 +65,16 @@ export default function AgentOrderDetailPage() {
 	}, [params.id]);
 
 	useEffect(() => {
+		// Check if payment verification OTP is already submitted
+		if (
+			order?.paymentDetails?.verificationOTP &&
+			!order?.paymentDetails?.verificationOTPVerified
+		) {
+			setPaymentOTPSubmitted(true);
+		}
+	}, [order]);
+
+	useEffect(() => {
 		// Business settings loaded from user context
 	}, [user]);
 
@@ -71,6 +86,40 @@ export default function AgentOrderDetailPage() {
 			console.error("Failed to fetch order:", error);
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const handleGenerateOTP = async () => {
+		setGeneratingOTP(true);
+
+		try {
+			const response = await api.post(
+				`/orders/${params.id}/generate-delivery-otp`
+			);
+
+			if (response.data.success) {
+				toast({
+					title: "OTP Sent! 📱",
+					description: `OTP has been sent to customer's phone`,
+				});
+				setOtpGenerated(true);
+				// Refresh order data
+				fetchOrder();
+			} else {
+				toast({
+					title: "Error",
+					description: response.data.message || "Failed to generate OTP",
+					variant: "destructive",
+				});
+			}
+		} catch (error: any) {
+			toast({
+				title: "Error",
+				description: error.response?.data?.message || "Failed to generate OTP",
+				variant: "destructive",
+			});
+		} finally {
+			setGeneratingOTP(false);
 		}
 	};
 
@@ -97,15 +146,18 @@ export default function AgentOrderDetailPage() {
 			}
 
 			toast({
-				title: "Success",
+				title: "Success! ✅",
 				description: "Order delivered successfully",
 			});
 
-			router.push("/agent/orders");
-		} catch (error) {
+			// Wait a moment before redirecting
+			setTimeout(() => {
+				router.push("/agent/orders");
+			}, 1500);
+		} catch (error: any) {
 			toast({
 				title: "Error",
-				description: "Failed to verify OTP",
+				description: error.response?.data?.message || "Failed to verify OTP",
 				variant: "destructive",
 			});
 		} finally {
@@ -130,22 +182,25 @@ export default function AgentOrderDetailPage() {
 		try {
 			const response = await api.post(`/orders/${params.id}/verify-payment`, {
 				transactionId: transactionId.trim(),
-				paymentMethod: "upi",
 				amount:
 					order.balanceAmount > 0
 						? order.balanceAmount
 						: order.grandTotal || order.total,
 			});
 
-			toast({
-				title: "Success",
-				description: "Payment verified successfully",
-			});
+			if (response.data.success) {
+				toast({
+					title: "Success! 📱",
+					description:
+						"Payment verification OTP generated. Please wait for admin approval.",
+				});
 
-			// Refresh order data
-			fetchOrder();
-			setTransactionId("");
-			setShowQRCode(false);
+				// Mark that OTP has been submitted
+				setPaymentOTPSubmitted(true);
+
+				// Refresh order data
+				fetchOrder();
+			}
 		} catch (error: any) {
 			toast({
 				title: "Error",
@@ -155,6 +210,50 @@ export default function AgentOrderDetailPage() {
 			});
 		} finally {
 			setVerifyingPayment(false);
+		}
+	};
+
+	const handleVerifyPaymentOTP = async (e: React.FormEvent) => {
+		e.preventDefault();
+
+		if (!paymentOTP.trim() || paymentOTP.length !== 6) {
+			toast({
+				title: "Error",
+				description: "Please enter valid 6-digit OTP",
+				variant: "destructive",
+			});
+			return;
+		}
+
+		setVerifyingPaymentOTP(true);
+
+		try {
+			const response = await api.post(`/orders/${params.id}/verify-payment`, {
+				otp: paymentOTP.trim(),
+			});
+
+			if (response.data.success) {
+				toast({
+					title: "Success! ✅",
+					description: "Payment verification completed successfully",
+				});
+
+				// Refresh order data
+				fetchOrder();
+				setPaymentOTP("");
+				setPaymentOTPSubmitted(false);
+				setTransactionId("");
+				setShowQRCode(false);
+			}
+		} catch (error: any) {
+			toast({
+				title: "Error",
+				description:
+					error.response?.data?.message || "Failed to verify payment OTP",
+				variant: "destructive",
+			});
+		} finally {
+			setVerifyingPaymentOTP(false);
 		}
 	};
 
@@ -495,49 +594,116 @@ export default function AgentOrderDetailPage() {
 														</div>
 
 														{/* Payment Verification Form */}
-														<form
-															onSubmit={handleVerifyPayment}
-															className="space-y-3 pt-3 border-t">
-															<div className="space-y-2">
-																<Label
-																	htmlFor="transactionId"
-																	className="text-sm font-semibold">
-																	Verify Payment
-																</Label>
-																<Input
-																	id="transactionId"
-																	placeholder="Enter UPI Transaction ID"
-																	value={transactionId}
-																	onChange={(e) =>
-																		setTransactionId(e.target.value)
+														{!paymentOTPSubmitted ? (
+															<form
+																onSubmit={handleVerifyPayment}
+																className="space-y-3 pt-3 border-t">
+																<div className="space-y-2">
+																	<Label
+																		htmlFor="transactionId"
+																		className="text-sm font-semibold">
+																		Step 1: Submit Transaction ID
+																	</Label>
+																	<Input
+																		id="transactionId"
+																		placeholder="Enter UPI Transaction ID"
+																		value={transactionId}
+																		onChange={(e) =>
+																			setTransactionId(e.target.value)
+																		}
+																		disabled={verifyingPayment}
+																		className="text-sm"
+																	/>
+																	<p className="text-xs text-muted-foreground">
+																		Ask customer for transaction ID after
+																		payment
+																	</p>
+																</div>
+																<Button
+																	type="submit"
+																	disabled={
+																		verifyingPayment || !transactionId.trim()
 																	}
-																	disabled={verifyingPayment}
-																	className="text-sm"
-																/>
-																<p className="text-xs text-muted-foreground">
-																	Ask customer for transaction ID after payment
-																</p>
-															</div>
-															<Button
-																type="submit"
-																disabled={
-																	verifyingPayment || !transactionId.trim()
-																}
-																className="w-full"
-																size="sm">
-																{verifyingPayment ? (
-																	<>
-																		<CheckCircle className="w-4 h-4 mr-2 animate-spin" />
-																		Verifying...
-																	</>
-																) : (
-																	<>
-																		<CheckCircle className="w-4 h-4 mr-2" />
-																		Verify Payment
-																	</>
-																)}
-															</Button>
-														</form>
+																	className="w-full"
+																	size="sm">
+																	{verifyingPayment ? (
+																		<>
+																			<CheckCircle className="w-4 h-4 mr-2 animate-spin" />
+																			Submitting...
+																		</>
+																	) : (
+																		<>
+																			<CheckCircle className="w-4 h-4 mr-2" />
+																			Submit for Verification
+																		</>
+																	)}
+																</Button>
+															</form>
+														) : (
+															<form
+																onSubmit={handleVerifyPaymentOTP}
+																className="space-y-3 pt-3 border-t">
+																<div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-3">
+																	<p className="text-xs text-blue-800 font-medium text-center">
+																		⏳ Waiting for admin approval...
+																	</p>
+																</div>
+																<div className="space-y-2">
+																	<Label
+																		htmlFor="paymentOTP"
+																		className="text-sm font-semibold">
+																		Step 2: Enter Verification OTP
+																	</Label>
+																	<Input
+																		id="paymentOTP"
+																		type="text"
+																		placeholder="Enter 6-digit OTP"
+																		value={paymentOTP}
+																		onChange={(e) =>
+																			setPaymentOTP(e.target.value)
+																		}
+																		maxLength={6}
+																		disabled={verifyingPaymentOTP}
+																		className="text-center text-xl tracking-widest font-mono"
+																	/>
+																	<p className="text-xs text-muted-foreground">
+																		Enter OTP after admin approves the payment
+																	</p>
+																</div>
+																<Button
+																	type="submit"
+																	disabled={
+																		verifyingPaymentOTP ||
+																		paymentOTP.length !== 6
+																	}
+																	className="w-full"
+																	size="sm">
+																	{verifyingPaymentOTP ? (
+																		<>
+																			<CheckCircle className="w-4 h-4 mr-2 animate-spin" />
+																			Verifying OTP...
+																		</>
+																	) : (
+																		<>
+																			<CheckCircle className="w-4 h-4 mr-2" />
+																			Complete Verification
+																		</>
+																	)}
+																</Button>
+																<Button
+																	type="button"
+																	variant="outline"
+																	className="w-full"
+																	size="sm"
+																	onClick={() => {
+																		setPaymentOTPSubmitted(false);
+																		setPaymentOTP("");
+																		setTransactionId("");
+																	}}>
+																	Cancel & Start Over
+																</Button>
+															</form>
+														)}
 													</div>
 												)}
 											</div>
@@ -546,7 +712,7 @@ export default function AgentOrderDetailPage() {
 							</Card>
 
 							{/* OTP Verification */}
-							<Card className="sticky top-20">
+							<Card className="">
 								<CardHeader>
 									<CardTitle>Delivery Verification</CardTitle>
 								</CardHeader>
@@ -554,59 +720,128 @@ export default function AgentOrderDetailPage() {
 									{order.orderStatus === "delivered" ? (
 										<div className="text-center py-6">
 											<CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-2" />
-											<p className="font-semibold">Delivered</p>
-											<p className="text-sm text-muted-foreground">
+											<p className="font-semibold text-lg">Delivered ✅</p>
+											<p className="text-sm text-muted-foreground mt-2">
 												{new Date(order.updatedAt).toLocaleString()}
 											</p>
 										</div>
 									) : (
-										<form onSubmit={handleVerifyOTP} className="space-y-4">
-											<div className="space-y-2">
-												<Label htmlFor="otp">Customer OTP</Label>
-												<Input
-													id="otp"
-													type="text"
-													placeholder="Enter 6-digit OTP"
-													value={otp}
-													onChange={(e) => setOtp(e.target.value)}
-													maxLength={6}
-													required
-												/>
-												<p className="text-xs text-muted-foreground">
-													Ask customer for the OTP sent to their phone
-												</p>
-											</div>
-
-											{/* Cash Received Checkbox for COD */}
-											{order.paymentMethod === "cod" &&
-												order.paymentStatus !== "completed" && (
-													<div className="flex items-center space-x-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-														<Checkbox
-															id="cashReceived"
-															checked={cashReceived}
-															onCheckedChange={(checked) =>
-																setCashReceived(checked as boolean)
-															}
-														/>
-														<Label
-															htmlFor="cashReceived"
-															className="text-sm font-medium cursor-pointer">
-															💰 Cash payment received (₹
-															{order.balanceAmount > 0
-																? order.balanceAmount
-																: order.grandTotal || order.total}
-															)
-														</Label>
+										<>
+											{/* Step 1: Generate OTP */}
+											{!otpGenerated && (
+												<div className="space-y-3">
+													<div className="bg-blue-50 border border-blue-200 rounded-md p-4 text-center">
+														<p className="text-sm text-blue-800 font-medium mb-3">
+															📍 Step 1: Generate OTP for customer
+														</p>
+														<Button
+															onClick={handleGenerateOTP}
+															disabled={generatingOTP}
+															className="w-full"
+															size="lg">
+															{generatingOTP ? (
+																<>
+																	<Package className="w-4 h-4 mr-2 animate-spin" />
+																	Generating OTP...
+																</>
+															) : (
+																<>
+																	<Package className="w-4 h-4 mr-2" />
+																	Generate Delivery OTP
+																</>
+															)}
+														</Button>
 													</div>
-												)}
+													<p className="text-xs text-muted-foreground text-center">
+														OTP will be sent to customer's phone:{" "}
+														{order.user?.phone}
+													</p>
+												</div>
+											)}
 
-											<Button
-												type="submit"
-												className="w-full"
-												disabled={verifying}>
-												{verifying ? "Verifying..." : "Mark as Delivered"}
-											</Button>
-										</form>
+											{/* Step 2: Verify OTP */}
+											{otpGenerated && (
+												<form onSubmit={handleVerifyOTP} className="space-y-4">
+													<div className="bg-green-50 border border-green-200 rounded-md p-3 mb-4">
+														<p className="text-xs text-green-800 font-medium text-center">
+															✅ OTP sent to customer's phone
+														</p>
+													</div>
+
+													<div className="space-y-2">
+														<Label
+															htmlFor="otp"
+															className="text-base font-semibold">
+															📱 Customer OTP
+														</Label>
+														<Input
+															id="otp"
+															type="text"
+															placeholder="Enter 6-digit OTP"
+															value={otp}
+															onChange={(e) => setOtp(e.target.value)}
+															maxLength={6}
+															required
+															className="text-center text-2xl tracking-widest font-mono"
+														/>
+														<p className="text-xs text-muted-foreground">
+															Ask customer for the OTP sent to their phone
+														</p>
+													</div>
+
+													{/* Cash Received Checkbox for COD */}
+													{order.paymentMethod === "cod" &&
+														order.paymentStatus !== "completed" && (
+															<div className="flex items-center space-x-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+																<Checkbox
+																	id="cashReceived"
+																	checked={cashReceived}
+																	onCheckedChange={(checked) =>
+																		setCashReceived(checked as boolean)
+																	}
+																/>
+																<Label
+																	htmlFor="cashReceived"
+																	className="text-sm font-medium cursor-pointer">
+																	💰 Cash payment received (₹
+																	{order.balanceAmount > 0
+																		? order.balanceAmount
+																		: order.grandTotal || order.total}
+																	)
+																</Label>
+															</div>
+														)}
+
+													<Button
+														type="submit"
+														className="w-full"
+														size="lg"
+														disabled={verifying || otp.length !== 6}>
+														{verifying ? (
+															<>
+																<CheckCircle className="w-4 h-4 mr-2 animate-spin" />
+																Verifying...
+															</>
+														) : (
+															<>
+																<CheckCircle className="w-4 h-4 mr-2" />
+																Complete Delivery
+															</>
+														)}
+													</Button>
+
+													<Button
+														type="button"
+														variant="outline"
+														className="w-full"
+														size="sm"
+														onClick={handleGenerateOTP}
+														disabled={generatingOTP}>
+														Resend OTP
+													</Button>
+												</form>
+											)}
+										</>
 									)}
 								</CardContent>
 							</Card>

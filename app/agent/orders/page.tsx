@@ -41,7 +41,28 @@ export default function AgentOrdersPage() {
 
 			if (endpoint) {
 				const response = await api.get(endpoint);
-				const data = response.data.orders || response.data;
+				let data = response.data.orders || response.data;
+
+				// Sort orders for delivery agents - priority order
+				if (isDeliveryAgent) {
+					data = data.sort((a: any, b: any) => {
+						const priorityOrder: Record<string, number> = {
+							out_for_delivery: 1,
+							shipped: 2,
+							processing: 3,
+							confirmed: 4,
+							pending: 5,
+							delivered: 6,
+							cancelled: 7,
+						};
+
+						const aPriority = priorityOrder[a.orderStatus] || 99;
+						const bPriority = priorityOrder[b.orderStatus] || 99;
+
+						return aPriority - bPriority;
+					});
+				}
+
 				setOrders(data);
 			}
 		} catch (error) {
@@ -63,176 +84,208 @@ export default function AgentOrdersPage() {
 		return colors[status] || "bg-gray-500/10 text-gray-600";
 	};
 
-	const pageTitle = isSalesAgent ? "My Orders" : "Assigned Orders";
 	const emptyMessage = isSalesAgent
 		? "No orders yet"
 		: "No orders assigned yet";
 
 	return (
-		<div className="space-y-6">
-			<div className="flex justify-between items-center">
-				<h2 className="text-3xl font-bold">{pageTitle}</h2>
-				{isSalesAgent && (
-					<div className="flex gap-2">
-						<Button variant="outline" size="sm">
-							<Package className="w-4 h-4 mr-2" />
-							All Orders
-						</Button>
-					</div>
-				)}
-			</div>
-
-			{loading ? (
-				<Card>
-					<CardContent className="p-12 text-center">
-						<p className="text-muted-foreground">Loading orders...</p>
-					</CardContent>
-				</Card>
-			) : orders.length === 0 ? (
-				<Card>
-					<CardContent className="p-12 text-center">
-						<p className="text-muted-foreground">{emptyMessage}</p>
-					</CardContent>
-				</Card>
-			) : (
-				<div className="space-y-4">
-					{orders.map((order) => (
-						<Card key={order._id}>
-							<CardContent className="p-6">
-								<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-									<div>
-										<p className="text-sm text-muted-foreground">
-											Order Number
-										</p>
-										<p className="font-semibold">{order.orderNumber}</p>
-									</div>
-									<div>
-										<p className="text-sm text-muted-foreground">Customer</p>
-										<p className="font-semibold">
-											{order.user?.firstName ||
-												order.user?.name ||
-												order.user?.shopName}
-										</p>
-										<p className="text-xs text-muted-foreground">
-											{order.user?.phone}
-										</p>
-									</div>
-									<div>
-										<p className="text-sm text-muted-foreground">Total</p>
-										<p className="font-semibold text-primary">
-											₹{order.grandTotal || order.total}
-										</p>
-									</div>
-									<div>
-										<p className="text-sm text-muted-foreground">Status</p>
-										<span
-											className={`text-xs px-2 py-1 rounded capitalize inline-block ${getStatusColor(
-												order.orderStatus
-											)}`}>
-											{order.orderStatus}
-										</span>
-									</div>
-								</div>
-
-								{/* Delivery Address - Show for delivery agents */}
-								{isDeliveryAgent && order.deliveryAddress && (
-									<div className="mb-4 pb-4 border-t border-border pt-4">
-										<div className="flex items-start gap-2">
-											<MapPin className="w-4 h-4 text-muted-foreground mt-1 shrink-0" />
-											<div>
-												<p className="text-sm font-semibold">
-													{order.deliveryAddress?.street}
-												</p>
-												<p className="text-sm text-muted-foreground">
-													{order.deliveryAddress?.city},{" "}
-													{order.deliveryAddress?.state}{" "}
-													{order.deliveryAddress?.pincode}
-												</p>
-											</div>
+		<div className="min-h-screen pb-20">
+			<div className=" mx-auto md:px-6 py-4 md:py-6 space-y-4">
+				{loading ? (
+					<Card>
+						<CardContent className="p-8 md:p-12 text-center">
+							<p className="text-muted-foreground">Loading orders...</p>
+						</CardContent>
+					</Card>
+				) : orders.length === 0 ? (
+					<Card>
+						<CardContent className="p-8 md:p-12 text-center">
+							<Package className="w-12 h-12 md:w-16 md:h-16 text-gray-400 mx-auto mb-4" />
+							<p className="text-muted-foreground text-lg">{emptyMessage}</p>
+						</CardContent>
+					</Card>
+				) : (
+					<div className="space-y-3 md:space-y-4">
+						{orders.map((order) => (
+							<Card key={order._id} className="overflow-hidden">
+								<CardContent className="p-4 md:p-6">
+									{/* Mobile-First Layout */}
+									<div className="flex items-start justify-between mb-3">
+										<div className="flex-1">
+											<p className="font-bold text-base md:text-lg mb-1">
+												#{order.orderNumber}
+											</p>
+											<p className="text-sm font-medium text-gray-900">
+												{order.user?.firstName ||
+													order.user?.name ||
+													order.user?.shopName}
+											</p>
+											<p className="text-xs text-gray-600">
+												{order.user?.phone}
+											</p>
+										</div>
+										<div className="text-right">
+											<p className="text-lg md:text-xl font-bold text-blue-600">
+												₹{(order.grandTotal || order.total)?.toLocaleString()}
+											</p>
+											<span
+												className={`text-xs px-2 py-1 rounded-full capitalize inline-block mt-1 ${getStatusColor(
+													order.orderStatus
+												)}`}>
+												{order.orderStatus.replace(/_/g, " ")}
+											</span>
 										</div>
 									</div>
-								)}
 
-								{/* Sales Info - Show for sales agents */}
-								{isSalesAgent && (
-									<div className="mb-4 pb-4 border-t border-border pt-4">
-										<div className="flex items-center gap-4 text-sm">
-											<div>
-												<span className="text-muted-foreground">Items: </span>
-												<span className="font-semibold">
-													{order.items?.length || 0}
-												</span>
-											</div>
-											<div>
-												<span className="text-muted-foreground">Payment: </span>
-												<span className="font-semibold capitalize">
-													{order.paymentMethod}
-												</span>
-											</div>
-											<div>
-												<span className="text-muted-foreground">
-													Payment Status:{" "}
-												</span>
-												<span
-													className={`font-semibold capitalize ${
-														order.paymentStatus === "completed"
-															? "text-green-600"
-															: "text-yellow-600"
-													}`}>
-													{order.paymentStatus}
-												</span>
+									{/* Delivery Address - Show for delivery agents */}
+									{isDeliveryAgent && order.deliveryAddress && (
+										<div className="mb-3 pb-3 border-t pt-3">
+											<div className="flex items-start gap-2 bg-gray-50 p-3 rounded-lg">
+												<MapPin className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+												<div className="flex-1 min-w-0">
+													<p className="text-sm font-medium text-gray-900 mb-1">
+														{order.deliveryAddress?.street}
+													</p>
+													<p className="text-xs text-gray-600">
+														{order.deliveryAddress?.city},{" "}
+														{order.deliveryAddress?.state} -{" "}
+														{order.deliveryAddress?.pincode}
+													</p>
+												</div>
 											</div>
 										</div>
-									</div>
-								)}
+									)}
 
-								{/* Actions */}
-								<div className="flex gap-2 flex-wrap">
-									<Link
-										href={
-											isSalesAgent
-												? `/agent/orders/${order._id}`
-												: `/agent/orders/${order._id}`
-										}>
-										<Button size="sm" variant="outline">
-											<Eye className="w-4 h-4 mr-2" />
-											View Details
-										</Button>
-									</Link>
-									{isDeliveryAgent && (
-										<>
-											<Button
-												size="sm"
-												variant="outline"
-												onClick={() => handleCallCustomer(order.user?.phone)}>
-												<Phone className="w-4 h-4 mr-2" />
-												Call Customer
-											</Button>
-											{order.user?.alternatePhone && (
+									{/* Sales Info - Show for sales agents */}
+									{isSalesAgent && (
+										<div className="mb-4 pb-4 border-t border-border pt-4">
+											<div className="flex items-center gap-4 text-sm">
+												<div>
+													<span className="text-muted-foreground">Items: </span>
+													<span className="font-semibold">
+														{order.items?.length || 0}
+													</span>
+												</div>
+												<div>
+													<span className="text-muted-foreground">
+														Payment:{" "}
+													</span>
+													<span className="font-semibold capitalize">
+														{order.paymentMethod}
+													</span>
+												</div>
+												<div>
+													<span className="text-muted-foreground">
+														Payment Status:{" "}
+													</span>
+													<span
+														className={`font-semibold capitalize ${
+															order.paymentStatus === "completed"
+																? "text-green-600"
+																: "text-yellow-600"
+														}`}>
+														{order.paymentStatus}
+													</span>
+												</div>
+											</div>
+										</div>
+									)}
+
+									{/* Actions */}
+									<div className="flex gap-2 flex-wrap">
+										{isDeliveryAgent &&
+										(order.orderStatus === "shipped" ||
+											order.orderStatus === "out_for_delivery" ||
+											"Confirm") ? (
+											<Link
+												href={`/agent/orders/${order._id}`}
+												className="flex-1 md:flex-none">
+												<Button size="sm" className="w-full md:w-auto">
+													<Package className="w-4 h-4 mr-2" />
+													Start Delivery
+												</Button>
+											</Link>
+										) : (
+											<Link
+												href={`/agent/orders/${order._id}`}
+												className="flex-1 md:flex-none">
 												<Button
 													size="sm"
 													variant="outline"
-													onClick={() =>
-														handleCallCustomer(order.user?.alternatePhone)
-													}>
-													<Phone className="w-4 h-4 mr-2" />
-													Call Alternate
+													className="w-full md:w-auto">
+													<Eye className="w-4 h-4 mr-2" />
+													View Details
 												</Button>
-											)}
-										</>
-									)}
-									{isSalesAgent && (
-										<Button size="sm" variant="outline">
-											<TrendingUp className="w-4 h-4 mr-2" />
-											Track
-										</Button>
-									)}
-								</div>
-							</CardContent>
-						</Card>
-					))}
-				</div>
-			)}
+											</Link>
+										)}
+										{isDeliveryAgent && order.orderStatus !== "delivered" && (
+											<>
+												<Button
+													size="sm"
+													variant="outline"
+													className="flex-1 md:flex-none"
+													onClick={() => handleCallCustomer(order.user?.phone)}>
+													<Phone className="w-4 h-4 mr-2" />
+													<span className="hidden md:inline">Call</span>
+													<span className="md:hidden">Call</span>
+												</Button>
+												{order.user?.alternatePhone && (
+													<Button
+														size="sm"
+														variant="outline"
+														onClick={() =>
+															handleCallCustomer(order.user?.alternatePhone)
+														}>
+														<Phone className="w-4 h-4" />
+													</Button>
+												)}
+												{order.deliveryAddress && (
+													<Button
+														size="sm"
+														variant="outline"
+														className="flex-1 md:flex-none"
+														onClick={() => {
+															// Use geolocation coordinates if available, otherwise use address
+															if (
+																order.deliveryAddress.location?.coordinates &&
+																order.deliveryAddress.location.coordinates
+																	.length === 2
+															) {
+																const [lng, lat] =
+																	order.deliveryAddress.location.coordinates;
+																window.open(
+																	`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+																	"_blank"
+																);
+															} else {
+																const address = `${order.deliveryAddress.street}, ${order.deliveryAddress.city}, ${order.deliveryAddress.state} ${order.deliveryAddress.pincode}`;
+																window.open(
+																	`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+																		address
+																	)}`,
+																	"_blank"
+																);
+															}
+														}}>
+														<MapPin className="w-4 h-4 mr-2" />
+														Navigate
+													</Button>
+												)}
+											</>
+										)}
+										{isSalesAgent && (
+											<Button size="sm" variant="outline">
+												<TrendingUp className="w-4 h-4 mr-2" />
+												Track
+											</Button>
+										)}
+									</div>
+								</CardContent>
+							</Card>
+						))}
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }

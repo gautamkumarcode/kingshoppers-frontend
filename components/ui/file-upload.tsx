@@ -138,13 +138,13 @@ export function FileUpload({
 	};
 
 	return (
-		<div className="space-y-2">
+		<div className="space-y-2 w-full overflow-hidden">
 			<Label className="text-sm font-medium">
 				{label} {required && <span className="text-red-500">*</span>}
 			</Label>
 
-			<Card className="border-dashed border-2 hover:border-primary/50 transition-colors">
-				<CardContent className="p-4">
+			<Card className="border-dashed border-2 hover:border-primary/50 transition-colors overflow-hidden">
+				<CardContent className="p-4 overflow-hidden">
 					{!file ? (
 						<div
 							className="text-center cursor-pointer"
@@ -170,24 +170,27 @@ export function FileUpload({
 								id={`file-${fileType}`}
 								type="file"
 								accept={accept}
+								capture="environment"
 								onChange={handleFileInput}
 								className="hidden"
 							/>
 						</div>
 					) : (
 						<div className="space-y-3">
-							<div className="flex items-center justify-between">
-								<div className="flex items-center space-x-3">
-									{getFileIcon()}
-									<div className="flex-1 min-w-0">
-										<p className="text-sm font-medium truncate">{file.name}</p>
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+								<div className="flex items-center space-x-3 flex-1 min-w-0 overflow-hidden">
+									<div className="shrink-0">{getFileIcon()}</div>
+									<div className="flex-1 min-w-0 overflow-hidden max-w-full">
+										<p className="text-sm font-medium wrap-break-words overflow-hidden">
+											{file.name}
+										</p>
 										<p className="text-xs text-muted-foreground">
 											{(file.size / 1024 / 1024).toFixed(2)} MB
 										</p>
 									</div>
 								</div>
 
-								<div className="flex items-center space-x-2">
+								<div className="flex items-center justify-end space-x-2 shrink-0">
 									{uploaded && (
 										<CheckCircle className="w-5 h-5 text-green-500" />
 									)}
@@ -202,11 +205,11 @@ export function FileUpload({
 							</div>
 
 							{preview && (
-								<div className="mt-2">
+								<div className="mt-2 flex justify-center">
 									<img
 										src={preview}
 										alt="Preview"
-										className="max-w-full h-32 object-cover rounded border"
+										className="max-w-full h-40 sm:h-48 object-contain rounded border bg-gray-50"
 									/>
 								</div>
 							)}
@@ -215,9 +218,16 @@ export function FileUpload({
 								<Button
 									onClick={uploadFile}
 									disabled={uploading}
-									className="w-full"
+									className="w-full h-10"
 									size="sm">
-									{uploading ? "Uploading..." : "Upload File"}
+									{uploading ? (
+										<>
+											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+											Uploading...
+										</>
+									) : (
+										"Upload File"
+									)}
 								</Button>
 							)}
 						</div>

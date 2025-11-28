@@ -50,6 +50,12 @@ export default function RegisterPage() {
 	const [pincode, setPincode] = useState("");
 	const [landmark, setLandmark] = useState("");
 
+	// Location details
+	const [latitude, setLatitude] = useState<number | null>(null);
+	const [longitude, setLongitude] = useState<number | null>(null);
+	const [locationLoading, setLocationLoading] = useState(false);
+	const [locationError, setLocationError] = useState("");
+
 	// Document upload states
 	const [uploadedDocuments, setUploadedDocuments] = useState<{
 		gstDocument?: any;
@@ -80,6 +86,109 @@ export default function RegisterPage() {
 			...prev,
 			[fileType]: fileData,
 		}));
+	};
+
+	// Reverse geocode to get address from coordinates
+	const reverseGeocode = async (lat: number, lng: number) => {
+		try {
+			// Using Nominatim (OpenStreetMap) - free, no API key needed
+			const response = await fetch(
+				`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
+				{
+					headers: {
+						"User-Agent": "KingShoppers-Registration",
+					},
+				}
+			);
+
+			if (!response.ok) throw new Error("Geocoding failed");
+
+			const data = await response.json();
+			const address = data.address;
+
+			// Auto-fill address fields
+			if (address) {
+				if (address.road || address.street) {
+					setStreet(address.road || address.street || "");
+				}
+				if (address.suburb || address.neighbourhood) {
+					setArea(address.suburb || address.neighbourhood || "");
+				}
+				if (address.city || address.town || address.village) {
+					setCity(address.city || address.town || address.village || "");
+				}
+				if (address.state) {
+					setState(address.state || "");
+				}
+				if (address.postcode) {
+					setPincode(address.postcode || "");
+				}
+			}
+		} catch (error) {
+			console.error("Reverse geocoding error:", error);
+			// Don't show error to user, just log it
+		}
+	};
+
+	// Capture current location
+	const handleGetLocation = () => {
+		setLocationLoading(true);
+		setLocationError("");
+
+		if (!navigator.geolocation) {
+			setLocationError("Geolocation is not supported by your browser");
+			setLocationLoading(false);
+			return;
+		}
+
+		navigator.geolocation.getCurrentPosition(
+			async (position) => {
+				const lat = position.coords.latitude;
+				const lng = position.coords.longitude;
+				const accuracy = position.coords.accuracy;
+
+				setLatitude(lat);
+				setLongitude(lng);
+
+				// Reverse geocode to get address
+				await reverseGeocode(lat, lng);
+
+				setLocationLoading(false);
+				setLocationError("");
+
+				// Show accuracy info
+				if (accuracy > 100) {
+					setLocationError(
+						`Location captured but accuracy is low (±${Math.round(
+							accuracy
+						)}m). For better accuracy, enable GPS and try outdoors.`
+					);
+				}
+			},
+			(error) => {
+				setLocationLoading(false);
+				switch (error.code) {
+					case error.PERMISSION_DENIED:
+						setLocationError(
+							"Location permission denied. Please enable location access."
+						);
+						break;
+					case error.POSITION_UNAVAILABLE:
+						setLocationError("Location information unavailable.");
+						break;
+					case error.TIMEOUT:
+						setLocationError("Location request timed out.");
+						break;
+					default:
+						setLocationError("An unknown error occurred.");
+				}
+			},
+			{
+				enableHighAccuracy: true,
+				timeout: 10000,
+				maximumAge: 0,
+			}
+		);
 	};
 
 	const handleRegister = async (e: React.FormEvent) => {
@@ -133,6 +242,13 @@ export default function RegisterPage() {
 					state,
 					pincode,
 					landmark,
+					...(latitude &&
+						longitude && {
+							location: {
+								type: "Point",
+								coordinates: [longitude, latitude],
+							},
+						}),
 				},
 				documents: uploadedDocuments,
 			};
@@ -189,94 +305,109 @@ export default function RegisterPage() {
 	}
 
 	return (
-		<Card>
-			<CardHeader className="space-y-1">
-				<CardTitle className="text-2xl">Create Account</CardTitle>
-				<CardDescription>
-					Complete your shop registration details
+		<Card className="max-w-4xl mx-auto w-full overflow-hidden">
+			<CardHeader className="space-y-1 text-center">
+				<CardTitle className="text-3xl">Create Your Account</CardTitle>
+				<CardDescription className="text-base">
+					Complete your shop registration to start ordering
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<form onSubmit={handleRegister} className="space-y-4">
-					{/* Phone Number (readonly if from login) */}
-					<div className="space-y-2">
-						<Label htmlFor="phone">Phone Number</Label>
-						<Input
-							id="phone"
-							type="tel"
-							placeholder="+91 98765 43210"
-							value={phone}
-							onChange={(e) => {
-								const value = e.target.value.replace(/\D/g, "").slice(0, 10);
-								setPhone(value);
-							}}
-							disabled={!!searchParams.get("phone")}
-							required
-							maxLength={10}
-						/>
-						{searchParams.get("phone") && (
-							<p className="text-xs text-green-600">
-								✅ Phone number verified via OTP
-							</p>
-						)}
-					</div>
-
-					{/* Shop Details */}
-					<div className="grid grid-cols-2 gap-4">
+				<form onSubmit={handleRegister} className="space-y-6">
+					{/* Phone Number Section */}
+					<div className="bg-gray-50 p-4 rounded-lg border">
 						<div className="space-y-2">
-							<Label htmlFor="shopName">Shop Name *</Label>
+							<Label htmlFor="phone" className="text-base font-semibold">
+								Phone Number
+							</Label>
 							<Input
-								id="shopName"
-								placeholder="Raj General Store"
-								value={shopName}
-								onChange={(e) => setShopName(e.target.value)}
+								id="phone"
+								type="tel"
+								placeholder="+91 98765 43210"
+								value={phone}
+								onChange={(e) => {
+									const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+									setPhone(value);
+								}}
+								disabled={!!searchParams.get("phone")}
 								required
+								maxLength={10}
+								className="bg-white"
 							/>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="ownerName">Owner Name *</Label>
-							<Input
-								id="ownerName"
-								placeholder="Rajesh Kumar"
-								value={ownerName}
-								onChange={(e) => setOwnerName(e.target.value)}
-								required
-							/>
+							{searchParams.get("phone") && (
+								<p className="text-sm text-green-600 font-medium">
+									✅ Phone number verified via OTP
+								</p>
+							)}
 						</div>
 					</div>
 
-					{/* Shop Type */}
-					<div className="space-y-2">
-						<Label htmlFor="shopType">Shop Type</Label>
-						<Select value={shopType} onValueChange={setShopType}>
-							<SelectTrigger>
-								<SelectValue placeholder="Select shop type" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="general_store">General Store</SelectItem>
-								<SelectItem value="kirana">Kirana Store</SelectItem>
-								<SelectItem value="supermarket">Supermarket</SelectItem>
-								<SelectItem value="medical_store">Medical Store</SelectItem>
-								<SelectItem value="stationery">Stationery Shop</SelectItem>
-								<SelectItem value="other">Other</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-
-					{/* GST Number (Optional) */}
-					<div className="space-y-2">
-						<Label htmlFor="gstNumber">GST Number (Optional)</Label>
-						<Input
-							id="gstNumber"
-							placeholder="27XXXXX1234X1Z5"
-							value={gstNumber}
-							onChange={(e) => setGstNumber(e.target.value)}
-						/>
-					</div>
-
-					{/* Document Uploads */}
+					{/* Shop Details Section */}
 					<div className="space-y-4">
-						<h3 className="text-sm font-medium">Document Uploads</h3>
+						<h3 className="text-lg font-semibold border-b pb-2">
+							Shop Information
+						</h3>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+							<div className="space-y-2">
+								<Label htmlFor="shopName">Shop Name *</Label>
+								<Input
+									id="shopName"
+									placeholder="Raj General Store"
+									value={shopName}
+									onChange={(e) => setShopName(e.target.value)}
+									required
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="ownerName">Owner Name *</Label>
+								<Input
+									id="ownerName"
+									placeholder="Rajesh Kumar"
+									value={ownerName}
+									onChange={(e) => setOwnerName(e.target.value)}
+									required
+								/>
+							</div>
+						</div>
+
+						{/* Shop Type */}
+						<div className="space-y-2">
+							<Label htmlFor="shopType">Shop Type</Label>
+							<Select value={shopType} onValueChange={setShopType}>
+								<SelectTrigger>
+									<SelectValue placeholder="Select shop type" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="general_store">General Store</SelectItem>
+									<SelectItem value="kirana">Kirana Store</SelectItem>
+									<SelectItem value="supermarket">Supermarket</SelectItem>
+									<SelectItem value="medical_store">Medical Store</SelectItem>
+									<SelectItem value="stationery">Stationery Shop</SelectItem>
+									<SelectItem value="other">Other</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+
+						{/* GST Number (Optional) */}
+						<div className="space-y-2">
+							<Label htmlFor="gstNumber">GST Number (Optional)</Label>
+							<Input
+								id="gstNumber"
+								placeholder="27XXXXX1234X1Z5"
+								value={gstNumber}
+								onChange={(e) => setGstNumber(e.target.value)}
+							/>
+						</div>
+					</div>
+
+					{/* Document Uploads Section */}
+					<div className="space-y-4">
+						<h3 className="text-lg font-semibold border-b pb-2">
+							Document Uploads
+						</h3>
+						<p className="text-sm text-gray-600">
+							Please upload clear photos of your documents for verification
+						</p>
 
 						<div className="grid gap-4 md:grid-cols-1">
 							<FileUpload
@@ -325,9 +456,42 @@ export default function RegisterPage() {
 						</div>
 					</div>
 
-					{/* Address */}
+					{/* Address Section */}
 					<div className="space-y-4">
-						<h3 className="text-sm font-medium">Shop Address</h3>
+						<div className="flex items-center justify-between border-b pb-2">
+							<h3 className="text-lg font-semibold">Shop Address</h3>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={handleGetLocation}
+								disabled={locationLoading}>
+								{locationLoading
+									? "Getting Location..."
+									: latitude && longitude
+									? "📍 Location Captured"
+									: "📍 Get My Location"}
+							</Button>
+						</div>
+
+						{locationError && (
+							<p className="text-xs text-destructive">{locationError}</p>
+						)}
+
+						{latitude && longitude && (
+							<div className="bg-green-50 border border-green-200 rounded-md p-3">
+								<p className="text-xs text-green-800 font-medium">
+									✅ Location captured successfully!
+								</p>
+								<p className="text-xs text-green-700 mt-1">
+									Lat: {latitude.toFixed(6)}, Long: {longitude.toFixed(6)}
+								</p>
+								<p className="text-xs text-gray-600 mt-1">
+									💡 Tip: Verify the auto-filled address below and edit if
+									needed
+								</p>
+							</div>
+						)}
 
 						<div className="space-y-2">
 							<Label htmlFor="street">Street Address</Label>
@@ -339,7 +503,7 @@ export default function RegisterPage() {
 							/>
 						</div>
 
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div className="space-y-2">
 								<Label htmlFor="area">Area/Locality</Label>
 								<Input
@@ -360,7 +524,7 @@ export default function RegisterPage() {
 							</div>
 						</div>
 
-						<div className="grid grid-cols-3 gap-4">
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 							<div className="space-y-2">
 								<Label htmlFor="city">City *</Label>
 								<Input
@@ -394,16 +558,34 @@ export default function RegisterPage() {
 						</div>
 					</div>
 
-					{error && <p className="text-sm text-destructive">{error}</p>}
+					{error && (
+						<div className="bg-red-50 border border-red-200 rounded-md p-4">
+							<p className="text-sm text-red-800">{error}</p>
+						</div>
+					)}
 
-					<Button type="submit" className="w-full" disabled={loading}>
-						{loading ? "Creating Account..." : "Create Account"}
-					</Button>
+					<div className="pt-4 border-t">
+						<Button
+							type="submit"
+							className="w-full h-12 text-base"
+							disabled={loading}>
+							{loading ? (
+								<>
+									<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+									Creating Account...
+								</>
+							) : (
+								"Create Account"
+							)}
+						</Button>
+					</div>
 				</form>
 
-				<div className="mt-4 text-center text-sm">
+				<div className="mt-6 text-center text-sm border-t pt-4">
 					Already have an account?{" "}
-					<Link href="/auth/login" className="text-primary hover:underline">
+					<Link
+						href="/auth/login"
+						className="text-primary hover:underline font-medium">
 						Login here
 					</Link>
 				</div>

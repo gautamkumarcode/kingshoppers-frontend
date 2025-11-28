@@ -1,145 +1,219 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
-import { apiCall } from "@/lib/auth";
-import {
-	Award,
-	CheckCircle,
-	Package,
-	ShoppingCart,
-	TrendingUp,
-	Truck,
-	Users,
-} from "lucide-react";
+import api from "@/lib/api";
+import { CheckCircle, Clock, Package, TrendingUp, Truck } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function AgentDashboard() {
 	const { user } = useAuth();
-	const userTypeField = user?.userType || user?.userTypes;
-	const isSalesAgent = userTypeField === "sales_executive";
-	const isDeliveryAgent = userTypeField === "delivery";
-
 	const [stats, setStats] = useState({
-		totalOrders: 0,
-		totalRevenue: 0,
-		totalCustomers: 0,
-		incentivePercentage: 0,
-		// Delivery agent stats
-		totalDeliveries: 0,
-		completedDeliveries: 0,
+		todayDeliveries: 0,
 		pendingDeliveries: 0,
+		completedToday: 0,
+		totalEarnings: 0,
 	});
+	const [recentOrders, setRecentOrders] = useState<any[]>([]);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		fetchStats();
-	}, [isSalesAgent]);
+		fetchDashboardData();
+	}, []);
 
-	const fetchStats = async () => {
+	const fetchDashboardData = async () => {
 		try {
-			const endpoint = isSalesAgent ? "/sales/dashboard" : "/delivery/stats";
-			const response = await apiCall(endpoint);
-			const data = await response.json();
-			setStats(data);
+			const ordersResponse = await api.get("/orders/delivery/assigned");
+			const orders = ordersResponse.data;
+
+			// Calculate stats
+			const today = new Date().toDateString();
+			const todayOrders = orders.filter(
+				(o: any) => new Date(o.createdAt).toDateString() === today
+			);
+			const pending = orders.filter(
+				(o: any) =>
+					o.orderStatus !== "delivered" && o.orderStatus !== "cancelled"
+			);
+			const completedToday = todayOrders.filter(
+				(o: any) => o.orderStatus === "delivered"
+			);
+
+			setStats({
+				todayDeliveries: todayOrders.length,
+				pendingDeliveries: pending.length,
+				completedToday: completedToday.length,
+				totalEarnings: completedToday.reduce(
+					(sum: number, o: any) => sum + (o.grandTotal || 0),
+					0
+				),
+			});
+
+			setRecentOrders(orders.slice(0, 5));
 		} catch (error) {
-			console.error("Failed to fetch stats:", error);
+			console.error("Failed to fetch dashboard data:", error);
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	// Sales Executive Stats
-	const salesStatCards = [
-		{
-			title: "Total Customers",
-			value: stats.totalCustomers || 0,
-			icon: Users,
-			color: "bg-blue-500/10 text-blue-600",
-		},
-		{
-			title: "Total Orders",
-			value: stats.totalOrders || 0,
-			icon: ShoppingCart,
-			color: "bg-green-500/10 text-green-600",
-		},
-		{
-			title: "Total Revenue",
-			value: `₹${(stats.totalRevenue || 0).toLocaleString()}`,
-			icon: TrendingUp,
-			color: "bg-purple-500/10 text-purple-600",
-		},
-		{
-			title: "Incentive Rate",
-			value: `${stats.incentivePercentage || 0}%`,
-			icon: Award,
-			color: "bg-orange-500/10 text-orange-600",
-		},
-	];
-
-	// Delivery Agent Stats
-	const deliveryStatCards = [
-		{
-			title: "Total Deliveries",
-			value: stats.totalDeliveries || 0,
-			icon: Package,
-			color: "bg-blue-500/10 text-blue-600",
-		},
-		{
-			title: "Completed",
-			value: stats.completedDeliveries || 0,
-			icon: CheckCircle,
-			color: "bg-green-500/10 text-green-600",
-		},
-		{
-			title: "Pending",
-			value: stats.pendingDeliveries || 0,
-			icon: Truck,
-			color: "bg-orange-500/10 text-orange-600",
-		},
-	];
-
-	const statCards = isSalesAgent ? salesStatCards : deliveryStatCards;
+	const getStatusColor = (status: string) => {
+		switch (status) {
+			case "delivered":
+				return "text-green-600 bg-green-50";
+			case "out_for_delivery":
+				return "text-blue-600 bg-blue-50";
+			case "shipped":
+				return "text-purple-600 bg-purple-50";
+			default:
+				return "text-gray-600 bg-gray-50";
+		}
+	};
 
 	return (
 		<div className="space-y-6">
-			<h1 className="text-3xl font-bold">Dashboard</h1>
-
-			{/* Stats Cards */}
-			<div
-				className={`grid grid-cols-1 md:grid-cols-2 ${
-					isSalesAgent ? "lg:grid-cols-4" : "lg:grid-cols-3"
-				} gap-6`}>
-				{statCards.map((stat, index) => (
-					<Card key={index}>
-						<CardContent className="p-6">
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="text-sm text-muted-foreground">{stat.title}</p>
-									<p className="text-3xl font-bold mt-2">{stat.value}</p>
-								</div>
-								<div className={`p-3 rounded-lg ${stat.color}`}>
-									<stat.icon className="w-6 h-6" />
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-				))}
+			{/* Header */}
+			<div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-lg shadow-lg -mx-4 sm:mx-0 sm:rounded-lg">
+				<h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">
+					Welcome back,{" "}
+					{user?.firstName || user?.ownerName || user?.shopName || "Agent"}! 👋
+				</h1>
+				<p className="text-blue-100 text-sm md:text-base">
+					Here's your delivery overview for today
+				</p>
 			</div>
 
-			{/* Quick Actions */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Quick Actions</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-2">
-					<p className="text-sm text-muted-foreground">
-						{isSalesAgent
-							? "Use the sidebar to manage customers, place orders, and track your performance."
-							: "Use the sidebar to view assigned orders and manage your deliveries."}
-					</p>
-				</CardContent>
-			</Card>
+			<div className="space-y-6">
+				{/* Stats Grid */}
+				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+					<Card>
+						<CardContent className="p-4">
+							<Package className="w-8 h-8 text-blue-600 mb-3" />
+							<p className="text-2xl font-bold text-gray-900">
+								{stats.todayDeliveries}
+							</p>
+							<p className="text-sm text-gray-600">Today's Orders</p>
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardContent className="p-4">
+							<Clock className="w-8 h-8 text-orange-600 mb-3" />
+							<p className="text-2xl font-bold text-gray-900">
+								{stats.pendingDeliveries}
+							</p>
+							<p className="text-sm text-gray-600">Pending</p>
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardContent className="p-4">
+							<CheckCircle className="w-8 h-8 text-green-600 mb-3" />
+							<p className="text-2xl font-bold text-gray-900">
+								{stats.completedToday}
+							</p>
+							<p className="text-sm text-gray-600">Completed</p>
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardContent className="p-4">
+							<TrendingUp className="w-8 h-8 text-purple-600 mb-3" />
+							<p className="text-xl font-bold text-gray-900">
+								₹{stats.totalEarnings.toLocaleString()}
+							</p>
+							<p className="text-sm text-gray-600">Today's Value</p>
+						</CardContent>
+					</Card>
+				</div>
+
+				{/* Quick Actions */}
+				<Card>
+					<CardHeader>
+						<CardTitle>Quick Actions</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="grid grid-cols-2 gap-3">
+							<Link href="/agent/orders" className="block">
+								<Button className="w-full h-auto py-4 flex flex-col gap-2">
+									<Package className="w-6 h-6" />
+									<span className="text-sm">My Orders</span>
+								</Button>
+							</Link>
+							<Link href="/agent/orders" className="block">
+								<Button
+									variant="outline"
+									className="w-full h-auto py-4 flex flex-col gap-2">
+									<Truck className="w-6 h-6" />
+									<span className="text-sm">Start Delivery</span>
+								</Button>
+							</Link>
+						</div>
+					</CardContent>
+				</Card>
+
+				{/* Recent Orders */}
+				<Card>
+					<CardHeader>
+						<div className="flex items-center justify-between">
+							<CardTitle>Recent Orders</CardTitle>
+							<Link href="/agent/orders">
+								<Button variant="ghost" size="sm">
+									View All
+								</Button>
+							</Link>
+						</div>
+					</CardHeader>
+					<CardContent>
+						{loading ? (
+							<p className="text-center py-8 text-gray-500">Loading...</p>
+						) : recentOrders.length === 0 ? (
+							<div className="text-center py-8">
+								<Package className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+								<p className="text-gray-600">No orders assigned yet</p>
+							</div>
+						) : (
+							<div className="space-y-3">
+								{recentOrders.map((order) => (
+									<Link
+										key={order._id}
+										href={`/agent/orders/${order._id}`}
+										className="block">
+										<div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+											<div className="flex items-start justify-between mb-2">
+												<div className="flex-1 min-w-0">
+													<p className="font-semibold text-sm truncate">
+														Order #{order.orderNumber}
+													</p>
+													<p className="text-xs text-gray-600 truncate">
+														{order.user?.name || order.user?.shopName}
+													</p>
+												</div>
+												<span
+													className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ml-2 ${getStatusColor(
+														order.orderStatus
+													)}`}>
+													{order.orderStatus.replace(/_/g, " ")}
+												</span>
+											</div>
+											<div className="flex items-center justify-between text-sm text-gray-600">
+												<span className="font-medium">
+													₹{order.grandTotal?.toLocaleString()}
+												</span>
+												<span className="text-xs">
+													{new Date(order.createdAt).toLocaleDateString()}
+												</span>
+											</div>
+										</div>
+									</Link>
+								))}
+							</div>
+						)}
+					</CardContent>
+				</Card>
+			</div>
 		</div>
 	);
 }
