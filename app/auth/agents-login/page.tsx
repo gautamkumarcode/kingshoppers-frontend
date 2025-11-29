@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import { AlertCircle, Briefcase, Lock, Phone } from "lucide-react";
@@ -76,9 +77,11 @@ export default function AgentLoginPage() {
 							<Briefcase className="w-8 h-8 text-primary" />
 						</div>
 					</div>
-					<CardTitle className="text-2xl text-center">Agents & Staff</CardTitle>
-					<CardDescription className="text-center w-full">
-						Sign in to access the agents and staff dashboard
+					<CardTitle className="text-2xl text-center">
+						Agents & Staff Login
+					</CardTitle>
+					<CardDescription className="text-center">
+						Sign in to access your dashboard
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -121,10 +124,9 @@ export default function AgentLoginPage() {
 						<div className="space-y-2">
 							<Label htmlFor="password">Password</Label>
 							<div className="relative">
-								<Lock className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
-								<Input
+								<Lock className="absolute left-3 top-3 w-5 h-5 text-muted-foreground z-10" />
+								<PasswordInput
 									id="password"
-									type="password"
 									placeholder="Enter your password"
 									value={password}
 									onChange={(e) => setPassword(e.target.value)}

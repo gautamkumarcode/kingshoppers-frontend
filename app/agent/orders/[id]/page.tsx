@@ -92,8 +92,7 @@ export default function AgentOrderDetailPage() {
 			// Use exact coordinates from customer's shop location
 			const [lng, lat] = order.user.shopAddress.location.coordinates;
 			mapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-			console.log("=== Navigation with Coordinates ===");
-			console.log("Using stored coordinates:", lat, lng);
+	
 		} else {
 			// Fallback to address string
 			const addressParts = [];
@@ -106,8 +105,7 @@ export default function AgentOrderDetailPage() {
 			mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
 				destination
 			)}`;
-			console.log("=== Navigation with Address ===");
-			console.log("Using address string:", destination);
+			
 		}
 
 		console.log("Maps URL:", mapsUrl);

@@ -126,9 +126,12 @@ export default function DeliveryAgentsPage() {
 		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
 			newErrors.email = "Invalid email format";
 		}
+		// Password validation
 		if (!editingAgent && !formData.password) {
+			// Creating new agent - password required
 			newErrors.password = "Password is required";
-		} else if (!editingAgent && formData.password.length < 6) {
+		} else if (formData.password && formData.password.length < 6) {
+			// Password provided (create or edit) - must be at least 6 characters
 			newErrors.password = "Password must be at least 6 characters";
 		}
 
@@ -160,12 +163,16 @@ export default function DeliveryAgentsPage() {
 					deliveryZones: deliveryZonesArray,
 				};
 
-				// Only include password if it's provided during edit
+				// Update agent details
+				await api.put(`/admin/delivery-agents/${editingAgent._id}`, updateData);
+
+				// If password is provided, update it separately using the password reset endpoint
 				if (formData.password) {
-					updateData.password = formData.password;
+					await api.put(`/admin/users/${editingAgent._id}/reset-password`, {
+						password: formData.password,
+					});
 				}
 
-				await api.put(`/admin/delivery-agents/${editingAgent._id}`, updateData);
 				toast({
 					title: "Success",
 					description: "Delivery agent updated successfully",

@@ -14,6 +14,7 @@ import {
 	Menu,
 	Package,
 	Settings,
+	ShoppingBagIcon,
 	ShoppingCart,
 	Truck,
 	Users,
@@ -85,19 +86,8 @@ export default function AdminLayout({
 
 	const menuItems = [
 		{ icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
-		{ icon: ShoppingCart, label: "Brands", href: "/admin/brands" },
-		{ icon: Users, label: "Regional Brands", href: "/admin/regional-brands" },
-
-		{ icon: ShoppingCart, label: "Category", href: "/admin/category" },
-		{ icon: Package, label: "Products", href: "/admin/products" },
 		{ icon: ShoppingCart, label: "Orders", href: "/admin/orders" },
-		{ icon: Image, label: "Banners", href: "/admin/banners" },
-		{
-			icon: ShoppingCart,
-			label: "Homepage Sections",
-			href: "/admin/homepage-sections",
-		},
-		{ icon: Users, label: "Users", href: "/admin/users" },
+		{ icon: Users, label: "Customers", href: "/admin/users" },
 		{
 			icon: Briefcase,
 			label: "Sales Executives",
@@ -108,6 +98,23 @@ export default function AdminLayout({
 			label: "Delivery Agents",
 			href: "/admin/delivery-agents",
 		},
+		{ icon: ShoppingCart, label: "Brands", href: "/admin/brands" },
+		{ icon: Users, label: "Regional Brands", href: "/admin/regional-brands" },
+
+		{ icon: ShoppingCart, label: "Category", href: "/admin/category" },
+		{ icon: Package, label: "Products", href: "/admin/products" },
+		{ icon: Image, label: "Banners", href: "/admin/banners" },
+		{
+			icon: ShoppingCart,
+			label: "Homepage Sections",
+			href: "/admin/homepage-sections",
+		},
+		{
+			icon: ShoppingBagIcon,
+			label: "Coupon Managements",
+			href: "/admin/coupons",
+		},
+
 		{
 			icon: CreditCard,
 			label: "Wallet Topups",

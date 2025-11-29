@@ -12,7 +12,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import api from "@/lib/api";
 import {
@@ -250,22 +249,23 @@ export default function AdminOrdersPage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-50 ">
-			<div className="max-w-7xl mx-auto space-y-6">
+		<div className="min-h-screen bg-gray-50">
+			<div className="mx-auto space-y-4">
 				{/* Header */}
 				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 					<div>
-						<h1 className="text-3xl font-bold text-gray-900">
+						<h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
 							Order Management
 						</h1>
-						<p className="text-gray-600">
+						<p className="text-sm sm:text-base text-gray-600">
 							Manage and track all customer orders
 						</p>
 					</div>
 					<div className="flex gap-2">
-						<Button variant="outline">
+						<Button variant="outline" size="sm" className="sm:size-default">
 							<Download className="w-4 h-4 mr-2" />
-							Export Orders
+							<span className="hidden sm:inline">Export Orders</span>
+							<span className="sm:hidden">Export</span>
 						</Button>
 					</div>
 				</div>
@@ -273,7 +273,7 @@ export default function AdminOrdersPage() {
 				{/* Stats Cards */}
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 					<Card>
-						<CardContent className="p-6">
+						<CardContent className="">
 							<div className="flex items-center justify-between">
 								<div>
 									<p className="text-sm font-medium text-gray-600">
@@ -340,9 +340,9 @@ export default function AdminOrdersPage() {
 								/>
 							</div>
 							<div className="flex items-center gap-2">
-								<Filter className="w-4 h-4 text-gray-500" />
+								<Filter className="w-4 h-4 text-gray-500 shrink-0" />
 								<Select value={statusFilter} onValueChange={setStatusFilter}>
-									<SelectTrigger className="w-48">
+									<SelectTrigger className="w-full sm:w-48">
 										<SelectValue placeholder="Filter by status" />
 									</SelectTrigger>
 									<SelectContent>
@@ -361,200 +361,220 @@ export default function AdminOrdersPage() {
 				</Card>
 
 				{/* Orders Table */}
-				<Card>
+				<Card className="p-2">
 					<CardHeader>
 						<CardTitle>Orders ({filteredOrders.length})</CardTitle>
 					</CardHeader>
-					<CardContent>
+					<CardContent className="p-0">
 						{filteredOrders.length > 0 ? (
 							<div className="space-y-4">
 								{filteredOrders.map((order) => (
 									<div
 										key={order._id}
-										className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-										{/* Order Header */}
-										<div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4">
-											<div className="flex items-center gap-4 mb-2 lg:mb-0">
-												<div>
-													<h3 className="font-semibold text-lg">
-														Order #{order.orderNumber}
-													</h3>
-													<p className="text-sm text-gray-600">
-														{new Date(order.createdAt).toLocaleDateString()} •{" "}
-														{new Date(order.createdAt).toLocaleTimeString()}
-													</p>
+										className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200">
+										{/* Order Header with colored accent */}
+										<div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-4">
+											<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+												<div className="flex items-center gap-3">
+													<div className="bg-white p-2 rounded-lg shadow-sm">
+														<Package className="w-5 h-5 text-blue-600" />
+													</div>
+													<div>
+														<h3 className="font-bold text-lg text-gray-900">
+															#{order.orderNumber}
+														</h3>
+														<p className="text-xs text-gray-600 flex items-center gap-1">
+															<Clock className="w-3 h-3" />
+															{new Date(
+																order.createdAt
+															).toLocaleDateString()} •{" "}
+															{new Date(order.createdAt).toLocaleTimeString()}
+														</p>
+													</div>
 												</div>
 												<Badge
 													className={`${getStatusColor(
 														order.orderStatus
-													)} flex items-center gap-1`}>
+													)} flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold`}>
 													{getStatusIcon(order.orderStatus)}
 													<span className="capitalize">
-														{order.orderStatus}
+														{order.orderStatus.replace(/_/g, " ")}
 													</span>
 												</Badge>
 											</div>
-											<div className="flex items-center gap-2">
-												<Button
-													variant="outline"
-													size="sm"
-													onClick={() => {
-														setSelectedOrder(order);
-														setShowAssignModal(true);
-													}}>
-													<Truck className="w-4 h-4 mr-2" />
-													Assign Delivery
-												</Button>
-												<Button
-													variant="outline"
-													size="sm"
-													onClick={() => {
-														setSelectedOrder(order);
-														setUpdateData({
-															status: order.orderStatus,
-															notes: "",
-														});
-														setShowUpdateModal(true);
-													}}>
-													<Edit className="w-4 h-4 mr-2" />
-													Update Status
-												</Button>
-												<Link href={`/admin/orders/${order._id}`}>
-													<Button variant="outline" size="sm">
-														<Eye className="w-4 h-4 mr-2" />
-														View Details
-													</Button>
-												</Link>
-											</div>
 										</div>
 
-										<Separator className="mb-4" />
+										{/* Order Content */}
+										<div className="p-4 space-y-4">
+											{/* Customer & Delivery Info Grid */}
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+												{/* Customer Info */}
+												{order.user && (
+													<div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+														<div className="flex items-start gap-3">
+															<div className="bg-blue-100 p-2 rounded-lg">
+																<User className="w-4 h-4 text-blue-600" />
+															</div>
+															<div className="flex-1 min-w-0">
+																<p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+																	Customer
+																</p>
+																<p className="font-semibold text-gray-900 truncate">
+																	{order.user.shopName}
+																</p>
+																<p className="text-sm text-gray-600">
+																	{order.user.ownerName}
+																</p>
+																<div className="flex items-center gap-1 mt-1">
+																	<Phone className="w-3 h-3 text-gray-400" />
+																	<p className="text-sm text-gray-600">
+																		{order.user.phone}
+																	</p>
+																</div>
+															</div>
+														</div>
+													</div>
+												)}
 
-										{/* Customer Info */}
-										{order.user && (
-											<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-												<div>
-													<h4 className="font-medium text-sm text-gray-600 mb-1">
-														Customer
-													</h4>
-													<div className="flex items-center gap-2">
-														<User className="w-4 h-4 text-gray-400" />
-														<div>
-															<p className="font-medium">
-																{order.user?.shopName}
+												{/* Delivery Info */}
+												<div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+													<div className="flex items-start gap-3">
+														<div className="bg-green-100 p-2 rounded-lg">
+															<MapPin className="w-4 h-4 text-green-600" />
+														</div>
+														<div className="flex-1 min-w-0">
+															<p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+																Delivery Address
+															</p>
+															<p className="text-sm text-gray-900 line-clamp-2">
+																{order.deliveryAddress.street}
 															</p>
 															<p className="text-sm text-gray-600">
-																{order.user?.ownerName}
+																{order.deliveryAddress.city},{" "}
+																{order.deliveryAddress.state}{" "}
+																{order.deliveryAddress.pincode}
 															</p>
 														</div>
 													</div>
 												</div>
-												<div>
-													<h4 className="font-medium text-sm text-gray-600 mb-1">
-														Contact
-													</h4>
-													<div className="flex items-center gap-2">
-														<Phone className="w-4 h-4 text-gray-400" />
-														<p className="text-sm">{order.user.phone}</p>
-													</div>
-												</div>
-												{order.deliveryPersonnel && (
-													<div>
-														<h4 className="font-medium text-sm text-gray-600 mb-1">
-															Delivery Agent
-														</h4>
-														<div className="flex items-center gap-2">
-															<Truck className="w-4 h-4 text-gray-400" />
-															<div>
-																<p className="font-medium">
-																	{order.deliveryPersonnel.firstName}{" "}
-																	{order.deliveryPersonnel.lastName}
-																</p>
-																<p className="text-sm text-gray-600">
-																	{order.deliveryPersonnel.phone}
-																</p>
-															</div>
+											</div>
+
+											{/* Delivery Agent (if assigned) */}
+											{order.deliveryPersonnel && (
+												<div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
+													<div className="flex items-center gap-3">
+														<div className="bg-amber-100 p-2 rounded-lg">
+															<Truck className="w-4 h-4 text-amber-600" />
+														</div>
+														<div className="flex-1">
+															<p className="text-xs font-medium text-amber-700 uppercase tracking-wide mb-0.5">
+																Delivery Agent
+															</p>
+															<p className="font-semibold text-gray-900">
+																{order.deliveryPersonnel.firstName}{" "}
+																{order.deliveryPersonnel.lastName}
+															</p>
+															<p className="text-sm text-gray-600">
+																{order.deliveryPersonnel.phone}
+															</p>
 														</div>
 													</div>
-												)}
-											</div>
-										)}
+												</div>
+											)}
 
-										<div>
-											<h4 className="font-medium text-sm text-gray-600 mb-1">
-												Delivery Address
-											</h4>
-											<div className="flex items-start gap-2">
-												<MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-												<div className="text-sm">
-													<p>{order.deliveryAddress.street}</p>
-													<p className="text-gray-600">
-														{order.deliveryAddress.city},{" "}
-														{order.deliveryAddress.state}{" "}
-														{order.deliveryAddress.pincode}
+											{/* Order Items Summary */}
+											<div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+												<div className="flex items-center justify-between mb-2">
+													<p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+														Order Items ({order.items.length})
+													</p>
+													<p className="text-lg font-bold text-gray-900">
+														₹{order.total?.toLocaleString()}
 													</p>
 												</div>
-											</div>
-										</div>
-
-										<Separator className="mb-4" />
-
-										{/* Order Items */}
-										<div className="mb-4">
-											<h4 className="font-medium text-sm text-gray-600 mb-2">
-												Items ({order.items.length})
-											</h4>
-											<div className="space-y-2">
-												{order.items.slice(0, 2).map((item, index) => (
-													<div
-														key={index}
-														className="flex items-center justify-between text-sm">
-														<div className="flex items-center gap-2">
-															<Package className="w-4 h-4 text-gray-400" />
-															<span>
+												<div className="space-y-1.5">
+													{order.items.slice(0, 2).map((item, index) => (
+														<div
+															key={index}
+															className="flex items-center justify-between text-sm bg-white rounded px-2 py-1.5">
+															<span className="text-gray-700 flex-1 truncate">
 																{item.product.name} - {item.variantName}
 															</span>
-														</div>
-														<div className="text-right">
-															<span>
-																Qty: {item.quantity} × ₹{item.unitPrice} = ₹
-																{item.total}
+															<span className="text-gray-600 text-xs ml-2 shrink-0">
+																{item.quantity} × ₹{item.unitPrice}
 															</span>
-															<div className="text-right flex gap-2 justify-center items-center">
-																<p className="text-sm text-gray-600">
-																	Total Amount
-																</p>
-																<p className="text-lg font-bold text-primary">
-																	₹{item.total}
-																</p>
-															</div>
 														</div>
+													))}
+													{order.items.length > 2 && (
+														<p className="text-xs text-gray-500 pl-2 pt-1">
+															+{order.items.length - 2} more items
+														</p>
+													)}
+												</div>
+											</div>
+
+											{/* Payment Info */}
+											<div className="flex flex-wrap gap-2">
+												<div className="bg-white border border-gray-200 rounded-lg px-3 py-2 flex items-center gap-2">
+													<DollarSign className="w-4 h-4 text-gray-400" />
+													<div>
+														<p className="text-xs text-gray-500">Payment</p>
+														<p className="text-sm font-semibold text-gray-900 capitalize">
+															{order.paymentMethod}
+														</p>
 													</div>
-												))}
-												{order.items.length > 2 && (
-													<p className="text-sm text-gray-600 pl-6">
-														+{order.items.length - 2} more items
-													</p>
-												)}
+												</div>
+												<div className="bg-white border border-gray-200 rounded-lg px-3 py-2 flex items-center gap-2">
+													<CheckCircle className="w-4 h-4 text-gray-400" />
+													<div>
+														<p className="text-xs text-gray-500">Status</p>
+														<p className="text-sm font-semibold text-gray-900 capitalize">
+															{order.paymentStatus || "Pending"}
+														</p>
+													</div>
+												</div>
 											</div>
 										</div>
 
-										{/* Order Footer */}
-										<div className="flex flex-col sm:flex-row sm:items-center justify-between pt-4 border-t">
-											<div className="flex items-center gap-4 mb-2 sm:mb-0">
-												<div className="text-sm text-gray-600">
-													Payment:{" "}
-													<span className="capitalize font-medium">
-														{order.paymentMethod}
-													</span>
-												</div>
-												<div className="text-sm text-gray-600">
-													Status:{" "}
-													<span className="capitalize font-medium">
-														{order.paymentStatus || "Pending"}
-													</span>
-												</div>
-											</div>
+										{/* Action Buttons Footer */}
+										<div className="bg-gray-50 border-t border-gray-200 p-3 flex flex-wrap gap-2">
+											<Button
+												variant="outline"
+												size="sm"
+												className="flex-1 sm:flex-none bg-white hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300"
+												onClick={() => {
+													setSelectedOrder(order);
+													setShowAssignModal(true);
+												}}>
+												<Truck className="w-4 h-4 mr-2" />
+												Assign Delivery
+											</Button>
+											<Button
+												variant="outline"
+												size="sm"
+												className="flex-1 sm:flex-none bg-white hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300"
+												onClick={() => {
+													setSelectedOrder(order);
+													setUpdateData({
+														status: order.orderStatus,
+														notes: "",
+													});
+													setShowUpdateModal(true);
+												}}>
+												<Edit className="w-4 h-4 mr-2" />
+												Update Status
+											</Button>
+											<Link
+												href={`/admin/orders/${order._id}`}
+												className="flex-1 sm:flex-none">
+												<Button
+													variant="default"
+													size="sm"
+													className="w-full bg-blue-600 hover:bg-blue-700">
+													<Eye className="w-4 h-4 mr-2" />
+													View Details
+												</Button>
+											</Link>
 										</div>
 									</div>
 								))}

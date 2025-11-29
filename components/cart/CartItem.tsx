@@ -2,9 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CartItem as CartItemType } from "@/context/CartContext";
 import { useCart } from "@/hooks/useCart";
 import { calculateDiscountPercentage, formatPrice } from "@/lib/cart-utils";
-import { CartItem as CartItemType } from "@/types/cart";
 import { Loader2, Minus, Plus, Trash2 } from "lucide-react";
 import NextImage from "next/image";
 import Link from "next/link";
@@ -78,13 +78,14 @@ export function CartItem({
 		}
 	};
 
+	console.log(item);
 	if (compact) {
 		return (
 			<div className="flex items-start gap-3 p-3 border rounded-lg bg-white hover:shadow-sm transition-shadow">
 				{/* Product Image */}
 				<div className="relative w-16 h-16 bg-gray-100 rounded-md flex items-center justify-center shrink-0 overflow-hidden">
 					<NextImage
-						src={item?.images?.[0] || ""}
+						src={item?.image || "/placeholder-product.png"}
 						alt={item.name}
 						fill
 						className="object-cover"
@@ -131,7 +132,7 @@ export function CartItem({
 					className="shrink-0">
 					<div className="relative w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border border-gray-100">
 						<NextImage
-							src={item?.images?.[0] || ""}
+							src={item?.image || "/placeholder-product.png"}
 							alt={item.name}
 							fill
 							className="object-cover"
@@ -179,7 +180,7 @@ export function CartItem({
 				className="hidden sm:block shrink-0">
 				<div className="relative w-24 h-24 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border border-gray-100 hover:border-gray-200 transition-colors">
 					<NextImage
-						src={item?.images?.[0] || ""}
+						src={item?.image || "/placeholder-product.png"}
 						alt={item.name}
 						fill
 						className="object-cover"

@@ -113,7 +113,9 @@ export default function CreateProductPage() {
 	const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 	const [uploading, setUploading] = useState(false);
 	const [regionalBrands, setRegionalBrands] = useState<Brand[]>([]);
-	const [profitMargins, setProfitMargins] = useState<{ [key: number]: number }>({});
+	const [profitMargins, setProfitMargins] = useState<{ [key: number]: number }>(
+		{}
+	);
 
 	const {
 		register,
@@ -195,60 +197,58 @@ export default function CreateProductPage() {
 				setCategories(categoriesRes.data.data || []);
 				setBrands(brandsRes.data.data || []);
 				setRegionalBrands(regionalBrandsRes.data.regionalBrands || []);
+
+				// If editing, load product data AFTER categories/brands are loaded
+				if (editingId) {
+					try {
+						const res = await api.get(`/products/${editingId}`);
+						const product = res.data?.data || res.data;
+						if (product) {
+							// populate form values
+							setValue("name", product.name || "");
+							setValue("slug", product.slug || "");
+							setValue("description", product.description || "");
+							setValue("shortDescription", product.shortDescription || "");
+							setValue(
+								"category",
+								product.category?._id || product.category || ""
+							);
+							setValue("brand", product.brand?._id || product.brand || "");
+							setValue("sku", product.sku || "");
+							setValue("barcode", product.barcode || "");
+							setValue("moq", product.moq || 1);
+							setValue("isFeatured", !!product.isFeatured);
+							setValue("isActive", product.isActive !== false);
+							setValue("gstPercentage", product.gstPercentage ?? 18);
+							setUploadedImages(product.images || []);
+							setValue("images", product.images || []);
+							setValue(
+								"thumbnail",
+								product.thumbnail || product.images?.[0] || ""
+							);
+							setValue("regionalBrand", product.regionalBrand || "");
+							// populate variants and specs if present
+							if (product.variants && Array.isArray(product.variants)) {
+								// reset field arrays by setting value directly
+								setValue("variants", product.variants);
+							}
+							if (
+								product.specifications &&
+								Array.isArray(product.specifications)
+							) {
+								setValue("specifications", product.specifications);
+							}
+						}
+					} catch (err) {
+						console.error("Failed to load product for editing:", err);
+					}
+				}
 			} catch (error) {
 				console.error("Failed to load categories/brands:", error);
 			}
 		};
 		loadData();
-
-		// If editing, load product data
-		if (editingId) {
-			(async () => {
-				try {
-					const res = await api.get(`/products/${editingId}`);
-					const product = res.data?.data || res.data;
-					if (product) {
-						// populate form values
-						setValue("name", product.name || "");
-						setValue("slug", product.slug || "");
-						setValue("description", product.description || "");
-						setValue("shortDescription", product.shortDescription || "");
-						setValue(
-							"category",
-							product.category?._id || product.category || ""
-						);
-						setValue("brand", product.brand?._id || product.brand || "");
-						setValue("sku", product.sku || "");
-						setValue("barcode", product.barcode || "");
-						setValue("moq", product.moq || 1);
-						setValue("isFeatured", !!product.isFeatured);
-						setValue("isActive", product.isActive !== false);
-						setValue("gstPercentage", product.gstPercentage ?? 18);
-						setUploadedImages(product.images || []);
-						setValue("images", product.images || []);
-						setValue(
-							"thumbnail",
-							product.thumbnail || product.images?.[0] || ""
-						);
-						setValue("regionalBrand", product.regionalBrand || "");
-						// populate variants and specs if present
-						if (product.variants && Array.isArray(product.variants)) {
-							// reset field arrays by setting value directly
-							setValue("variants", product.variants);
-						}
-						if (
-							product.specifications &&
-							Array.isArray(product.specifications)
-						) {
-							setValue("specifications", product.specifications);
-						}
-					}
-				} catch (err) {
-					console.error("Failed to load product for editing:", err);
-				}
-			})();
-		}
-	}, []);
+	}, [editingId, setValue]);
 
 	// Auto-generate slug from name
 	const watchedName = watch("name");
@@ -780,15 +780,23 @@ export default function CreateProductPage() {
 																type="number"
 																step="0.01"
 																placeholder="0.00"
-																value={field.value || ''}
+																value={field.value || ""}
 																onChange={(e) => {
-																	const mrpValue = parseFloat(e.target.value) || 0;
+																	const mrpValue =
+																		parseFloat(e.target.value) || 0;
 																	field.onChange(mrpValue);
-																	
+
 																	// Calculate wholesale price
-																	const discount = watch(`variants.${index}.discountPercentage`) || 0;
-																	const wholesalePrice = mrpValue - (mrpValue * discount / 100);
-																	setValue(`variants.${index}.wholesalePrice`, Number(wholesalePrice.toFixed(2)));
+																	const discount =
+																		watch(
+																			`variants.${index}.discountPercentage`
+																		) || 0;
+																	const wholesalePrice =
+																		mrpValue - (mrpValue * discount) / 100;
+																	setValue(
+																		`variants.${index}.wholesalePrice`,
+																		Number(wholesalePrice.toFixed(2))
+																	);
 																}}
 															/>
 														)}
@@ -799,7 +807,9 @@ export default function CreateProductPage() {
 													<Label className="block mb-2">Discount %</Label>
 													<Controller
 														control={control}
-														name={`variants.${index}.discountPercentage` as const}
+														name={
+															`variants.${index}.discountPercentage` as const
+														}
 														render={({ field }) => (
 															<Input
 																type="number"
@@ -807,15 +817,21 @@ export default function CreateProductPage() {
 																placeholder="0"
 																max="100"
 																min="0"
-																value={field.value || ''}
+																value={field.value || ""}
 																onChange={(e) => {
-																	const discountValue = parseFloat(e.target.value) || 0;
+																	const discountValue =
+																		parseFloat(e.target.value) || 0;
 																	field.onChange(discountValue);
-																	
+
 																	// Calculate wholesale price
-																	const mrp = watch(`variants.${index}.mrp`) || 0;
-																	const wholesalePrice = mrp - (mrp * discountValue / 100);
-																	setValue(`variants.${index}.wholesalePrice`, Number(wholesalePrice.toFixed(2)));
+																	const mrp =
+																		watch(`variants.${index}.mrp`) || 0;
+																	const wholesalePrice =
+																		mrp - (mrp * discountValue) / 100;
+																	setValue(
+																		`variants.${index}.wholesalePrice`,
+																		Number(wholesalePrice.toFixed(2))
+																	);
 																}}
 															/>
 														)}
@@ -855,16 +871,26 @@ export default function CreateProductPage() {
 														placeholder="0"
 														max="100"
 														min="0"
-														value={profitMargins[index] || ''}
+														value={profitMargins[index] || ""}
 														onChange={(e) => {
-															const profitMarginValue = parseFloat(e.target.value) || 0;
-															setProfitMargins(prev => ({ ...prev, [index]: profitMarginValue }));
-															
+															const profitMarginValue =
+																parseFloat(e.target.value) || 0;
+															setProfitMargins((prev) => ({
+																...prev,
+																[index]: profitMarginValue,
+															}));
+
 															// Calculate cost price from wholesale price
-															const wholesalePrice = watch(`variants.${index}.wholesalePrice`) || 0;
+															const wholesalePrice =
+																watch(`variants.${index}.wholesalePrice`) || 0;
 															if (wholesalePrice > 0) {
-																const costPrice = wholesalePrice - (wholesalePrice * profitMarginValue / 100);
-																setValue(`variants.${index}.costPrice`, Number(costPrice.toFixed(2)));
+																const costPrice =
+																	wholesalePrice -
+																	(wholesalePrice * profitMarginValue) / 100;
+																setValue(
+																	`variants.${index}.costPrice`,
+																	Number(costPrice.toFixed(2))
+																);
 															}
 														}}
 													/>
@@ -875,7 +901,8 @@ export default function CreateProductPage() {
 
 												<div>
 													<Label className="block mb-2">
-														Cost Price * {profitMargins[index] > 0 && '(Auto-calculated)'}
+														Cost Price *{" "}
+														{profitMargins[index] > 0 && "(Auto-calculated)"}
 													</Label>
 													<Input
 														type="number"
@@ -888,7 +915,11 @@ export default function CreateProductPage() {
 														)}
 														placeholder="0.00"
 														disabled={profitMargins[index] > 0}
-														className={profitMargins[index] > 0 ? "bg-gray-100 cursor-not-allowed" : ""}
+														className={
+															profitMargins[index] > 0
+																? "bg-gray-100 cursor-not-allowed"
+																: ""
+														}
 													/>
 													{profitMargins[index] > 0 && (
 														<p className="text-xs text-muted-foreground mt-1">

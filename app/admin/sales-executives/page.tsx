@@ -157,15 +157,18 @@ export default function SalesExecutivesPage() {
 					incentivePercentage: formData.incentivePercentage,
 				};
 
-				// Only include password if it's provided during edit
-				if (formData.password) {
-					updateData.password = formData.password;
-				}
-
 				await api.put(
 					`/admin/sales-executives/${editingExecutive._id}`,
 					updateData
 				);
+
+				// If password is provided, update it separately using the password reset endpoint
+				if (formData.password) {
+					await api.put(`/admin/users/${editingExecutive._id}/reset-password`, {
+						password: formData.password,
+					});
+				}
+
 				toast({
 					title: "Success",
 					description: "Sales executive updated successfully",

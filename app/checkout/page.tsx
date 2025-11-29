@@ -2,6 +2,7 @@
 
 import type React from "react";
 
+import { CouponInput } from "@/components/checkout/CouponInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,8 @@ export default function CheckoutPage() {
 	const [businessSettings, setBusinessSettings] = useState<BusinessSettings>(
 		{}
 	);
+	const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+	const [couponDiscount, setCouponDiscount] = useState(0);
 
 	useEffect(() => {
 		if (authLoading) return;
@@ -155,6 +158,11 @@ export default function CheckoutPage() {
 			const tax = 0; // GST is included in prices
 			let total = summary.total;
 
+			// Apply coupon discount first
+			if (couponDiscount > 0) {
+				total = Math.max(0, total - couponDiscount);
+			}
+
 			// Apply wallet discount if using wallet
 			const walletAmountNum = Number.parseFloat(walletAmount) || 0;
 			if (useWallet && walletAmountNum > 0) {
@@ -175,11 +183,18 @@ export default function CheckoutPage() {
 				})),
 				deliveryAddress,
 				paymentMethod: useWallet
-					? walletAmountNum >= summary.total
+					? walletAmountNum >= total
 						? "wallet"
 						: "cod"
 					: paymentMethod,
 				walletAdvance: useWallet ? walletAmountNum : 0,
+				// Include coupon information
+				...(appliedCoupon
+					? {
+							couponCode: appliedCoupon.code,
+							couponDiscount: couponDiscount,
+					  }
+					: {}),
 				...(paymentMethod === "online" && paymentReferenceId
 					? {
 							paymentDetails: {
@@ -190,6 +205,9 @@ export default function CheckoutPage() {
 					: {}),
 			};
 
+			console.log("=== Frontend Order Debug ===");
+			console.log("Applied Coupon:", appliedCoupon);
+			console.log("Coupon Discount:", couponDiscount);
 			console.log("Order data being sent:", orderData);
 
 			const response = await api.post("/orders", orderData);
@@ -270,9 +288,33 @@ export default function CheckoutPage() {
 	const walletAmountNum = Number.parseFloat(walletAmount) || 0;
 	let total = summary.total;
 
+	// Apply coupon discount
+	if (couponDiscount > 0) {
+		total = Math.max(0, total - couponDiscount);
+	}
+
+	// Apply wallet discount
 	if (useWallet && walletAmountNum > 0) {
 		total = Math.max(0, total - walletAmountNum);
 	}
+
+	const handleCouponApplied = (coupon: any, discountAmount: number) => {
+		setAppliedCoupon(coupon);
+		setCouponDiscount(discountAmount);
+		toast({
+			title: "Coupon Applied!",
+			description: `You saved ₹${discountAmount}`,
+		});
+	};
+
+	const handleCouponRemoved = () => {
+		setAppliedCoupon(null);
+		setCouponDiscount(0);
+		toast({
+			title: "Coupon Removed",
+			description: "Coupon discount has been removed",
+		});
+	};
 
 	return (
 		<main className="min-h-screen bg-background">
@@ -480,13 +522,30 @@ export default function CheckoutPage() {
 											</div>
 										);
 									})}
-								</div>{" "}
+								</div>
+								{/* Coupon Input */}
+								<div className="border-t pt-4">
+									<CouponInput
+										orderValue={summary.total}
+										orderType="b2c"
+										items={cart}
+										onCouponApplied={handleCouponApplied}
+										onCouponRemoved={handleCouponRemoved}
+										appliedCoupon={appliedCoupon}
+									/>
+								</div>
 								{/* Totals */}
 								<div className="border-t pt-4 space-y-2 text-sm">
 									<div className="flex justify-between">
 										<span className="text-muted-foreground">Subtotal:</span>
 										<span>{formatPrice(subtotal)}</span>
 									</div>
+									{couponDiscount > 0 && (
+										<div className="flex justify-between text-green-600 font-semibold">
+											<span>Coupon Discount:</span>
+											<span>-{formatPrice(couponDiscount)}</span>
+										</div>
+									)}
 									{useWallet && walletAmountNum > 0 && (
 										<div className="flex justify-between text-green-600">
 											<span>Wallet Discount:</span>
@@ -514,7 +573,6 @@ export default function CheckoutPage() {
 								)}
 							</CardContent>
 						</Card>
-
 					</div>
 				</div>
 

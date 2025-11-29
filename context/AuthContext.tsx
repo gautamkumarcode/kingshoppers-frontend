@@ -26,8 +26,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 	// Fetch current user from server (using httpOnly cookie)
 	const fetchCurrentUser = async (): Promise<User | null> => {
+		// Check if there's a token before making the API call
+
 		try {
-			console.log("🔍 Fetching current user from /auth/me");
 			const res = await api.get("/auth/me");
 
 			if (res.status === 200) {
@@ -104,6 +105,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	// Logout function
 	const logout = async (): Promise<void> => {
 		try {
+			// Determine redirect path based on user role before clearing user state
+			let redirectPath = "/auth/login"; // Default for customers
+
+			if (user) {
+				const userType = (user as any).userType || (user as any).userTypes;
+
+				if (userType === "admin") {
+					redirectPath = "/auth/admin-login";
+				} else if (userType === "delivery" || userType === "sales_executive") {
+					redirectPath = "/auth/agents-login";
+				}
+			}
+
 			// Call server to clear cookie
 			await logoutRequest();
 
@@ -113,9 +127,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			}
 
 			setUser(null);
-			router.push("/auth/login");
+			router.push(redirectPath);
 		} catch (error) {
 			console.error("Error during logout:", error);
+
+			// Determine redirect path even on error
+			let redirectPath = "/auth/login";
+
+			if (user) {
+				const userType = (user as any).userType || (user as any).userTypes;
+
+				if (userType === "admin") {
+					redirectPath = "/auth/admin-login";
+				} else if (userType === "delivery" || userType === "sales_executive") {
+					redirectPath = "/auth/agents-login";
+				}
+			}
 
 			// Still clear user state and token even if server call fails
 			if (typeof window !== "undefined") {
@@ -123,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			}
 
 			setUser(null);
-			router.push("/auth/login");
+			router.push(redirectPath);
 		}
 	};
 

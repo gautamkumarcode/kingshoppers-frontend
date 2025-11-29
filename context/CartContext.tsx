@@ -226,14 +226,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
 				(v: any) => v._id === serverItem.variantId
 			);
 
+			// Debug logging
+			console.log("Formatting cart item:", {
+				productName: product.name,
+				thumbnail: product.thumbnail,
+				images: product.images,
+			});
+
 			return {
-				id: `${product._id}-${serverItem.variantId}`,
+				id: serverItem._id || `${product._id}-${serverItem.variantId}`,
 				productId: product._id,
 				variantId: serverItem.variantId,
 				name: product.name,
 				slug: product.slug,
 				variantName: variant?.variantName || "Default Variant",
-				image: product.thumbnail,
+				image: product.thumbnail || product.images?.[0],
 				price: serverItem.price,
 				mrp: variant?.mrp || serverItem.price,
 				quantity: serverItem.quantity,
@@ -246,9 +253,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
 		});
 	};
 
+	// Helper function to check if user is a customer
+	const isCustomerUser = (): boolean => {
+		if (!user) return false;
+		const userType = (user as any).userType || (user as any).userTypes;
+		return userType === "customer" || userType === "b2b";
+	};
+
 	// Load cart from server
 	const loadCartFromServer = async (): Promise<void> => {
-		if (!user) return;
+		if (!user || !isCustomerUser()) return;
 
 		try {
 			dispatch({ type: "SET_LOADING", payload: true });
@@ -288,11 +302,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 		loadCartFromStorage();
 	}, []); // Run only once on mount
 
-	// Load cart from server when user logs in
+	// Load cart from server when user logs in (only for customers)
 	useEffect(() => {
 		const loadServerCart = async () => {
-			if (user && !state.serverSynced) {
-				console.log("User logged in, loading cart from server...");
+			if (user && !state.serverSynced && isCustomerUser()) {
+				console.log("Customer logged in, loading cart from server...");
 				await loadCartFromServer();
 			}
 		};
@@ -329,9 +343,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
 		quantity: number = 1
 	) => {
 		try {
-			// Check if user is logged in
+			// Check if user is logged in and is a customer
 			if (!user) {
 				throw new Error("LOGIN_REQUIRED");
+			}
+
+			if (!isCustomerUser()) {
+				throw new Error("Only customers can add items to cart");
 			}
 
 			// Validate required fields
@@ -342,7 +360,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 			const moq = item.moq || 1;
 			const finalQuantity = Math.max(quantity, moq);
 
-			if (user) {
+			if (user && isCustomerUser()) {
 				// Add to server cart
 				dispatch({ type: "SET_LOADING", payload: true });
 				try {
@@ -369,7 +387,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 	const removeItem = async (productId: string, variantId: string) => {
 		try {
-			if (user) {
+			if (user && isCustomerUser()) {
 				// Don't set global loading state for item removal
 				// dispatch({ type: "SET_LOADING", payload: true });
 				try {
@@ -400,7 +418,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 		quantity: number
 	) => {
 		try {
-			if (user) {
+			if (user && isCustomerUser()) {
 				// Don't set global loading state for quantity updates
 				// dispatch({ type: "SET_LOADING", payload: true });
 				try {
@@ -432,7 +450,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 	const clearCart = async () => {
 		try {
-			if (user) {
+			if (user && isCustomerUser()) {
 				dispatch({ type: "SET_LOADING", payload: true });
 				try {
 					const response = await api.delete("/cart/clear");
@@ -453,7 +471,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 	// Sync with server
 	const syncWithServer = async (): Promise<void> => {
-		if (!user) return;
+		if (!user || !isCustomerUser()) return;
 
 		try {
 			dispatch({ type: "SET_LOADING", payload: true });

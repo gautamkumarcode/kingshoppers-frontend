@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import logo from "@/public/logo2.png";
+import logo from "@/public/logo3.png";
 import { StoreIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -44,7 +44,7 @@ export function Navbar() {
 						className="relative flex items-center gap-2 w-auto h-12 font-bold text-primary"
 						aria-label="Go to Kingshppers homepage">
 						{/* Logo Icon */}
-						<div className="relative  h-20 w-32 md:w-40">
+						<div className="relative  h-16 w-16 md:w-16">
 							<Image
 								src={logo}
 								alt="Kingshppers Logo"

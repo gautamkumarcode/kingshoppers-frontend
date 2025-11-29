@@ -14,7 +14,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import api from "@/lib/api";
-import { Check, Clock, ShoppingCart, X } from "lucide-react";
+import { Check, Clock, Eye, ShoppingCart, X } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 interface OrderItem {
@@ -469,7 +470,15 @@ export default function PaymentVerificationsPage() {
 														{order.user.phone}
 													</p>
 												</div>
-												{getStatusBadge(order)}
+												<div className="flex justify-center items-center gap-4">
+													<Link href={`/admin/orders/${order._id}`}>
+														<Button variant="outline" size="sm">
+															<Eye className="w-4 h-4 mr-2" />
+															View Details
+														</Button>
+													</Link>
+													{getStatusBadge(order)}
+												</div>
 											</div>
 										</CardHeader>
 										<CardContent>
