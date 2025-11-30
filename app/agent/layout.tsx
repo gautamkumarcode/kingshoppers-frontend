@@ -89,12 +89,21 @@ export default function AgentLayout({
 					isOpen ? "w-64" : "w-20"
 				} border-r border-border bg-card transition-all duration-300 flex-col hidden lg:flex`}>
 				{/* Logo */}
-				<div className="p-4 border-b border-border">
+				<div className="p-4 border-b border-border flex items-center justify-between">
 					<Link
 						href="/agent/dashboard"
 						className="text-xl font-bold text-primary">
 						{isOpen ? logoText : logoShort}
 					</Link>
+					{isOpen && (
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={() => setIsOpen(false)}
+							className="h-8 w-8">
+							<X className="w-4 h-4" />
+						</Button>
+					)}
 				</div>
 
 				{/* Menu */}
@@ -186,6 +195,16 @@ export default function AgentLayout({
 							onClick={() => setIsMobileMenuOpen(true)}>
 							<Menu className="w-5 h-5" />
 						</Button>
+						{/* Desktop Sidebar Toggle - Show when collapsed */}
+						{!isOpen && (
+							<Button
+								variant="ghost"
+								size="icon"
+								className="hidden lg:flex"
+								onClick={() => setIsOpen(true)}>
+								<Menu className="w-5 h-5" />
+							</Button>
+						)}
 						<h1 className="text-lg sm:text-2xl font-bold">{portalTitle}</h1>
 					</div>
 					<div className="flex items-center gap-2 sm:gap-4">
@@ -194,13 +213,6 @@ export default function AgentLayout({
 								? `${user.firstName} ${user.lastName}`
 								: user.ownerName || user.phone}
 						</span>
-						<Button
-							variant="outline"
-							size="sm"
-							className="hidden lg:flex"
-							onClick={() => setIsOpen(!isOpen)}>
-							{isOpen ? "Collapse" : "Expand"}
-						</Button>
 					</div>
 				</div>
 

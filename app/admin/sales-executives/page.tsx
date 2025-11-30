@@ -37,7 +37,6 @@ import {
 	Phone,
 	Plus,
 	Search,
-	Trash2,
 	User,
 	UserCog,
 } from "lucide-react";
@@ -198,20 +197,36 @@ export default function SalesExecutivesPage() {
 	const handleDelete = async () => {
 		if (!deletingExecutive) return;
 
+		const wasActive = deletingExecutive.isActive;
+
 		try {
-			await api.delete(`/admin/sales-executives/${deletingExecutive._id}`);
+			const response = await api.delete(
+				`/admin/sales-executives/${deletingExecutive._id}`
+			);
+
+			// Optimistically update the UI instead of refetching
+			setSalesExecutives((prev) =>
+				prev.map((exec) =>
+					exec._id === deletingExecutive._id
+						? { ...exec, isActive: !wasActive }
+						: exec
+				)
+			);
+
 			toast({
 				title: "Success",
-				description: "Sales executive deleted successfully",
+				description: wasActive
+					? "Sales executive blocked successfully"
+					: "Sales executive activated successfully",
 			});
 			setIsDeleteDialogOpen(false);
 			setDeletingExecutive(null);
-			fetchSalesExecutives();
 		} catch (error: any) {
 			toast({
 				title: "Error",
 				description:
-					error.response?.data?.message || "Failed to delete sales executive",
+					error.response?.data?.message ||
+					`Failed to ${wasActive ? "block" : "activate"} sales executive`,
 				variant: "destructive",
 			});
 		}
@@ -400,10 +415,12 @@ export default function SalesExecutivesPage() {
 														<Edit className="w-4 h-4" />
 													</Button>
 													<Button
-														variant="outline"
+														variant={
+															executive.isActive ? "destructive" : "default"
+														}
 														size="sm"
 														onClick={() => openDeleteDialog(executive)}>
-														<Trash2 className="w-4 h-4 text-red-500" />
+														{executive.isActive ? "Block" : "Activate"}
 													</Button>
 												</div>
 											</TableCell>
@@ -595,17 +612,24 @@ export default function SalesExecutivesPage() {
 				</DialogContent>
 			</Dialog>
 
-			{/* Delete Confirmation Dialog */}
+			{/* Block/Activate Confirmation Dialog */}
 			<Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Delete Sales Executive</DialogTitle>
+						<DialogTitle>
+							{deletingExecutive?.isActive ? "Block" : "Activate"} Sales
+							Executive
+						</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to delete{" "}
+							Are you sure you want to{" "}
+							{deletingExecutive?.isActive ? "block" : "activate"}{" "}
 							<strong>
 								{deletingExecutive?.firstName} {deletingExecutive?.lastName}
 							</strong>
-							? This action cannot be undone.
+							?{" "}
+							{deletingExecutive?.isActive
+								? "They will not be able to access the system."
+								: "They will be able to access the system again."}
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
@@ -617,8 +641,10 @@ export default function SalesExecutivesPage() {
 							}}>
 							Cancel
 						</Button>
-						<Button variant="destructive" onClick={handleDelete}>
-							Delete
+						<Button
+							variant={deletingExecutive?.isActive ? "destructive" : "default"}
+							onClick={handleDelete}>
+							{deletingExecutive?.isActive ? "Block" : "Activate"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

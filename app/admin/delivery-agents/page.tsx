@@ -36,7 +36,6 @@ import {
 	Phone,
 	Plus,
 	Search,
-	Trash2,
 	Truck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -205,20 +204,36 @@ export default function DeliveryAgentsPage() {
 	const handleDelete = async () => {
 		if (!deletingAgent) return;
 
+		const wasActive = deletingAgent.isActive;
+
 		try {
-			await api.delete(`/admin/delivery-agents/${deletingAgent._id}`);
+			const response = await api.delete(
+				`/admin/delivery-agents/${deletingAgent._id}`
+			);
+
+			// Optimistically update the UI instead of refetching
+			setDeliveryAgents((prev) =>
+				prev.map((agent) =>
+					agent._id === deletingAgent._id
+						? { ...agent, isActive: !wasActive }
+						: agent
+				)
+			);
+
 			toast({
 				title: "Success",
-				description: "Delivery agent deleted successfully",
+				description: wasActive
+					? "Delivery agent blocked successfully"
+					: "Delivery agent activated successfully",
 			});
 			setIsDeleteDialogOpen(false);
 			setDeletingAgent(null);
-			fetchDeliveryAgents();
 		} catch (error: any) {
 			toast({
 				title: "Error",
 				description:
-					error.response?.data?.message || "Failed to delete delivery agent",
+					error.response?.data?.message ||
+					`Failed to ${wasActive ? "block" : "activate"} delivery agent`,
 				variant: "destructive",
 			});
 		}
@@ -408,10 +423,10 @@ export default function DeliveryAgentsPage() {
 														<Edit className="w-4 h-4" />
 													</Button>
 													<Button
-														variant="outline"
+														variant={agent.isActive ? "destructive" : "default"}
 														size="sm"
 														onClick={() => openDeleteDialog(agent)}>
-														<Trash2 className="w-4 h-4 text-red-500" />
+														{agent.isActive ? "Block" : "Activate"}
 													</Button>
 												</div>
 											</TableCell>
@@ -589,17 +604,23 @@ export default function DeliveryAgentsPage() {
 				</DialogContent>
 			</Dialog>
 
-			{/* Delete Confirmation Dialog */}
+			{/* Block/Activate Confirmation Dialog */}
 			<Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Delete Delivery Agent</DialogTitle>
+						<DialogTitle>
+							{deletingAgent?.isActive ? "Block" : "Activate"} Delivery Agent
+						</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to delete{" "}
+							Are you sure you want to{" "}
+							{deletingAgent?.isActive ? "block" : "activate"}{" "}
 							<strong>
 								{deletingAgent?.firstName} {deletingAgent?.lastName}
 							</strong>
-							? This action cannot be undone.
+							?{" "}
+							{deletingAgent?.isActive
+								? "They will not be able to access the system."
+								: "They will be able to access the system again."}
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
@@ -611,8 +632,10 @@ export default function DeliveryAgentsPage() {
 							}}>
 							Cancel
 						</Button>
-						<Button variant="destructive" onClick={handleDelete}>
-							Delete
+						<Button
+							variant={deletingAgent?.isActive ? "destructive" : "default"}
+							onClick={handleDelete}>
+							{deletingAgent?.isActive ? "Block" : "Activate"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
