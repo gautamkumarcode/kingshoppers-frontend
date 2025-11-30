@@ -70,7 +70,7 @@ interface Order {
 		phone: string;
 		deliveryArea?: string;
 	};
-	total: number;
+	itemsSubtotal: number;
 	createdAt: string;
 	expectedDeliveryDate?: string;
 	statusHistory: Array<{
@@ -373,7 +373,7 @@ export default function AdminOrdersPage() {
 										key={order._id}
 										className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200">
 										{/* Order Header with colored accent */}
-										<div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-4">
+										<div className="bg-linear-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-4">
 											<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
 												<div className="flex items-center gap-3">
 													<div className="bg-white p-2 rounded-lg shadow-sm">
@@ -489,7 +489,7 @@ export default function AdminOrdersPage() {
 														Order Items ({order.items.length})
 													</p>
 													<p className="text-lg font-bold text-gray-900">
-														₹{order.total?.toLocaleString()}
+														₹{order.itemsSubtotal?.toLocaleString()}
 													</p>
 												</div>
 												<div className="space-y-1.5">

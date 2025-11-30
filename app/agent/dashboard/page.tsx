@@ -15,6 +15,7 @@ export default function AgentDashboard() {
 		pendingDeliveries: 0,
 		completedToday: 0,
 		totalEarnings: 0,
+		cashCollectedToday: 0,
 	});
 	const [recentOrders, setRecentOrders] = useState<any[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -26,7 +27,7 @@ export default function AgentDashboard() {
 	const fetchDashboardData = async () => {
 		try {
 			const ordersResponse = await api.get("/orders/delivery/assigned");
-			const orders = ordersResponse.data;
+			const orders = ordersResponse.data.orders || ordersResponse.data;
 
 			// Calculate stats
 			const today = new Date().toDateString();
@@ -40,15 +41,31 @@ export default function AgentDashboard() {
 			const completedToday = todayOrders.filter(
 				(o: any) => o.orderStatus === "delivered"
 			);
+			const allCompleted = orders.filter(
+				(o: any) => o.orderStatus === "delivered"
+			);
+
+			// Calculate cash collected today (COD orders where cash was actually collected today)
+			const cashCollectedToday = orders
+				.filter((o: any) => {
+					if (!o.cashCollectedAt) return false;
+					const collectedDate = new Date(o.cashCollectedAt).toDateString();
+					return collectedDate === today && o.paymentMethod === "cod";
+				})
+				.reduce(
+					(sum: number, o: any) => sum + (o.grandTotal || o.total || 0),
+					0
+				);
 
 			setStats({
 				todayDeliveries: todayOrders.length,
 				pendingDeliveries: pending.length,
-				completedToday: completedToday.length,
-				totalEarnings: completedToday.reduce(
-					(sum: number, o: any) => sum + (o.grandTotal || 0),
+				completedToday: allCompleted.length,
+				totalEarnings: allCompleted.reduce(
+					(sum: number, o: any) => sum + (o.grandTotal || o.total || 0),
 					0
 				),
+				cashCollectedToday,
 			});
 
 			setRecentOrders(orders.slice(0, 5));
@@ -67,6 +84,8 @@ export default function AgentDashboard() {
 				return "text-blue-600 bg-blue-50";
 			case "shipped":
 				return "text-purple-600 bg-purple-50";
+			case "cancelled":
+				return "text-red-600 bg-red-50";
 			default:
 				return "text-gray-600 bg-gray-50";
 		}
@@ -87,7 +106,7 @@ export default function AgentDashboard() {
 
 			<div className="space-y-6">
 				{/* Stats Grid */}
-				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+				<div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
 					<Card>
 						<CardContent className="p-4">
 							<Package className="w-8 h-8 text-blue-600 mb-3" />
@@ -118,13 +137,40 @@ export default function AgentDashboard() {
 						</CardContent>
 					</Card>
 
+					<Card className="bg-linear-to-br from-green-50 to-emerald-50 border-green-200">
+						<CardContent className="p-4">
+							<div className="flex items-center gap-2 mb-3">
+								<div className="bg-green-600 p-1.5 rounded-lg">
+									<svg
+										className="w-5 h-5 text-white"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24">
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+										/>
+									</svg>
+								</div>
+							</div>
+							<p className="text-xl font-bold text-green-900">
+								₹{stats.cashCollectedToday.toLocaleString()}
+							</p>
+							<p className="text-sm text-green-700 font-medium">
+								Cash Collected Today
+							</p>
+						</CardContent>
+					</Card>
+
 					<Card>
 						<CardContent className="p-4">
 							<TrendingUp className="w-8 h-8 text-purple-600 mb-3" />
 							<p className="text-xl font-bold text-gray-900">
 								₹{stats.totalEarnings.toLocaleString()}
 							</p>
-							<p className="text-sm text-gray-600">Today's Value</p>
+							<p className="text-sm text-gray-600">Total Value</p>
 						</CardContent>
 					</Card>
 				</div>

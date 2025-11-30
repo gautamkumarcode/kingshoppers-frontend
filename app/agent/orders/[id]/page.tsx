@@ -5,23 +5,231 @@ import type React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api";
 import {
 	ArrowLeft,
+	Calendar,
 	CheckCircle,
 	MapPin,
 	Package,
 	Phone,
 	TrendingUp,
+	XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { QRCodeCanvas } from "qrcode.react";
 import { useEffect, useRef, useState } from "react";
+
+// Reschedule Dialog Component
+function RescheduleOrderDialog({
+	orderId,
+	currentDate,
+	onSuccess,
+}: {
+	orderId: string;
+	currentDate?: string;
+	onSuccess: () => void;
+}) {
+	const { toast } = useToast();
+	const [open, setOpen] = useState(false);
+	const [newDate, setNewDate] = useState("");
+	const [reason, setReason] = useState("");
+	const [loading, setLoading] = useState(false);
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setLoading(true);
+
+		try {
+			const response = await api.post(`/orders/${orderId}/reschedule`, {
+				newDate,
+				reason,
+			});
+
+			if (response.data.success) {
+				toast({
+					title: "Success",
+					description: "Order rescheduled successfully",
+				});
+				setOpen(false);
+				setNewDate("");
+				setReason("");
+				onSuccess();
+			}
+		} catch (error: any) {
+			toast({
+				title: "Error",
+				description:
+					error.response?.data?.message || "Failed to reschedule order",
+				variant: "destructive",
+			});
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	return (
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger asChild>
+				<Button variant="outline" className="w-full">
+					<Calendar className="w-4 h-4 mr-2" />
+					Reschedule Delivery
+				</Button>
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Reschedule Delivery</DialogTitle>
+					<DialogDescription>
+						Enter the new delivery date and reason for rescheduling
+					</DialogDescription>
+				</DialogHeader>
+				<form onSubmit={handleSubmit} className="space-y-4">
+					<div className="space-y-2">
+						<Label htmlFor="newDate">New Delivery Date</Label>
+						<Input
+							id="newDate"
+							type="date"
+							value={newDate}
+							onChange={(e) => setNewDate(e.target.value)}
+							min={new Date().toISOString().split("T")[0]}
+							required
+						/>
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor="reason">Reason for Rescheduling</Label>
+						<Textarea
+							id="reason"
+							placeholder="Enter reason..."
+							value={reason}
+							onChange={(e) => setReason(e.target.value)}
+							required
+							rows={3}
+						/>
+					</div>
+
+					<DialogFooter>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => setOpen(false)}
+							disabled={loading}>
+							Cancel
+						</Button>
+						<Button type="submit" disabled={loading}>
+							{loading ? "Rescheduling..." : "Reschedule Order"}
+						</Button>
+					</DialogFooter>
+				</form>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+// Cancel Dialog Component
+function CancelOrderDialog({
+	orderId,
+	orderNumber,
+	onSuccess,
+}: {
+	orderId: string;
+	orderNumber: string;
+	onSuccess: () => void;
+}) {
+	const { toast } = useToast();
+	const [open, setOpen] = useState(false);
+	const [reason, setReason] = useState("");
+	const [loading, setLoading] = useState(false);
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setLoading(true);
+
+		try {
+			const response = await api.post(`/orders/${orderId}/cancel`, {
+				reason,
+			});
+
+			if (response.data.success) {
+				toast({
+					title: "Success",
+					description: "Order cancelled successfully",
+				});
+				setOpen(false);
+				setReason("");
+				onSuccess();
+			}
+		} catch (error: any) {
+			toast({
+				title: "Error",
+				description: error.response?.data?.message || "Failed to cancel order",
+				variant: "destructive",
+			});
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	return (
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger asChild>
+				<Button variant="destructive" className="w-full">
+					<XCircle className="w-4 h-4 mr-2" />
+					Cancel Order
+				</Button>
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Cancel Order #{orderNumber}</DialogTitle>
+					<DialogDescription>
+						This action cannot be undone. Please provide a reason for
+						cancellation.
+					</DialogDescription>
+				</DialogHeader>
+				<form onSubmit={handleSubmit} className="space-y-4">
+					<div className="space-y-2">
+						<Label htmlFor="cancelReason">Reason for Cancellation</Label>
+						<Textarea
+							id="cancelReason"
+							placeholder="Enter reason..."
+							value={reason}
+							onChange={(e) => setReason(e.target.value)}
+							required
+							rows={3}
+						/>
+					</div>
+
+					<DialogFooter>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => setOpen(false)}
+							disabled={loading}>
+							Cancel
+						</Button>
+						<Button type="submit" variant="destructive" disabled={loading}>
+							{loading ? "Cancelling..." : "Cancel Order"}
+						</Button>
+					</DialogFooter>
+				</form>
+			</DialogContent>
+		</Dialog>
+	);
+}
 
 export default function AgentOrderDetailPage() {
 	const params = useParams();
@@ -92,7 +300,6 @@ export default function AgentOrderDetailPage() {
 			// Use exact coordinates from customer's shop location
 			const [lng, lat] = order.user.shopAddress.location.coordinates;
 			mapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-	
 		} else {
 			// Fallback to address string
 			const addressParts = [];
@@ -105,7 +312,6 @@ export default function AgentOrderDetailPage() {
 			mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
 				destination
 			)}`;
-			
 		}
 
 		console.log("Maps URL:", mapsUrl);
@@ -566,12 +772,42 @@ export default function AgentOrderDetailPage() {
 									</div>
 									{order.paymentMethod === "cod" &&
 										order.paymentStatus !== "completed" && (
-											<div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mt-2">
-												<p className="text-xs text-yellow-800 font-medium">
-													⚠️ Collect ₹{order.grandTotal || order.total} cash
-													from customer
-												</p>
-											</div>
+											<>
+												<div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mt-2">
+													<p className="text-xs text-yellow-800 font-medium">
+														⚠️ Collect ₹{order.grandTotal || order.total} cash
+														from customer
+													</p>
+												</div>
+												<Button
+													variant="default"
+													className="w-full bg-green-600 hover:bg-green-700"
+													onClick={async () => {
+														try {
+															const response = await api.post(
+																`/orders/${params.id}/collect-cash`
+															);
+															if (response.data.success) {
+																toast({
+																	title: "Success! 💰",
+																	description:
+																		"Cash collection marked successfully",
+																});
+																fetchOrder();
+															}
+														} catch (error: any) {
+															toast({
+																title: "Error",
+																description:
+																	error.response?.data?.message ||
+																	"Failed to mark cash collection",
+																variant: "destructive",
+															});
+														}
+													}}>
+													💰 Mark Cash Collected
+												</Button>
+											</>
 										)}
 									{order.advancePayment > 0 && (
 										<>
@@ -789,10 +1025,7 @@ export default function AgentOrderDetailPage() {
 											{/* Step 1: Generate OTP */}
 											{!otpGenerated && (
 												<div className="space-y-3">
-													<div className="bg-blue-50 border border-blue-200 rounded-md p-4 text-center">
-														<p className="text-sm text-blue-800 font-medium mb-3">
-															📍 Step 1: Generate OTP for customer
-														</p>
+													<div className=" rounded-md p-4 text-center">
 														<Button
 															onClick={handleGenerateOTP}
 															disabled={generatingOTP}
@@ -904,6 +1137,28 @@ export default function AgentOrderDetailPage() {
 									)}
 								</CardContent>
 							</Card>
+
+							{/* Reschedule & Cancel Actions */}
+							{order.orderStatus !== "delivered" &&
+								order.orderStatus !== "cancelled" && (
+									<Card>
+										<CardHeader>
+											<CardTitle>Order Actions</CardTitle>
+										</CardHeader>
+										<CardContent className="space-y-3">
+											<RescheduleOrderDialog
+												orderId={order._id}
+												currentDate={order.expectedDeliveryDate}
+												onSuccess={fetchOrder}
+											/>
+											<CancelOrderDialog
+												orderId={order._id}
+												orderNumber={order.orderNumber}
+												onSuccess={fetchOrder}
+											/>
+										</CardContent>
+									</Card>
+								)}
 						</>
 					)}
 
