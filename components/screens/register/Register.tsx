@@ -27,9 +27,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const LocationPicker = dynamic(
+const GoogleLocationPicker = dynamic(
 	() =>
-		import("@/components/ui/location-picker").then((mod) => mod.LocationPicker),
+		import("@/components/ui/google-location-picker").then(
+			(mod) => mod.GoogleLocationPicker
+		),
 	{ ssr: false }
 );
 
@@ -468,7 +470,7 @@ export default function RegisterPage() {
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-2 gap-2">
 							<h3 className="text-lg font-semibold">Shop Address</h3>
 							<div className="flex gap-2">
-								<LocationPicker
+								<GoogleLocationPicker
 									latitude={latitude}
 									longitude={longitude}
 									onLocationSelect={(lat, lng) => {

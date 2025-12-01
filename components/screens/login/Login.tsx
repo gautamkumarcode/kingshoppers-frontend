@@ -93,7 +93,7 @@ export default function LoginPage() {
 
 			// Always redirect to dashboard to show profile and status
 			if (data.user.userTypes == "sales_executive") {
-				router.push("/sales/dashboard");
+				router.push("/agent/dashboard");
 				return;
 			}
 			if (data.user.userTypes == "customer") {

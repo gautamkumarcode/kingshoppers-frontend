@@ -72,19 +72,19 @@ export default function BottomNav() {
 	const salesNavItems: NavItem[] = [
 		{
 			name: "Dashboard",
-			href: "/sales/dashboard",
+			href: "/agent/dashboard",
 			icon: Home,
 			show: true,
 		},
 		{
 			name: "Orders",
-			href: "/sales/orders",
+			href: "/agent/orders",
 			icon: Package,
 			show: true,
 		},
 		{
 			name: "Customers",
-			href: "/sales/customers",
+			href: "/agent/customers",
 			icon: User,
 			show: true,
 		},
