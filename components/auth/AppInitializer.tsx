@@ -3,7 +3,7 @@
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useAuth } from "@/context/AuthContext";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 
 interface AppInitializerProps {
 	children: React.ReactNode;
@@ -14,35 +14,52 @@ export function AppInitializer({ children }: AppInitializerProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 
-	// Redirect users to their appropriate dashboards
+	// Check if redirect is needed
+	const shouldRedirect = React.useMemo(() => {
+		if (loading || !user) return false;
+
+		const userType = user.userType || user.userTypes;
+		const isAdmin = userType === "admin";
+		const isAgent = userType === "sales_executive" || userType === "delivery";
+		const isOnAdminRoute = pathname?.startsWith("/admin");
+		const isOnAgentRoute = pathname?.startsWith("/agent");
+		const isOnAuthRoute = pathname?.startsWith("/auth");
+		const isOnCustomerPage =
+			pathname === "/" ||
+			pathname?.startsWith("/cart") ||
+			pathname?.startsWith("/products") ||
+			pathname?.startsWith("/checkout");
+
+		// Check if admin needs redirect
+		if (isAdmin && !isOnAdminRoute && !isOnAuthRoute && isOnCustomerPage) {
+			return true;
+		}
+
+		// Check if agent needs redirect
+		if (isAgent && !isOnAgentRoute && !isOnAuthRoute && isOnCustomerPage) {
+			return true;
+		}
+
+		return false;
+	}, [loading, user, pathname]);
+
+	// Perform redirect
 	useEffect(() => {
-		if (!loading && user) {
+		if (shouldRedirect && user) {
 			const userType = user.userType || user.userTypes;
 			const isAdmin = userType === "admin";
 			const isAgent = userType === "sales_executive" || userType === "delivery";
-			const isOnAdminRoute = pathname?.startsWith("/admin");
-			const isOnAgentRoute = pathname?.startsWith("/agent");
-			const isOnAuthRoute = pathname?.startsWith("/auth");
-			const isOnCustomerPage =
-				pathname === "/" ||
-				pathname?.startsWith("/cart") ||
-				pathname?.startsWith("/products") ||
-				pathname?.startsWith("/checkout");
 
-			// Redirect admin to admin dashboard if on customer pages
-			if (isAdmin && !isOnAdminRoute && !isOnAuthRoute && isOnCustomerPage) {
-				router.push("/admin/orders");
-			}
-
-			// Redirect agents to agent dashboard if on customer pages
-			if (isAgent && !isOnAgentRoute && !isOnAuthRoute && isOnCustomerPage) {
-				router.push("/agent/dashboard");
+			if (isAdmin) {
+				router.replace("/admin/orders");
+			} else if (isAgent) {
+				router.replace("/agent/dashboard");
 			}
 		}
-	}, [loading, user, pathname, router]);
+	}, [shouldRedirect, user, router]);
 
-	// Show loading screen during initial authentication check
-	if (loading) {
+	// Show loading screen during initial authentication check or redirect
+	if (loading || shouldRedirect) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-background">
 				<div className="text-center space-y-4 flex justify-center items-center flex-col">
