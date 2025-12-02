@@ -4,6 +4,7 @@ import type React from "react";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { useLocationTracking } from "@/hooks/useLocationTracking";
 import {
 	LayoutDashboard,
 	LogOut,
@@ -32,6 +33,13 @@ export default function AgentLayout({
 	const userTypeField = user?.userType || user?.userTypes;
 	const isSalesAgent = userTypeField === "sales_executive";
 	const isDeliveryAgent = userTypeField === "delivery";
+
+	// Enable location tracking for both delivery and sales agents
+	useLocationTracking({
+		enabled: isDeliveryAgent || isSalesAgent,
+		interval: 10000, // Update every 10 seconds
+		highAccuracy: true,
+	});
 
 	useEffect(() => {
 		if (loading) return;
@@ -208,6 +216,22 @@ export default function AgentLayout({
 						<h1 className="text-lg sm:text-2xl font-bold">{portalTitle}</h1>
 					</div>
 					<div className="flex items-center gap-2 sm:gap-4">
+						{(isDeliveryAgent || isSalesAgent) && (
+							<div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
+								<div className="flex items-center gap-1">
+									<div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+									<div
+										className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"
+										style={{ animationDelay: "0.2s" }}></div>
+									<div
+										className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"
+										style={{ animationDelay: "0.4s" }}></div>
+								</div>
+								<span className="text-xs font-medium text-green-700 hidden sm:inline">
+									Location Active
+								</span>
+							</div>
+						)}
 						<span className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
 							{user.firstName && user.lastName
 								? `${user.firstName} ${user.lastName}`

@@ -5,6 +5,7 @@ import BottomNav from "@/components/navbar/BottomNav";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
+import { SocketProvider } from "@/context/SocketContext";
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -47,18 +48,20 @@ export default function RootLayout({
 			</head>
 			<body className={`font-sans antialiased`}>
 				<AuthProvider>
-					<CartProvider>
-						<AppInitializer>
-							<div className="flex flex-col">
-								<Navbar />
-								<main className="flex-1">{children}</main>
-								<Footer />
-								<BottomNav />
-							</div>
-							<Toaster />
-							<Analytics />
-						</AppInitializer>
-					</CartProvider>
+					<SocketProvider>
+						<CartProvider>
+							<AppInitializer>
+								<div className="flex flex-col">
+									<Navbar />
+									<main className="flex-1">{children}</main>
+									<Footer />
+									<BottomNav />
+								</div>
+								<Toaster />
+								<Analytics />
+							</AppInitializer>
+						</CartProvider>
+					</SocketProvider>
 				</AuthProvider>
 			</body>
 		</html>
