@@ -71,7 +71,6 @@ export default function AgentTracking() {
 						},
 					}));
 					setAgents(agentData);
-					console.log("Fetched agents:", agentData);
 				}
 			} catch (error) {
 				console.error("Error fetching agents:", error);

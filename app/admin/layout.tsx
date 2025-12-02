@@ -59,22 +59,12 @@ export default function AdminLayout({
 	}, []);
 
 	useEffect(() => {
-		console.log("🔍 Admin layout auth check:", {
-			loading,
-			user,
-			userType: user?.userType,
-			userTypes: user?.userTypes,
-		});
 		if (loading) return;
-		// Check for both userType (User schema) and userTypes (Customer schema)
+
 		const userTypeField = user?.userType || user?.userTypes;
-		console.log("📋 Extracted userTypeField:", userTypeField);
 		if (!user || userTypeField !== "admin") {
-			console.log("❌ Not authorized, redirecting to admin login");
 			router.push("/auth/admin-login");
-			return;
 		}
-		console.log("✅ Admin authorized");
 	}, [router, loading, user]);
 
 	const handleLogout = () => {

@@ -49,34 +49,19 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
 		);
 
 		socketInstance.on("connect", () => {
-			console.log("✅ Socket connected successfully");
-			console.log("Socket ID:", socketInstance.id);
-			console.log("Transport:", socketInstance.io.engine.transport.name);
 			setIsConnected(true);
 		});
 
-		socketInstance.on("disconnect", (reason) => {
-			console.log("❌ Socket disconnected:", reason);
+		socketInstance.on("disconnect", () => {
 			setIsConnected(false);
 		});
 
-		socketInstance.on("connect_error", (error) => {
-			console.error("❌ Socket connection error:", error.message);
-			console.error("Error details:", error);
+		socketInstance.on("connect_error", () => {
 			setIsConnected(false);
 		});
 
-		socketInstance.on("reconnect_attempt", (attemptNumber) => {
-			console.log(`🔄 Reconnection attempt ${attemptNumber}`);
-		});
-
-		socketInstance.on("reconnect", (attemptNumber) => {
-			console.log(`✅ Reconnected after ${attemptNumber} attempts`);
+		socketInstance.on("reconnect", () => {
 			setIsConnected(true);
-		});
-
-		socketInstance.on("reconnect_failed", () => {
-			console.error("❌ Reconnection failed after all attempts");
 		});
 
 		setSocket(socketInstance);

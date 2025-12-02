@@ -1,6 +1,6 @@
 "use client";
 
-import type React from "react";
+import React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,11 +21,21 @@ import { useState } from "react";
 
 export default function AdminLoginPage() {
 	const router = useRouter();
-	const { login } = useAuth();
+	const { login, user, loading: authLoading } = useAuth();
 	const [phone, setPhone] = useState("");
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
+
+	// Redirect if already logged in
+	React.useEffect(() => {
+		if (!authLoading && user) {
+			const userType = user.userType || user.userTypes;
+			if (userType === "admin") {
+				router.push("/admin/orders");
+			}
+		}
+	}, [authLoading, user, router]);
 
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -50,7 +60,7 @@ export default function AdminLoginPage() {
 
 			// Redirect based on user type
 			if (data.user.userType === "admin") {
-				router.push("/admin/dashboard");
+				router.push("/admin/orders");
 			} else if (
 				data.user.userType === "sales_executive" ||
 				data.user.userType === "delivery"

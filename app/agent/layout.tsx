@@ -39,24 +39,36 @@ export default function AgentLayout({
 		enabled: isDeliveryAgent || isSalesAgent,
 		interval: 10000, // Update every 10 seconds
 		highAccuracy: true,
+		useGoogleGeolocation: false, // Use GPS only for best accuracy
 	});
 
 	useEffect(() => {
 		if (loading) return;
+
 		// Allow both sales_executive and delivery agents
 		if (!user) {
 			router.push("/auth/agents-login");
 			return;
 		}
-	}, [router, loading, user, isSalesAgent, isDeliveryAgent]);
+	}, [router, loading, user]);
 
 	const handleLogout = () => {
 		logout();
 		router.push("/auth/agents-login");
 	};
 
+	// Show loading state while auth is being checked
+	if (loading) {
+		return (
+			<div className="flex items-center justify-center min-h-screen">
+				<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+			</div>
+		);
+	}
+
+	// If not logged in, don't render anything (redirect will happen)
 	if (!user) {
-		return <div>Loading...</div>;
+		return null;
 	}
 
 	// Define menu items based on agent type

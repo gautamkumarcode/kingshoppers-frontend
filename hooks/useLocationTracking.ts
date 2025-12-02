@@ -13,7 +13,7 @@ interface LocationTrackingOptions {
 export const useLocationTracking = (options: LocationTrackingOptions = {}) => {
 	const {
 		enabled = true,
-		interval = 10000, // 10 seconds default
+		interval = 5000, // 5 seconds default
 		highAccuracy = true,
 		useGoogleGeolocation = true,
 	} = options;
@@ -28,7 +28,6 @@ export const useLocationTracking = (options: LocationTrackingOptions = {}) => {
 		}
 
 		if (!navigator.geolocation) {
-			console.error("Geolocation is not supported by this browser");
 			return;
 		}
 
@@ -40,9 +39,6 @@ export const useLocationTracking = (options: LocationTrackingOptions = {}) => {
 			try {
 				const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 				if (!apiKey) {
-					console.warn(
-						"Google Maps API key not found, falling back to browser geolocation"
-					);
 					return null;
 				}
 
@@ -61,9 +57,6 @@ export const useLocationTracking = (options: LocationTrackingOptions = {}) => {
 				);
 
 				if (!response.ok) {
-					console.warn(
-						"Google Geolocation API failed, falling back to browser geolocation"
-					);
 					return null;
 				}
 
@@ -74,7 +67,6 @@ export const useLocationTracking = (options: LocationTrackingOptions = {}) => {
 					accuracy: data.accuracy,
 				};
 			} catch (error) {
-				console.error("Error using Google Geolocation API:", error);
 				return null;
 			}
 		};
@@ -83,44 +75,26 @@ export const useLocationTracking = (options: LocationTrackingOptions = {}) => {
 			let latitude: number;
 			let longitude: number;
 			let accuracy: number;
+			let source: string;
 
-			// Try Google Geolocation API first if enabled
-			if (useGoogleGeolocation) {
+			// Always prefer browser GPS for accuracy
+			if (position) {
+				latitude = position.coords.latitude;
+				longitude = position.coords.longitude;
+				accuracy = position.coords.accuracy;
+				source = "GPS";
+			} else if (useGoogleGeolocation) {
+				// Only use Google API if GPS is not available
 				const googleLocation = await getLocationWithGoogle();
 				if (googleLocation) {
 					latitude = googleLocation.latitude;
 					longitude = googleLocation.longitude;
 					accuracy = googleLocation.accuracy;
-					console.log("Using Google Geolocation API:", {
-						latitude,
-						longitude,
-						accuracy,
-					});
-				} else if (position) {
-					// Fallback to browser geolocation
-					latitude = position.coords.latitude;
-					longitude = position.coords.longitude;
-					accuracy = position.coords.accuracy;
-					console.log("Using browser geolocation:", {
-						latitude,
-						longitude,
-						accuracy,
-					});
+					source = "Google IP";
 				} else {
-					console.error("No location data available");
 					return;
 				}
-			} else if (position) {
-				latitude = position.coords.latitude;
-				longitude = position.coords.longitude;
-				accuracy = position.coords.accuracy;
-				console.log("Using browser geolocation:", {
-					latitude,
-					longitude,
-					accuracy,
-				});
 			} else {
-				console.error("No location data available");
 				return;
 			}
 
@@ -128,14 +102,12 @@ export const useLocationTracking = (options: LocationTrackingOptions = {}) => {
 				latitude,
 				longitude,
 				accuracy,
+				source,
 				timestamp: new Date().toISOString(),
 			});
-
-			console.log("Location sent:", { latitude, longitude, accuracy });
 		};
 
 		const handleError = (error: GeolocationPositionError) => {
-			console.error("Geolocation error:", error.message);
 			// Try Google API as fallback even on error
 			if (useGoogleGeolocation) {
 				sendLocation();
@@ -143,17 +115,12 @@ export const useLocationTracking = (options: LocationTrackingOptions = {}) => {
 		};
 
 		const updateLocation = () => {
-			if (useGoogleGeolocation) {
-				// Use Google API directly
-				sendLocation();
-			} else {
-				// Use browser geolocation
-				navigator.geolocation.getCurrentPosition(sendLocation, handleError, {
-					enableHighAccuracy: highAccuracy,
-					timeout: 10000,
-					maximumAge: 0,
-				});
-			}
+			// Always try browser GPS first for best accuracy
+			navigator.geolocation.getCurrentPosition(sendLocation, handleError, {
+				enableHighAccuracy: highAccuracy,
+				timeout: 10000,
+				maximumAge: 0,
+			});
 		};
 
 		// Get initial location
