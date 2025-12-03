@@ -24,7 +24,11 @@ export function ProductCard({ product }: { product: Product }) {
 			? Math.min(...validVariants.map((v) => v.moq || 1))
 			: 1;
 
-	// ✅ Image URL logic
+	// Check if product is in stock
+	const totalStock =
+		product.variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0;
+	const isOutOfStock =
+		totalStock === 0 || !product.variants?.some((v) => v.isInStock);
 
 	return (
 		<Link href={`/products/${product._id}`}>
@@ -32,7 +36,10 @@ export function ProductCard({ product }: { product: Product }) {
 				<CardContent className="p-0 pb-1">
 					{/* Product Image */}
 					<div className="relative mb-1.5 sm:mb-3 md:mb-4">
-						<div className="aspect-square bg-gray-100 rounded-t-sm overflow-hidden">
+						<div
+							className={`aspect-square bg-gray-100 rounded-t-sm overflow-hidden ${
+								isOutOfStock ? "opacity-60" : ""
+							}`}>
 							<img
 								src={
 									product.thumbnail ||
@@ -41,16 +48,28 @@ export function ProductCard({ product }: { product: Product }) {
 								alt={product.name}
 								className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
 							/>
+							{isOutOfStock && (
+								<div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+									<Badge className="bg-red-600 text-white text-xs sm:text-sm px-3 py-1">
+										OUT OF STOCK
+									</Badge>
+								</div>
+							)}
 						</div>
-						{product.isFeatured && (
+						{!isOutOfStock && product.isFeatured && (
 							<Badge className="absolute top-1 left-1 sm:top-2 sm:left-2 bg-yellow-500 text-[10px] sm:text-xs">
 								<Star className="w-2 h-2 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
 								Featured
 							</Badge>
 						)}
-						{product?.calculatedMargin! && (
+						{!isOutOfStock && product?.calculatedMargin! && (
 							<Badge className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-green-600 text-[10px] sm:text-xs">
 								{Math.round(product.calculatedMargin!)}% OFF
+							</Badge>
+						)}
+						{isOutOfStock && (
+							<Badge className="absolute top-1 left-1 sm:top-2 sm:left-2 bg-red-600 text-[10px] sm:text-xs">
+								Out of Stock
 							</Badge>
 						)}
 					</div>
@@ -105,9 +124,10 @@ export function ProductCard({ product }: { product: Product }) {
 						{/* Action Button */}
 						<Button
 							size="sm"
-							className="w-full mt-1.5 sm:mt-3 text-xs sm:text-sm h-7 sm:h-8 md:h-9 flex justify-self-end self-end items-center bg-linear-to-tl to-blue-500 from-indigo-500 justify-center">
+							disabled={isOutOfStock}
+							className="w-full mt-1.5 sm:mt-3 text-xs sm:text-sm h-7 sm:h-8 md:h-9 flex justify-self-end self-end items-center bg-linear-to-tl to-blue-500 from-indigo-500 justify-center disabled:opacity-50 disabled:cursor-not-allowed">
 							<ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1 sm:mr-2" />
-							View Details
+							{isOutOfStock ? "Out of Stock" : "View Details"}
 						</Button>
 					</div>
 				</CardContent>

@@ -51,7 +51,7 @@ export default function RootLayout({
 					<SocketProvider>
 						<CartProvider>
 							<AppInitializer>
-								<div className="flex flex-col">
+								<div className="flex flex-col min-h-screen">
 									<Navbar />
 									<main className="flex-1">{children}</main>
 									<Footer />

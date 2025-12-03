@@ -1,13 +1,13 @@
 "use client";
 
 import {
-  Facebook,
-  Instagram,
-  Mail,
-  MapPin,
-  Phone,
-  Twitter,
-  Youtube,
+	Facebook,
+	Instagram,
+	Mail,
+	MapPin,
+	Phone,
+	Twitter,
+	Youtube,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -57,171 +57,158 @@ const Footer = () => {
 	}
 
 	return (
-		<footer className="bg-linear-to-r from-blue-600 via-blue-300 to-blue-500 text-gray-800">
-			{/* 🔹 Newsletter / CTA Section */}
-			<section
-				className="relative bg-cover bg-center bg-no-repeat py-20"
-				style={{
-					backgroundImage:
-						"url('https://images.unsplash.com/photo-1607083207333-29f9f1b0d51e?auto=format&fit=crop&w=1200&q=80')",
-				}}>
-				<div className="bg-black/60 absolute inset-0"></div>
-				<div className="relative max-w-6xl mx-auto px-6 text-center text-white">
-					<h2 className="text-3xl sm:text-4xl font-bold mb-4">
-						Join the King Shopper Community
-					</h2>
-					<p className="text-lg text-gray-200 mb-8">
-						Get early access to new arrivals, exclusive discounts, and royal
-						shopping rewards — straight to your inbox!
-					</p>
-					<Link href="/auth/register">
-						<Button
-							size="lg"
-							className="bg-blue-500 hover:bg-blue-700 text-white font-semibold rounded-xl">
-							Sign Up Today
-						</Button>
-					</Link>
+		<footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-gray-300 mt-auto">
+			{/* Newsletter Section */}
+			<div className="border-b border-slate-700">
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+					<div className="flex flex-col md:flex-row items-center justify-between gap-6">
+						<div className="text-center md:text-left">
+							<h3 className="text-2xl font-bold text-white mb-2">
+								Join King Shoppers Community
+							</h3>
+							<p className="text-gray-400">
+								Get exclusive deals and updates delivered to your inbox
+							</p>
+						</div>
+						<Link href="/auth/register">
+							<Button
+								size="lg"
+								className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8">
+								Sign Up Now
+							</Button>
+						</Link>
+					</div>
 				</div>
-			</section>
+			</div>
 
-			{/* 🌟 Main Footer Section */}
-			<div className="bg-linear-to-r from-blue-400 via-blue-200 to-blue-300 text-gray-700">
-				<div className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
-					{/* 🏬 Brand Info */}
-					<div>
-						<h3 className="text-2xl font-bold text-white mb-4">King Shopper</h3>
-						<p className="text-gray-900 mb-4 leading-relaxed">
-							Your one-stop grocery store — fresh produce, daily essentials, and
-							exclusive deals delivered right to your door.
+			{/* Main Footer Content */}
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+					{/* Brand Info */}
+					<div className="lg:col-span-1">
+						<h3 className="text-2xl font-bold text-white mb-4">
+							King Shoppers
+						</h3>
+						<p className="text-gray-400 mb-6 text-sm leading-relaxed">
+							Your trusted partner for fresh groceries and daily essentials,
+							delivered with care.
 						</p>
-						<div className="flex items-start gap-3 text-black-700">
-							<Mail size={18} className="mt-1" />
-							<span>support@kingshopper.com</span>
-						</div>
-						<div className="flex items-start gap-3 text-black-700 mt-2">
-							<Phone size={18} className="mt-1" />
-							<span>‪+91 9876543210‬</span>
-						</div>
-						<div className="flex items-start gap-3 text-black-700 mt-2">
-							<MapPin size={30} className="mt-1" />
-							<span>Kandwa Road, Varanasi, Uttar Pradesh 221011</span>
-						</div>
-					</div>
-
-					{/* 🔗 Links Section */}
-					<div className="sm:col-span-2">
-						<div className="grid grid-cols-2 gap-8">
-							{/* Quick Links */}
-							<div>
-								<h4 className="text-lg font-semibold text-white mb-4">
-									Quick Links
-								</h4>
-								<ul className="space-y-2">
-									<li>
-										<Link
-											href="/about-us"
-											className="hover:text-white transition-colors">
-											About Us
-										</Link>
-									</li>
-									<li>
-										<Link
-											href="/contact-us"
-											className="hover:text-white transition-colors">
-											Contact Us
-										</Link>
-									</li>
-									<li>
-										<Link
-											href="/cancellation"
-											className="hover:text-white transition-colors">
-											Cancellation & Return
-										</Link>
-									</li>
-									<li>
-										<Link
-											href="/refund-policy"
-											className="hover:text-white transition-colors">
-											Terms & Conditions
-										</Link>
-									</li>
-								</ul>
+						<div className="space-y-3">
+							<div className="flex items-center gap-3 text-sm">
+								<Mail size={16} className="text-blue-500 flex-shrink-0" />
+								<span>support@kingshoppers.com</span>
 							</div>
-
-							{/* Customer Support */}
-							{/* Customer Support */}
-							<div>
-								<h4 className="text-lg font-semibold text-white mb-4">
-									Customer Support
-								</h4>
-								<ul className="space-y-2">
-									<li>
-										<Link
-											href="/faqs"
-											className="hover:text-white transition-colors">
-											FAQs
-										</Link>
-									</li>
-									<li>
-										<Link
-											href="/shipping-policy"
-											className="hover:text-white transition-colors">
-											Shipping Policy
-										</Link>
-									</li>
-									<li>
-										<Link
-											href="/privacy-policy"
-											className="hover:text-white transition-colors">
-											Privacy Policy
-										</Link>
-									</li>
-									<li>
-										<Link
-											href="/help-desk"
-											className="hover:text-white transition-colors">
-											Help Desk
-										</Link>
-									</li>
-								</ul>
+							<div className="flex items-center gap-3 text-sm">
+								<Phone size={16} className="text-blue-500 flex-shrink-0" />
+								<span>+91 9876543210</span>
+							</div>
+							<div className="flex items-start gap-3 text-sm">
+								<MapPin
+									size={16}
+									className="text-blue-500 flex-shrink-0 mt-1"
+								/>
+								<span>Kandwa Road, Varanasi, UP 221011</span>
 							</div>
 						</div>
 					</div>
-					{/* 🌐 Social Media */}
+
+					{/* Quick Links */}
 					<div>
 						<h4 className="text-lg font-semibold text-white mb-4">
-							<strong className="text-3xl">Follow Us</strong>
+							Quick Links
 						</h4>
-						<div className="flex flex-wrap gap-4 mt-6">
-							<Link
-								href="/"
-								className="bg-[#1877F2] p-2 rounded-full hover:opacity-80 transition-transform transform hover:scale-110">
-								<Facebook size={20} className="text-white" />
-							</Link>
-							<Link
-								href="/"
-								className="bg-linear-to-tr from-pink-500 via-red-500 to-yellow-500 p-2 rounded-full hover:opacity-80 transition-transform transform hover:scale-110">
-								<Instagram size={20} className="text-white" />
-							</Link>
-							<Link
-								href="/"
-								className="bg-[#1DA1F2] p-2 rounded-full hover:opacity-80 transition-transform transform hover:scale-110">
-								<Twitter size={20} className="text-white" />
-							</Link>
-							<Link
-								href="/"
-								className="bg-[#FF0000] p-2 rounded-full hover:opacity-80 transition-transform transform hover:scale-110">
-								<Youtube size={20} className="text-white" />
-							</Link>
+						<ul className="space-y-2.5">
+							{[
+								{ href: "/about-us", label: "About Us" },
+								{ href: "/contact-us", label: "Contact Us" },
+								{ href: "/cancellation", label: "Returns & Cancellation" },
+								{ href: "/refund-policy", label: "Terms & Conditions" },
+							].map((link) => (
+								<li key={link.href}>
+									<Link
+										href={link.href}
+										className="text-sm hover:text-blue-400 transition-colors inline-block">
+										{link.label}
+									</Link>
+								</li>
+							))}
+						</ul>
+					</div>
+
+					{/* Customer Support */}
+					<div>
+						<h4 className="text-lg font-semibold text-white mb-4">
+							Customer Support
+						</h4>
+						<ul className="space-y-2.5">
+							{[
+								{ href: "/faqs", label: "FAQs" },
+								{ href: "/shipping-policy", label: "Shipping Policy" },
+								{ href: "/privacy-policy", label: "Privacy Policy" },
+								{ href: "/help-desk", label: "Help Center" },
+							].map((link) => (
+								<li key={link.href}>
+									<Link
+										href={link.href}
+										className="text-sm hover:text-blue-400 transition-colors inline-block">
+										{link.label}
+									</Link>
+								</li>
+							))}
+						</ul>
+					</div>
+
+					{/* Social Media */}
+					<div>
+						<h4 className="text-lg font-semibold text-white mb-4">
+							Connect With Us
+						</h4>
+						<p className="text-sm text-gray-400 mb-4">
+							Follow us on social media for updates and offers
+						</p>
+						<div className="flex gap-3">
+							{[
+								{
+									href: "/",
+									icon: Facebook,
+									bg: "bg-[#1877F2] hover:bg-[#1877F2]/80",
+								},
+								{
+									href: "/",
+									icon: Instagram,
+									bg: "bg-gradient-to-tr from-purple-600 to-pink-600 hover:opacity-80",
+								},
+								{
+									href: "/",
+									icon: Twitter,
+									bg: "bg-[#1DA1F2] hover:bg-[#1DA1F2]/80",
+								},
+								{
+									href: "/",
+									icon: Youtube,
+									bg: "bg-[#FF0000] hover:bg-[#FF0000]/80",
+								},
+							].map((social, index) => (
+								<Link
+									key={index}
+									href={social.href}
+									className={`${social.bg} p-2.5 rounded-full transition-all transform hover:scale-110`}>
+									<social.icon size={18} className="text-white" />
+								</Link>
+							))}
 						</div>
 					</div>
 				</div>
+			</div>
 
-				{/* 🔹 Bottom Bar */}
-				<div className="border-t border-green-300 py-6 text-center text-gray-700 text-sm">
-					© {new Date().getFullYear()}{" "}
-					<span className="text-blue-600 font-semibold">King Shopper</span>. All
-					rights reserved.
+			{/* Bottom Bar */}
+			<div className="border-t border-slate-700">
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+					<p className="text-center text-sm text-gray-400">
+						© {new Date().getFullYear()}{" "}
+						<span className="text-blue-400 font-semibold">King Shoppers</span>.
+						All rights reserved.
+					</p>
 				</div>
 			</div>
 		</footer>

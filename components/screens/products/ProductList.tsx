@@ -125,64 +125,67 @@ export default function ProductsPage() {
 	};
 
 	return (
-		<main className="min-h-screen bg-background">
-			<div className="max-w-7xl mx-auto px-4 pb-8 pt-2">
+		<main className="min-h-screen bg-background pb-20 sm:pb-8">
+			<div className="max-w-7xl mx-auto px-3 sm:px-4 pb-8 pt-2">
 				{/* Header */}
-				<div className="mb-8">
-					<div className="flex items-center justify-between mb-6">
-						<div>
-							<h1 className="lg:text-3xl text-2xl font-bold mb-2">
+				<div className="mb-6 sm:mb-8">
+					<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-2">
+						<div className="flex-1">
+							<h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">
 								Wholesale Products
 							</h1>
-							<p className="text-muted-foreground text-xs">
+							<p className="text-muted-foreground text-xs sm:text-sm">
 								Browse our extensive catalog of wholesale stationery products
 							</p>
 						</div>
-						<div className="flex items-center gap-2">
+						<div className="flex items-center gap-2 w-full sm:w-auto">
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setShowFilters(!showFilters)}>
-								<Filter className="w-4 h-4 mr-2" />
+								onClick={() => setShowFilters(!showFilters)}
+								className="flex-1 sm:flex-none text-xs sm:text-sm h-8 sm:h-9">
+								<Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
 								{showFilters ? "Hide" : "Show"} Filters
 							</Button>
 							<Button
 								variant={viewMode === "grid" ? "default" : "outline"}
 								size="sm"
-								onClick={() => setViewMode("grid")}>
-								<Grid className="w-4 h-4" />
+								onClick={() => setViewMode("grid")}
+								className="h-8 sm:h-9 px-2 sm:px-3">
+								<Grid className="w-3 h-3 sm:w-4 sm:h-4" />
 							</Button>
 							<Button
 								variant={viewMode === "list" ? "default" : "outline"}
 								size="sm"
-								onClick={() => setViewMode("list")}>
-								<List className="w-4 h-4" />
+								onClick={() => setViewMode("list")}
+								className="h-8 sm:h-9 px-2 sm:px-3">
+								<List className="w-3 h-3 sm:w-4 sm:h-4" />
 							</Button>
 						</div>
 					</div>
 
 					{/* Filters and Search */}
 					{showFilters && (
-						<Card className="mb-6 border-2 shadow-md">
-							<CardHeader className="pb-3">
-								<CardTitle className="flex items-center justify-between">
+						<Card className="mb-4 sm:mb-6 border-2 shadow-md">
+							<CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6 pt-3 sm:pt-6">
+								<CardTitle className="flex items-center justify-between text-base sm:text-lg">
 									<div className="flex items-center gap-2">
-										<Filter className="w-5 h-5" />
+										<Filter className="w-4 h-4 sm:w-5 sm:h-5" />
 										<span>Filters & Search</span>
 									</div>
 									<Button
 										variant="ghost"
 										size="sm"
 										onClick={clearFilters}
-										className="text-muted-foreground hover:text-foreground">
+										className="text-muted-foreground hover:text-foreground text-xs sm:text-sm h-8">
 										Clear All
 									</Button>
 								</CardTitle>
 							</CardHeader>
-							<CardContent className="space-y-4">
+							<CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-6 pb-3 sm:pb-6">
 								{/* Search Bar */}
 								<div className="relative">
-									<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+									<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
 									<Input
 										placeholder="Search products, SKU, brand..."
 										value={search}
@@ -190,20 +193,22 @@ export default function ProductsPage() {
 											setSearch(e.target.value);
 											setPage(1);
 										}}
-										className="pl-10 h-11"
+										className="pl-9 sm:pl-10 h-9 sm:h-11 text-sm"
 									/>
-								</div>{" "}
+								</div>
 								{/* Filter Row */}
-								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-									<div className="space-y-2">
-										<Label className="text-sm font-medium">Category</Label>
+								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+									<div className="space-y-1.5 sm:space-y-2">
+										<Label className="text-xs sm:text-sm font-medium">
+											Category
+										</Label>
 										<Select
 											value={selectedCategory}
 											onValueChange={(value) => {
 												setSelectedCategory(value);
 												setPage(1);
 											}}>
-											<SelectTrigger className="h-11">
+											<SelectTrigger className="h-9 sm:h-11 text-sm">
 												<SelectValue placeholder="All Categories" />
 											</SelectTrigger>
 											<SelectContent>
@@ -217,15 +222,17 @@ export default function ProductsPage() {
 										</Select>
 									</div>
 
-									<div className="space-y-2">
-										<Label className="text-sm font-medium">Brand</Label>
+									<div className="space-y-1.5 sm:space-y-2">
+										<Label className="text-xs sm:text-sm font-medium">
+											Brand
+										</Label>
 										<Select
 											value={selectedBrand}
 											onValueChange={(value) => {
 												setSelectedBrand(value);
 												setPage(1);
 											}}>
-											<SelectTrigger className="h-11">
+											<SelectTrigger className="h-9 sm:h-11 text-sm">
 												<SelectValue placeholder="All Brands" />
 											</SelectTrigger>
 											<SelectContent>
@@ -239,10 +246,12 @@ export default function ProductsPage() {
 										</Select>
 									</div>
 
-									<div className="space-y-2">
-										<Label className="text-sm font-medium">Sort By</Label>
+									<div className="space-y-1.5 sm:space-y-2">
+										<Label className="text-xs sm:text-sm font-medium">
+											Sort By
+										</Label>
 										<Select value={sortBy} onValueChange={setSortBy}>
-											<SelectTrigger className="h-11">
+											<SelectTrigger className="h-9 sm:h-11 text-sm">
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
@@ -284,11 +293,11 @@ export default function ProductsPage() {
 				) : (
 					<>
 						{/* Results Summary */}
-						<div className="flex items-center justify-between mb-6">
-							<p className="text-sm text-muted-foreground">
+						<div className="flex items-center justify-between mb-4 sm:mb-6">
+							<p className="text-xs sm:text-sm text-muted-foreground">
 								Showing {products.length} products
 							</p>
-							<div className="flex items-center gap-2 text-sm text-muted-foreground">
+							<div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
 								Page {page} of {totalPages}
 							</div>
 						</div>
@@ -301,7 +310,7 @@ export default function ProductsPage() {
 								))}
 							</div>
 						) : (
-							<div className="space-y-4">
+							<div className="space-y-4 flex flex-col gap-4">
 								{products.map((product) => (
 									<ProductListItem key={product._id} product={product} />
 								))}
@@ -310,27 +319,48 @@ export default function ProductsPage() {
 
 						{/* Pagination */}
 						{totalPages > 1 && (
-							<div className="flex justify-center gap-2 mt-8">
+							<div className="flex justify-center gap-1 sm:gap-2 mt-6 sm:mt-8 flex-wrap">
 								<Button
 									variant="outline"
+									size="sm"
 									disabled={page === 1}
-									onClick={() => setPage(page - 1)}>
+									onClick={() => setPage(page - 1)}
+									className="text-xs sm:text-sm h-8 sm:h-9">
 									Previous
 								</Button>
-								{Array.from({ length: totalPages }, (_, i) => i + 1).map(
-									(pageNum) => (
+								{Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+									let pageNum;
+									if (totalPages <= 5) {
+										pageNum = i + 1;
+									} else if (page <= 3) {
+										pageNum = i + 1;
+									} else if (page >= totalPages - 2) {
+										pageNum = totalPages - 4 + i;
+									} else {
+										pageNum = page - 2 + i;
+									}
+									return (
 										<Button
 											key={pageNum}
 											variant={page === pageNum ? "default" : "outline"}
-											onClick={() => setPage(pageNum)}>
+											size="sm"
+											onClick={() => setPage(pageNum)}
+											className="text-xs sm:text-sm h-8 sm:h-9 min-w-[32px] sm:min-w-[36px]">
 											{pageNum}
 										</Button>
-									)
+									);
+								})}
+								{totalPages > 5 && page < totalPages - 2 && (
+									<span className="flex items-center px-2 text-muted-foreground">
+										...
+									</span>
 								)}
 								<Button
 									variant="outline"
+									size="sm"
 									disabled={page === totalPages}
-									onClick={() => setPage(page + 1)}>
+									onClick={() => setPage(page + 1)}
+									className="text-xs sm:text-sm h-8 sm:h-9">
 									Next
 								</Button>
 							</div>
@@ -342,8 +372,6 @@ export default function ProductsPage() {
 	);
 }
 
-
-
 // Product List Item Component for List View
 function ProductListItem({ product }: { product: Product }) {
 	const lowestPrice = Math.min(
@@ -352,13 +380,22 @@ function ProductListItem({ product }: { product: Product }) {
 	const highestMRP = Math.max(...product.variants.map((v) => v.mrp));
 	const minMOQ = Math.min(...product.variants.map((v) => v.moq || 1));
 
+	// Check stock status
+	const totalStock =
+		product.variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0;
+	const isOutOfStock =
+		totalStock === 0 || !product.variants?.some((v) => v.isInStock);
+
 	return (
 		<Link href={`/products/${product._id}`}>
 			<Card className="hover:shadow-md transition-all duration-200">
-				<CardContent className="p-4">
-					<div className="flex gap-4">
+				<CardContent className="p-3 sm:p-4">
+					<div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
 						{/* Product Image */}
-						<div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+						<div
+							className={`w-full sm:w-24 h-40 sm:h-24 bg-gray-100 rounded-lg overflow-hidden shrink-0 relative ${
+								isOutOfStock ? "opacity-60" : ""
+							}`}>
 							<img
 								src={
 									product.thumbnail ||
@@ -367,38 +404,49 @@ function ProductListItem({ product }: { product: Product }) {
 								alt={product.name}
 								className="w-full h-full object-cover"
 							/>
+							{isOutOfStock && (
+								<div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+									<Badge className="bg-red-600 text-white text-xs">
+										OUT OF STOCK
+									</Badge>
+								</div>
+							)}
 						</div>
 
 						{/* Product Details */}
 						<div className="flex-1 min-w-0">
-							<div className="flex items-start justify-between">
-								<div className="space-y-1 flex-1">
-									<div className="flex items-center gap-2">
-										<h3 className="font-semibold text-base line-clamp-1">
+							<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+								<div className="space-y-1 sm:space-y-1.5 flex-1">
+									<div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+										<h3 className="font-semibold text-sm sm:text-base line-clamp-2 sm:line-clamp-1">
 											{product.name}
 										</h3>
 										{product.isFeatured && (
-											<Badge variant="secondary" className="text-xs">
+											<Badge variant="secondary" className="text-xs w-fit">
 												<Star className="w-3 h-3 mr-1" />
 												Featured
 											</Badge>
 										)}
 									</div>
 
-									<p className="text-sm text-muted-foreground line-clamp-2">
+									<p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 hidden sm:block">
 										{product.shortDescription}
 									</p>
 
-									<div className="flex items-center gap-4 text-xs text-muted-foreground">
+									<div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-muted-foreground">
 										{product.brand &&
 											typeof product.brand === "object" &&
 											product.brand.name && (
-												<span>Brand: {product.brand.name}</span>
+												<span className="truncate">
+													Brand: {product.brand.name}
+												</span>
 											)}
 										{product.category &&
 											typeof product.category === "object" &&
 											product.category.name && (
-												<span>Category: {product.category.name}</span>
+												<span className="truncate hidden sm:inline">
+													Category: {product.category.name}
+												</span>
 											)}
 										<span>MOQ: {minMOQ}</span>
 										<span>{product.variants.length} variants</span>
@@ -406,18 +454,19 @@ function ProductListItem({ product }: { product: Product }) {
 								</div>
 
 								{/* Pricing and Action */}
-								<div className="text-right space-y-2 ml-4">
-									<div>
-										<span className="text-sm text-muted-foreground line-through block">
-											₹{highestMRP}
-										</span>
-										<span className="text-xl font-bold text-primary">
+								<div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-2 sm:text-right sm:ml-4">
+									<div className="flex sm:flex-col items-baseline sm:items-end gap-2 sm:gap-0">
+										<span className="text-lg sm:text-xl font-bold text-primary">
 											₹{lowestPrice}
 										</span>
+										<span className="text-xs sm:text-sm text-muted-foreground line-through">
+											₹{highestMRP}
+										</span>
 									</div>
-									<Button size="sm">
-										<ShoppingCart className="w-3 h-3 mr-2" />
-										View Details
+									<Button size="sm" className="text-xs sm:text-sm h-8 sm:h-9">
+										<ShoppingCart className="w-3 h-3 mr-1 sm:mr-2" />
+										<span className="hidden sm:inline">View Details</span>
+										<span className="sm:hidden">View</span>
 									</Button>
 								</div>
 							</div>

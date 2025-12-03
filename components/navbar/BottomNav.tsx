@@ -28,7 +28,7 @@ export default function BottomNav() {
 	const { items } = useCart();
 
 	// Calculate total cart items
-	const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+	const cartItemCount = items.reduce((sum, item) => sum + 1, 0);
 
 	// Check if user is admin
 	const isAdmin = user?.userTypes === "admin";
@@ -105,15 +105,15 @@ export default function BottomNav() {
 	// Customer navigation items
 	const customerNavItems: NavItem[] = [
 		{
-			name: "Store",
-			href: "/products",
-			icon: Store,
+			name: "Home",
+			href: "/",
+			icon: Home,
 			show: true,
 		},
 		{
-			name: "Categories",
-			href: "/categories",
-			icon: Grid3x3,
+			name: "Store",
+			href: "/products",
+			icon: Store,
 			show: true,
 		},
 		{
@@ -145,8 +145,11 @@ export default function BottomNav() {
 		: customerNavItems;
 
 	const isActive = (href: string) => {
+		if (href === "/") {
+			return pathname === "/";
+		}
 		if (href === "/products") {
-			return pathname === "/" || pathname === "/products";
+			return pathname === "/products";
 		}
 		return pathname.startsWith(href);
 	};

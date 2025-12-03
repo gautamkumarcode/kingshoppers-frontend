@@ -55,24 +55,27 @@ export default function ProductsPage() {
 
   // Debounced search
   useEffect(() => {
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
-    }
+		// Skip if this is the initial load
+		if (initialLoadRef.current) return;
 
-    const timeout = setTimeout(() => {
-      // reset to first page when searching
-      setPage(1);
-      fetchProducts(search, 1, pageSize);
-    }, 500); // 500ms debounce
+		if (searchTimeout) {
+			clearTimeout(searchTimeout);
+		}
 
-    setSearchTimeout(timeout);
+		const timeout = setTimeout(() => {
+			// reset to first page when searching
+			setPage(1);
+			fetchProducts(search, 1, pageSize);
+		}, 500); // 500ms debounce
 
-    return () => {
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
-      }
-    };
-  }, [search]);
+		setSearchTimeout(timeout);
+
+		return () => {
+			if (searchTimeout) {
+				clearTimeout(searchTimeout);
+			}
+		};
+	}, [search]);
 
   // react to page / pageSize changes (skip initial load)
   useEffect(() => {

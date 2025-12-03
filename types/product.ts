@@ -51,6 +51,12 @@ export interface Product {
 	variants: ProductVariant[];
 	gstPercentage: number;
 	isFeatured: boolean;
+	isNewArrival?: boolean;
+	isOnSale?: boolean;
+	isBestSeller?: boolean;
+	salePrice?: number;
+	saleStartDate?: string;
+	saleEndDate?: string;
 	totalSold: number;
 	minPrice?: number; // Available in listing
 	// Fields below only available in detail views

@@ -16,6 +16,7 @@ import {
 	ChevronDown,
 	CreditCard,
 	FileText,
+	Gift,
 	LayoutDashboard,
 	LogOut,
 	ShoppingBag,
@@ -241,6 +242,16 @@ export function UserDropdown() {
 												₹{user.walletBalance.toLocaleString()}
 											</span>
 										)}
+								</Link>
+							</DropdownMenuItem>
+
+							{/* Gift Cards */}
+							<DropdownMenuItem asChild>
+								<Link
+									href="/gift-cards"
+									className="flex items-center gap-2 cursor-pointer">
+									<Gift className="h-4 w-4" />
+									<span>Gift Cards</span>
 								</Link>
 							</DropdownMenuItem>
 

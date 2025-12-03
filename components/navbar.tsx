@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import logo from "@/public/logo3.png";
-import { StoreIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -35,61 +34,84 @@ export function Navbar() {
 	}
 
 	return (
-		<nav className="border-b border-border bg-background sticky top-0 z-50">
-			<div className="max-w-7xl mx-auto px-4 py-4">
-				<div className="flex justify-between items-center">
-					{/* Logo */}
+		<nav className="border-b border-border bg-white/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<div className="flex justify-between items-center h-16">
+					{/* Logo Section */}
 					<Link
 						href="/"
-						className="relative flex items-center gap-2 w-auto h-12 font-bold text-primary"
-						aria-label="Go to Kingshppers homepage">
-						{/* Logo Icon */}
-						<div className="relative  h-16 w-16 md:w-16">
+						className="flex items-center gap-3 group"
+						aria-label="Go to King Shoppers homepage">
+						<div className="relative h-12 w-12 transition-transform group-hover:scale-105">
 							<Image
 								src={logo}
-								alt="Kingshppers Logo"
+								alt="King Shoppers Logo"
 								fill
-								sizes="(max-width: 768px) 40px, 50px"
+								sizes="48px"
 								className="object-contain"
 								priority
 							/>
 						</div>
-
-						{/* Brand Text */}
+						<span className="hidden sm:block text-xl font-bold text-slate-900">
+							King Shoppers
+						</span>
 					</Link>
 
-					{/* Right Section */}
-					<div className="flex items-center gap-4">
-						{/* Store Link - Hidden on mobile */}
+					{/* Center Navigation - Desktop */}
+					<div className="hidden md:flex items-center gap-6">
+						<Link
+							href="/"
+							className={`text-sm font-medium transition-colors hover:text-blue-600 ${
+								pathname === "/" ? "text-blue-600" : "text-slate-700"
+							}`}>
+							Home
+						</Link>
 						<Link
 							href="/products"
-							className="hidden md:block hover:text-primary">
-							<StoreIcon className=" w-4 h-4" />
+							className={`text-sm font-medium transition-colors hover:text-blue-600 ${
+								pathname === "/products" ? "text-blue-600" : "text-slate-700"
+							}`}>
+							Products
 						</Link>
+						<Link
+							href="/high-margin-store"
+							className={`text-sm font-medium transition-colors hover:text-blue-600 ${
+								pathname === "/high-margin-store"
+									? "text-blue-600"
+									: "text-slate-700"
+							}`}>
+							Deals
+						</Link>
+						<Link
+							href="/regional-brands"
+							className={`text-sm font-medium transition-colors hover:text-blue-600 ${
+								pathname === "/regional-brands"
+									? "text-blue-600"
+									: "text-slate-700"
+							}`}>
+							Local Brands
+						</Link>
+					</div>
 
-						{/* Cart - Hidden on mobile, shown on desktop */}
+					{/* Right Section */}
+					<div className="flex items-center gap-3">
+						{/* Cart - Desktop */}
 						<div className="hidden md:block">
 							<CartIcon showCount={true} variant="ghost" />
 						</div>
 
 						{/* Auth Section */}
 						{loading ? (
-							<div className="flex items-center gap-2">
-								<LoadingSpinner size="sm" />
-							</div>
+							<LoadingSpinner size="sm" />
 						) : user ? (
 							<UserDropdown />
 						) : (
-							<div className=" gap-2">
-								<Link href="/auth/login">
-									<Button variant="outline" size="sm">
-										Login
-									</Button>
-								</Link>
-							</div>
+							<Link href="/auth/login">
+								<Button variant="default" size="sm" className="font-medium">
+									Login
+								</Button>
+							</Link>
 						)}
-
-						{/* Mobile Menu Toggle - Removed */}
 					</div>
 				</div>
 			</div>
