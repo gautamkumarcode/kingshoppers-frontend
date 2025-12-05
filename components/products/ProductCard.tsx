@@ -11,25 +11,33 @@ export function ProductCard({ product }: { product: Product }) {
 	// Check if this is a hub product (has hubStock) or regular product (has variants)
 	const isHubProduct = !!(product as any).hubStock;
 
-	const validVariants =
+	// For hub products, use hubStock.variants; for regular products, use product.variants
+	const hubStockVariants = isHubProduct
+		? (product as any).hubStock?.variants || []
+		: [];
+	const regularVariants =
 		product.variants?.filter((v) => v.wholesalePrice && v.mrp) || [];
 
 	const lowestPrice = isHubProduct
-		? (product as any).hubStock?.customerPrice || 0
-		: validVariants.length > 0
-		? Math.min(...validVariants.map((v) => v.wholesalePrice))
+		? hubStockVariants.length > 0
+			? Math.min(...hubStockVariants.map((v: any) => v.sellingPrice || 0))
+			: 0
+		: regularVariants.length > 0
+		? Math.min(...regularVariants.map((v) => v.wholesalePrice))
 		: 0;
 
 	const highestMRP = isHubProduct
-		? (product as any).hubStock?.mrp || 0
-		: validVariants.length > 0
-		? Math.max(...validVariants.map((v) => v.mrp))
+		? hubStockVariants.length > 0
+			? Math.max(...hubStockVariants.map((v: any) => v.mrp || 0))
+			: 0
+		: regularVariants.length > 0
+		? Math.max(...regularVariants.map((v) => v.mrp))
 		: 0;
 
 	const minMOQ = isHubProduct
 		? 1
-		: validVariants.length > 0
-		? Math.min(...validVariants.map((v) => v.moq || 1))
+		: regularVariants.length > 0
+		? Math.min(...regularVariants.map((v) => v.moq || 1))
 		: 1;
 
 	// Check if product is in stock
@@ -119,18 +127,25 @@ export function ProductCard({ product }: { product: Product }) {
 								</span>
 								<div className="text-right flex gap-1 sm:gap-2">
 									<p className="text-sm sm:text-base md:text-lg font-bold text-primary">
-										₹{lowestPrice}
+										₹{lowestPrice.toFixed(2)}
 									</p>
-									<span className="text-[8px] sm:text-xs text-muted-foreground line-through flex items-center">
-										₹{highestMRP}
-									</span>
+									{highestMRP > lowestPrice && (
+										<span className="text-[8px] sm:text-xs text-muted-foreground line-through flex items-center">
+											₹{highestMRP.toFixed(2)}
+										</span>
+									)}
 								</div>
 							</div>
 							<div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground">
 								<span>MOQ: {minMOQ}</span>
-								{product.variants && product.variants.length > 0 && (
-									<span>{product.variants.length} variants</span>
-								)}
+								{isHubProduct
+									? hubStockVariants.length > 0 && (
+											<span>{hubStockVariants.length} variants</span>
+									  )
+									: product.variants &&
+									  product.variants.length > 0 && (
+											<span>{product.variants.length} variants</span>
+									  )}
 							</div>
 						</div>
 
