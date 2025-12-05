@@ -17,6 +17,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api";
 import { Product } from "@/types/product";
 import {
@@ -35,6 +37,8 @@ import { useEffect, useState } from "react";
 export default function ProductsPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
+	const { user, isAuthenticated } = useAuth();
+	const { toast } = useToast();
 	const [products, setProducts] = useState<Product[]>([]);
 	const [categories, setCategories] = useState<any[]>([]);
 	const [brands, setBrands] = useState<any[]>([]);
@@ -94,12 +98,52 @@ export default function ProductsPage() {
 			params.append("page", page.toString());
 			params.append("limit", "12");
 
-			const response = await api.get(`/products?${params}`);
+			// Use hub-filtered products for authenticated customers, regular products for guests
+			const endpoint =
+				isAuthenticated && user?.userTypes === "customer"
+					? `/products/hub/my-products?${params}`
+					: `/products?${params}`;
+
+			console.log("🔍 [ProductList] Fetching products:", {
+				isAuthenticated,
+				userType: user?.userTypes,
+				endpoint,
+				assignedHub: user?.assignedHub,
+			});
+
+			const response = await api.get(endpoint);
 			const data = response.data;
+
+			console.log("📦 [ProductList] Response:", {
+				productsCount: data.data?.length || 0,
+				total: data.total,
+				hubId: data.hubId,
+				customerTier: data.customerTier,
+			});
+
 			setProducts(data.data || []);
 			setTotalPages(data.totalPages || 1);
-		} catch (error) {
+		} catch (error: any) {
 			console.error("Failed to fetch products:", error);
+
+			// Show specific error message for hub-related issues
+			if (
+				error.response?.status === 400 &&
+				error.response?.data?.message?.includes("hub")
+			) {
+				toast({
+					title: "Hub Assignment Required",
+					description:
+						"Please contact admin to assign you to a hub to view products.",
+					variant: "destructive",
+				});
+			} else {
+				toast({
+					title: "Error",
+					description: "Failed to fetch products",
+					variant: "destructive",
+				});
+			}
 		} finally {
 			setLoading(false);
 		}

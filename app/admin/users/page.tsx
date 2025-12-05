@@ -1,5 +1,6 @@
 "use client"
 
+import HubAssignment from "@/components/admin/HubAssignment";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,7 @@ import {
 	MapPin,
 	Phone,
 	Search,
+	Truck,
 	X,
 	XCircle,
 	ZoomIn,
@@ -45,6 +47,9 @@ export default function UsersPage() {
 	const [isApproving, setIsApproving] = useState(false);
 	const [isRejecting, setIsRejecting] = useState(false);
 	const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+	const [isHubAssignmentOpen, setIsHubAssignmentOpen] = useState(false);
+	const [customerForHubAssignment, setCustomerForHubAssignment] =
+		useState<UserListResponse | null>(null);
 
 	useEffect(() => {
 		const handleEscape = (e: KeyboardEvent) => {
@@ -74,33 +79,20 @@ export default function UsersPage() {
 	};
 
 	const handleApproveUser = async (userId: string) => {
-		setIsApproving(true);
-		try {
-			const response = await apiCall(`/admin/users/${userId}/approve`, {
-				method: "PUT",
-			});
-
-			if (!response.ok) {
-				throw new Error("Failed to approve user");
-			}
-
-			toast({
-				title: "Success",
-				description: "User approved successfully",
-			});
-
-			setIsDialogOpen(false);
-			setSelectedUser(null);
-			fetchUsers();
-		} catch (error) {
-			toast({
-				title: "Error",
-				description: "Failed to approve user",
-				variant: "destructive",
-			});
-		} finally {
-			setIsApproving(false);
+		// Open hub assignment dialog instead of direct approval
+		const user = users.find((u) => u._id === userId);
+		if (user) {
+			setCustomerForHubAssignment(user);
+			setIsHubAssignmentOpen(true);
 		}
+	};
+
+	const handleHubAssignmentSuccess = () => {
+		setIsHubAssignmentOpen(false);
+		setCustomerForHubAssignment(null);
+		setIsDialogOpen(false);
+		setSelectedUser(null);
+		fetchUsers();
 	};
 
 	const handleViewUserDetails = (user: UserListResponse) => {
@@ -315,7 +307,14 @@ export default function UsersPage() {
 																variant="outline"
 																onClick={() => handleViewUserDetails(user)}>
 																<Eye className="w-4 h-4 mr-1" />
-																View & Approve
+																View Details
+															</Button>
+															<Button
+																size="sm"
+																onClick={() => handleApproveUser(user._id)}
+																className="bg-green-600 hover:bg-green-700">
+																<Truck className="w-4 h-4 mr-1" />
+																Assign Hub & Approve
 															</Button>
 														</div>
 													)}
@@ -670,7 +669,8 @@ export default function UsersPage() {
 									onClick={() => handleApproveUser(selectedUser._id)}
 									disabled={isApproving || isRejecting}
 									className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
-									{isApproving ? "Approving..." : "Approve User"}
+									<Truck className="w-4 h-4 mr-2" />
+									Assign Hub & Approve
 								</Button>
 							</>
 						)}
@@ -717,6 +717,26 @@ export default function UsersPage() {
 					</div>
 				</div>
 			)}
+
+			{/* Hub Assignment Dialog */}
+			<HubAssignment
+				isOpen={isHubAssignmentOpen}
+				onClose={() => {
+					setIsHubAssignmentOpen(false);
+					setCustomerForHubAssignment(null);
+				}}
+				customer={
+					customerForHubAssignment
+						? {
+								_id: customerForHubAssignment._id,
+								shopName: customerForHubAssignment.shopName || "",
+								ownerName: customerForHubAssignment.ownerName || "",
+								shopAddress: customerForHubAssignment.shopAddress,
+						  }
+						: null
+				}
+				onSuccess={handleHubAssignmentSuccess}
+			/>
 		</div>
 	);
 }

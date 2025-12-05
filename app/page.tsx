@@ -5,6 +5,7 @@ import HomepageSectionsList from "@/components/HomepageSectionsList";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import { Product } from "@/types/product";
 import {
@@ -19,6 +20,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function HomePage() {
+	const { user, isAuthenticated } = useAuth();
 	const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
 	const [bestSellers, setBestSellers] = useState<Product[]>([]);
 	const [highMarginProducts, setHighMarginProducts] = useState<Product[]>([]);
@@ -33,29 +35,51 @@ export default function HomePage() {
 		try {
 			setLoading(true);
 
-			// Fetch featured products
-			const featuredRes = await api.get(`/products/featured`, {
-				params: { limit: 8 },
-			});
-			setFeaturedProducts(featuredRes.data.data || []);
+			// For authenticated customers, use hub-filtered products
+			if (isAuthenticated && user?.userTypes === "customer") {
+				// Fetch hub-filtered products with different filters
+				const [featuredRes, bestSellersRes, saleRes, newArrivalsRes] =
+					await Promise.all([
+						api.get(`/products/hub/my-products`, {
+							params: { limit: 8, isFeatured: true },
+						}),
+						api.get(`/products/hub/my-products`, {
+							params: { limit: 8, sortBy: "-totalSold" },
+						}),
+						api.get(`/products/hub/my-products`, {
+							params: { limit: 8, isOnSale: true },
+						}),
+						api.get(`/products/hub/my-products`, {
+							params: { limit: 8, sortBy: "-createdAt" },
+						}),
+					]);
 
-			// Fetch best sellers
-			const bestSellersRes = await api.get(`/products/best-sellers`, {
-				params: { limit: 8 },
-			});
-			setBestSellers(bestSellersRes.data.data || []);
+				setFeaturedProducts(featuredRes.data.data || []);
+				setBestSellers(bestSellersRes.data.data || []);
+				setHighMarginProducts(saleRes.data.data || []);
+				setNewArrivals(newArrivalsRes.data.data || []);
+			} else {
+				// For guests, use regular product endpoints
+				const featuredRes = await api.get(`/products/featured`, {
+					params: { limit: 8 },
+				});
+				setFeaturedProducts(featuredRes.data.data || []);
 
-			// Fetch sale products
-			const saleRes = await api.get(`/products/on-sale`, {
-				params: { limit: 8 },
-			});
-			setHighMarginProducts(saleRes.data.data || []);
+				const bestSellersRes = await api.get(`/products/best-sellers`, {
+					params: { limit: 8 },
+				});
+				setBestSellers(bestSellersRes.data.data || []);
 
-			// Fetch new arrivals
-			const newArrivalsRes = await api.get(`/products/new-arrivals`, {
-				params: { limit: 8 },
-			});
-			setNewArrivals(newArrivalsRes.data.data || []);
+				const saleRes = await api.get(`/products/on-sale`, {
+					params: { limit: 8 },
+				});
+				setHighMarginProducts(saleRes.data.data || []);
+
+				const newArrivalsRes = await api.get(`/products/new-arrivals`, {
+					params: { limit: 8 },
+				});
+				setNewArrivals(newArrivalsRes.data.data || []);
+			}
 		} catch (error) {
 			console.error("Error fetching products:", error);
 		} finally {

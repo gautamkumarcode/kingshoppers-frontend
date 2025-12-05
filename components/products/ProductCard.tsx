@@ -8,27 +8,38 @@ import { ShoppingCart, Star } from "lucide-react";
 import Link from "next/link";
 
 export function ProductCard({ product }: { product: Product }) {
+	// Check if this is a hub product (has hubStock) or regular product (has variants)
+	const isHubProduct = !!(product as any).hubStock;
+
 	const validVariants =
 		product.variants?.filter((v) => v.wholesalePrice && v.mrp) || [];
 
-	const lowestPrice =
-		validVariants.length > 0
-			? Math.min(...validVariants.map((v) => v.wholesalePrice))
-			: 0;
+	const lowestPrice = isHubProduct
+		? (product as any).hubStock?.customerPrice || 0
+		: validVariants.length > 0
+		? Math.min(...validVariants.map((v) => v.wholesalePrice))
+		: 0;
 
-	const highestMRP =
-		validVariants.length > 0 ? Math.max(...validVariants.map((v) => v.mrp)) : 0;
+	const highestMRP = isHubProduct
+		? (product as any).hubStock?.mrp || 0
+		: validVariants.length > 0
+		? Math.max(...validVariants.map((v) => v.mrp))
+		: 0;
 
-	const minMOQ =
-		validVariants.length > 0
-			? Math.min(...validVariants.map((v) => v.moq || 1))
-			: 1;
+	const minMOQ = isHubProduct
+		? 1
+		: validVariants.length > 0
+		? Math.min(...validVariants.map((v) => v.moq || 1))
+		: 1;
 
 	// Check if product is in stock
-	const totalStock =
-		product.variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0;
-	const isOutOfStock =
-		totalStock === 0 || !product.variants?.some((v) => v.isInStock);
+	const totalStock = isHubProduct
+		? (product as any).hubStock?.quantity || 0
+		: product.variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0;
+
+	const isOutOfStock = isHubProduct
+		? totalStock === 0
+		: totalStock === 0 || !product.variants?.some((v) => v.isInStock);
 
 	return (
 		<Link href={`/products/${product._id}`}>
@@ -117,7 +128,9 @@ export function ProductCard({ product }: { product: Product }) {
 							</div>
 							<div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground">
 								<span>MOQ: {minMOQ}</span>
-								<span>{product.variants.length} variants</span>
+								{product.variants && product.variants.length > 0 && (
+									<span>{product.variants.length} variants</span>
+								)}
 							</div>
 						</div>
 

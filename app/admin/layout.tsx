@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import {
 	Briefcase,
+	Building2,
 	CheckCircle,
 	CreditCard,
 	Image,
@@ -93,6 +94,16 @@ export default function AdminLayout({
 			icon: MapPin,
 			label: "Agent Tracking",
 			href: "/admin/agent-tracking",
+		},
+		{
+			icon: Building2,
+			label: "Hubs",
+			href: "/admin/hubs",
+		},
+		{
+			icon: Package,
+			label: "Hub Inventory",
+			href: "/admin/hub-inventory",
 		},
 		{ icon: ShoppingCart, label: "Brands", href: "/admin/brands" },
 		{ icon: Users, label: "Regional Brands", href: "/admin/regional-brands" },

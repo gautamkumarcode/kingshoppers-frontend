@@ -57,7 +57,7 @@ const Footer = () => {
 	}
 
 	return (
-		<footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-gray-300 mt-auto">
+		<footer className="bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 text-gray-300 mt-auto">
 			{/* Newsletter Section */}
 			<div className="border-b border-slate-700">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -95,18 +95,15 @@ const Footer = () => {
 						</p>
 						<div className="space-y-3">
 							<div className="flex items-center gap-3 text-sm">
-								<Mail size={16} className="text-blue-500 flex-shrink-0" />
+								<Mail size={16} className="text-blue-500 shrink-0" />
 								<span>support@kingshoppers.com</span>
 							</div>
 							<div className="flex items-center gap-3 text-sm">
-								<Phone size={16} className="text-blue-500 flex-shrink-0" />
+								<Phone size={16} className="text-blue-500 shrink-0" />
 								<span>+91 9876543210</span>
 							</div>
 							<div className="flex items-start gap-3 text-sm">
-								<MapPin
-									size={16}
-									className="text-blue-500 flex-shrink-0 mt-1"
-								/>
+								<MapPin size={16} className="text-blue-500 shrink-0 mt-1" />
 								<span>Kandwa Road, Varanasi, UP 221011</span>
 							</div>
 						</div>

@@ -49,4 +49,5 @@ export interface UserListResponse {
 	creditLimit?: number;
 	paymentTerms?: string;
 	discountPercentage?: number;
+	assignedHub?: string;
 }

@@ -70,6 +70,8 @@ export interface User {
 	lastName?: string;
 	assignedArea?: string;
 	incentivePercentage?: number;
+	// Hub assignment for customers
+	assignedHub?: string;
 	__v: number;
 }
 
