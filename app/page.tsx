@@ -26,10 +26,18 @@ export default function HomePage() {
 	const [highMarginProducts, setHighMarginProducts] = useState<Product[]>([]);
 	const [newArrivals, setNewArrivals] = useState<Product[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [featuredPage, setFeaturedPage] = useState(1);
+	const [bestSellersPage, setBestSellersPage] = useState(1);
+	const [salePage, setSalePage] = useState(1);
+	const [newArrivalsPage, setNewArrivalsPage] = useState(1);
+	const [hasMoreFeatured, setHasMoreFeatured] = useState(true);
+	const [hasMoreBestSellers, setHasMoreBestSellers] = useState(true);
+	const [hasMoreSale, setHasMoreSale] = useState(true);
+	const [hasMoreNewArrivals, setHasMoreNewArrivals] = useState(true);
 
 	useEffect(() => {
 		fetchAllProducts();
-	}, []);
+	}, [isAuthenticated]);
 
 	const fetchAllProducts = async () => {
 		try {
@@ -41,16 +49,16 @@ export default function HomePage() {
 				const [featuredRes, bestSellersRes, saleRes, newArrivalsRes] =
 					await Promise.all([
 						api.get(`/products/hub/my-products`, {
-							params: { limit: 8, isFeatured: true },
+							params: { limit: 8, page: 1, isFeatured: true },
 						}),
 						api.get(`/products/hub/my-products`, {
-							params: { limit: 8, sortBy: "-totalSold" },
+							params: { limit: 8, page: 1, sortBy: "-totalSold" },
 						}),
 						api.get(`/products/hub/my-products`, {
-							params: { limit: 8, isOnSale: true },
+							params: { limit: 8, page: 1, isOnSale: true },
 						}),
 						api.get(`/products/hub/my-products`, {
-							params: { limit: 8, sortBy: "-createdAt" },
+							params: { limit: 8, page: 1, sortBy: "-createdAt" },
 						}),
 					]);
 
@@ -58,32 +66,173 @@ export default function HomePage() {
 				setBestSellers(bestSellersRes.data.data || []);
 				setHighMarginProducts(saleRes.data.data || []);
 				setNewArrivals(newArrivalsRes.data.data || []);
+
+				setHasMoreFeatured((featuredRes.data.data || []).length === 8);
+				setHasMoreBestSellers((bestSellersRes.data.data || []).length === 8);
+				setHasMoreSale((saleRes.data.data || []).length === 8);
+				setHasMoreNewArrivals((newArrivalsRes.data.data || []).length === 8);
 			} else {
 				// For guests, use regular product endpoints
 				const featuredRes = await api.get(`/products/featured`, {
-					params: { limit: 8 },
+					params: { limit: 8, page: 1 },
 				});
 				setFeaturedProducts(featuredRes.data.data || []);
+				setHasMoreFeatured((featuredRes.data.data || []).length === 8);
 
 				const bestSellersRes = await api.get(`/products/best-sellers`, {
-					params: { limit: 8 },
+					params: { limit: 8, page: 1 },
 				});
 				setBestSellers(bestSellersRes.data.data || []);
+				setHasMoreBestSellers((bestSellersRes.data.data || []).length === 8);
 
 				const saleRes = await api.get(`/products/on-sale`, {
-					params: { limit: 8 },
+					params: { limit: 8, page: 1 },
 				});
 				setHighMarginProducts(saleRes.data.data || []);
+				setHasMoreSale((saleRes.data.data || []).length === 8);
 
 				const newArrivalsRes = await api.get(`/products/new-arrivals`, {
-					params: { limit: 8 },
+					params: { limit: 8, page: 1 },
 				});
 				setNewArrivals(newArrivalsRes.data.data || []);
+				setHasMoreNewArrivals((newArrivalsRes.data.data || []).length === 8);
 			}
 		} catch (error) {
 			console.error("Error fetching products:", error);
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const loadMoreFeatured = async () => {
+		const nextPage = featuredPage + 1;
+		try {
+			const endpoint =
+				isAuthenticated && user?.userTypes === "customer"
+					? `/products/hub/my-products`
+					: `/products/featured`;
+			const res = await api.get(endpoint, {
+				params: {
+					limit: 8,
+					page: nextPage,
+					...(isAuthenticated && user?.userTypes === "customer"
+						? { isFeatured: true }
+						: {}),
+				},
+			});
+			const newProducts = res.data.data || [];
+
+			if (newProducts.length === 0 && featuredProducts.length > 0) {
+				// Loop back: repeat existing products
+				const productsToAdd = featuredProducts.slice(0, 8);
+				setFeaturedProducts((prev) => [...prev, ...productsToAdd]);
+			} else {
+				setFeaturedProducts((prev) => [...prev, ...newProducts]);
+			}
+
+			setFeaturedPage(nextPage);
+			setHasMoreFeatured(true); // Always true for infinite loop
+		} catch (error) {
+			console.error("Error loading more featured products:", error);
+		}
+	};
+
+	const loadMoreBestSellers = async () => {
+		const nextPage = bestSellersPage + 1;
+		try {
+			const endpoint =
+				isAuthenticated && user?.userTypes === "customer"
+					? `/products/hub/my-products`
+					: `/products/best-sellers`;
+			const res = await api.get(endpoint, {
+				params: {
+					limit: 8,
+					page: nextPage,
+					...(isAuthenticated && user?.userTypes === "customer"
+						? { sortBy: "-totalSold" }
+						: {}),
+				},
+			});
+			const newProducts = res.data.data || [];
+
+			if (newProducts.length === 0 && bestSellers.length > 0) {
+				// Loop back: repeat existing products
+				const productsToAdd = bestSellers.slice(0, 8);
+				setBestSellers((prev) => [...prev, ...productsToAdd]);
+			} else {
+				setBestSellers((prev) => [...prev, ...newProducts]);
+			}
+
+			setBestSellersPage(nextPage);
+			setHasMoreBestSellers(true); // Always true for infinite loop
+		} catch (error) {
+			console.error("Error loading more best sellers:", error);
+		}
+	};
+
+	const loadMoreSale = async () => {
+		const nextPage = salePage + 1;
+		try {
+			const endpoint =
+				isAuthenticated && user?.userTypes === "customer"
+					? `/products/hub/my-products`
+					: `/products/on-sale`;
+			const res = await api.get(endpoint, {
+				params: {
+					limit: 8,
+					page: nextPage,
+					...(isAuthenticated && user?.userTypes === "customer"
+						? { isOnSale: true }
+						: {}),
+				},
+			});
+			const newProducts = res.data.data || [];
+
+			if (newProducts.length === 0 && highMarginProducts.length > 0) {
+				// Loop back: repeat existing products
+				const productsToAdd = highMarginProducts.slice(0, 8);
+				setHighMarginProducts((prev) => [...prev, ...productsToAdd]);
+			} else {
+				setHighMarginProducts((prev) => [...prev, ...newProducts]);
+			}
+
+			setSalePage(nextPage);
+			setHasMoreSale(true); // Always true for infinite loop
+		} catch (error) {
+			console.error("Error loading more sale products:", error);
+		}
+	};
+
+	const loadMoreNewArrivals = async () => {
+		const nextPage = newArrivalsPage + 1;
+		try {
+			const endpoint =
+				isAuthenticated && user?.userTypes === "customer"
+					? `/products/hub/my-products`
+					: `/products/new-arrivals`;
+			const res = await api.get(endpoint, {
+				params: {
+					limit: 8,
+					page: nextPage,
+					...(isAuthenticated && user?.userTypes === "customer"
+						? { sortBy: "-createdAt" }
+						: {}),
+				},
+			});
+			const newProducts = res.data.data || [];
+
+			if (newProducts.length === 0 && newArrivals.length > 0) {
+				// Loop back: repeat existing products
+				const productsToAdd = newArrivals.slice(0, 8);
+				setNewArrivals((prev) => [...prev, ...productsToAdd]);
+			} else {
+				setNewArrivals((prev) => [...prev, ...newProducts]);
+			}
+
+			setNewArrivalsPage(nextPage);
+			setHasMoreNewArrivals(true); // Always true for infinite loop
+		} catch (error) {
+			console.error("Error loading more new arrivals:", error);
 		}
 	};
 
@@ -154,6 +303,13 @@ export default function HomePage() {
 							<ProductCard key={product._id} product={product} />
 						))}
 					</div>
+					{hasMoreFeatured && (
+						<div className="flex justify-center mt-6">
+							<Button onClick={loadMoreFeatured} variant="outline">
+								Load More Featured Products
+							</Button>
+						</div>
+					)}
 				</section>
 			)}
 
@@ -185,6 +341,13 @@ export default function HomePage() {
 							<ProductCard key={product._id} product={product} />
 						))}
 					</div>
+					{hasMoreBestSellers && (
+						<div className="flex justify-center mt-6">
+							<Button onClick={loadMoreBestSellers} variant="outline">
+								Load More Best Sellers
+							</Button>
+						</div>
+					)}
 				</section>
 			)}
 
@@ -234,6 +397,13 @@ export default function HomePage() {
 							<ProductCard key={product._id} product={product} />
 						))}
 					</div>
+					{hasMoreSale && (
+						<div className="flex justify-center mt-6">
+							<Button onClick={loadMoreSale} variant="outline">
+								Load More Sale Products
+							</Button>
+						</div>
+					)}
 				</section>
 			)}
 
@@ -265,6 +435,13 @@ export default function HomePage() {
 							<ProductCard key={product._id} product={product} />
 						))}
 					</div>
+					{hasMoreNewArrivals && (
+						<div className="flex justify-center mt-6">
+							<Button onClick={loadMoreNewArrivals} variant="outline">
+								Load More New Arrivals
+							</Button>
+						</div>
+					)}
 				</section>
 			)}
 

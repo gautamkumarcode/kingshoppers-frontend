@@ -1,5 +1,8 @@
 "use client";
 
+import { ProductCard } from "@/components/products/ProductCard";
+import { ReviewForm } from "@/components/reviews/ReviewForm";
+import { ReviewsList } from "@/components/reviews/ReviewsList";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +40,10 @@ export default function ProductDetailPage() {
 	const [quantity, setQuantity] = useState(1);
 	const [inputValue, setInputValue] = useState("1");
 	const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+	const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+	const [loadingRelated, setLoadingRelated] = useState(false);
+	const [showReviewForm, setShowReviewForm] = useState(false);
+
 	useEffect(() => {
 		fetchProduct();
 	}, [params.id]);
@@ -53,10 +60,56 @@ export default function ProductDetailPage() {
 				setQuantity(moq);
 				setInputValue(String(moq));
 			}
+			// Fetch related products
+			fetchRelatedProducts(data);
 		} catch (error) {
 			console.error("Failed to fetch product:", error);
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const fetchRelatedProducts = async (currentProduct: any) => {
+		setLoadingRelated(true);
+		try {
+			// Use hub-filtered products for authenticated customers
+			const endpoint =
+				user?.userTypes === "customer"
+					? `/products/hub/my-products`
+					: `/products`;
+
+			const response = await api.get(endpoint, {
+				params: {
+					category: currentProduct.category?._id || currentProduct.category,
+					limit: 8,
+				},
+			});
+			// Filter out the current product
+			const filtered = (response.data.data || []).filter(
+				(p: any) => p._id !== currentProduct._id
+			);
+			setRelatedProducts(filtered);
+		} catch (error) {
+			console.error("Failed to fetch related products:", error);
+			// If hub products fail, try regular products as fallback
+			if (user?.userTypes === "customer") {
+				try {
+					const fallbackResponse = await api.get(`/products`, {
+						params: {
+							category: currentProduct.category?._id || currentProduct.category,
+							limit: 8,
+						},
+					});
+					const filtered = (fallbackResponse.data.data || []).filter(
+						(p: any) => p._id !== currentProduct._id
+					);
+					setRelatedProducts(filtered);
+				} catch (fallbackError) {
+					console.error("Fallback fetch also failed:", fallbackError);
+				}
+			}
+		} finally {
+			setLoadingRelated(false);
 		}
 	};
 
@@ -665,6 +718,103 @@ export default function ProductDetailPage() {
 						</Card>
 					</div>
 				</div>
+
+				{/* Customer Reviews */}
+				<div className="mt-12">
+					<Card>
+						<CardHeader>
+							<div className="flex items-center justify-between">
+								<div>
+									<CardTitle className="text-2xl">Customer Reviews</CardTitle>
+									<p className="text-sm text-muted-foreground mt-1">
+										See what other customers are saying
+									</p>
+								</div>
+								<div className="flex items-center gap-2">
+									<div className="flex">
+										{[1, 2, 3, 4, 5].map((star) => (
+											<Star
+												key={star}
+												className={`w-5 h-5 ${
+													star <= 4
+														? "fill-yellow-400 text-yellow-400"
+														: "text-gray-300"
+												}`}
+											/>
+										))}
+									</div>
+									<span className="font-bold text-lg">4.0</span>
+								</div>
+							</div>
+						</CardHeader>
+						<CardContent className="space-y-6">
+							<ReviewsList productId={product._id} />
+							<Separator />
+							<div>
+								{!showReviewForm ? (
+									<div className="text-center py-6">
+										<p className="text-muted-foreground mb-4">
+											Have you used this product? Share your experience!
+										</p>
+										<Button
+											onClick={() => setShowReviewForm(true)}
+											variant="outline"
+											size="lg">
+											<Star className="w-4 h-4 mr-2" />
+											Write a Review
+										</Button>
+									</div>
+								) : (
+									<div>
+										<div className="flex items-center justify-between mb-4">
+											<h3 className="font-semibold text-lg">Write a Review</h3>
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() => setShowReviewForm(false)}>
+												Cancel
+											</Button>
+										</div>
+										<ReviewForm
+											productId={product._id}
+											productName={product.name}
+										/>
+									</div>
+								)}
+							</div>
+						</CardContent>
+					</Card>
+				</div>
+
+				{/* Related Products */}
+				{relatedProducts.length > 0 && (
+					<div className="mt-12">
+						<Card>
+							<CardHeader>
+								<CardTitle className="text-2xl">Related Products</CardTitle>
+								<p className="text-sm text-muted-foreground">
+									You might also be interested in these products
+								</p>
+							</CardHeader>
+							<CardContent>
+								{loadingRelated ? (
+									<div className="flex justify-center py-8">
+										<Loader className="w-6 h-6 animate-spin text-muted-foreground" />
+									</div>
+								) : (
+									<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+										{relatedProducts.map((relatedProduct) => (
+											<ProductCard
+												key={relatedProduct._id}
+												product={relatedProduct}
+											/>
+										))}
+									</div>
+								)}
+							</CardContent>
+						</Card>
+					</div>
+				)}
 			</div>
 		</main>
 	);

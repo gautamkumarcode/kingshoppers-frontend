@@ -19,23 +19,24 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import api from "@/lib/api";
 import { Product } from "@/types/product";
 import {
 	Filter,
 	Grid,
 	List,
+	Loader2,
 	Package,
 	Search,
 	ShoppingCart,
 	Star,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 export default function ProductsPage() {
-	const router = useRouter();
 	const searchParams = useSearchParams();
 	const { user, isAuthenticated } = useAuth();
 	const { toast } = useToast();
@@ -43,14 +44,17 @@ export default function ProductsPage() {
 	const [categories, setCategories] = useState<any[]>([]);
 	const [brands, setBrands] = useState<any[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [loadingMore, setLoadingMore] = useState(false);
 	const [search, setSearch] = useState("");
 	const [selectedCategory, setSelectedCategory] = useState("all");
 	const [selectedBrand, setSelectedBrand] = useState("all");
 	const [sortBy, setSortBy] = useState("name");
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 	const [page, setPage] = useState(1);
-	const [totalPages, setTotalPages] = useState(1);
+	const [hasMore, setHasMore] = useState(true);
 	const [showFilters, setShowFilters] = useState(false);
+	const [allProducts, setAllProducts] = useState<Product[]>([]); // Store all fetched products
+	const [totalProducts, setTotalProducts] = useState(0);
 
 	// Read URL parameters on mount
 	useEffect(() => {
@@ -68,8 +72,24 @@ export default function ProductsPage() {
 	}, []);
 
 	useEffect(() => {
-		fetchProducts();
-	}, [search, selectedCategory, selectedBrand, sortBy, page]);
+		// Reset and fetch from beginning when filters change
+		setProducts([]);
+		setAllProducts([]);
+		setPage(1);
+		setHasMore(true);
+		setTotalProducts(0);
+		fetchProducts(1, true);
+	}, [search, selectedCategory, selectedBrand, sortBy]);
+
+	const loadMore = useCallback(() => {
+		if (!loadingMore) {
+			const nextPage = page + 1;
+			setPage(nextPage);
+			fetchProducts(nextPage, false);
+		}
+	}, [page, loadingMore, allProducts]);
+
+	const { targetRef, resetFetching } = useInfiniteScroll(loadMore);
 
 	const fetchInitialData = async () => {
 		try {
@@ -85,8 +105,13 @@ export default function ProductsPage() {
 		}
 	};
 
-	const fetchProducts = async () => {
-		setLoading(true);
+	const fetchProducts = async (pageNum: number, reset: boolean = false) => {
+		if (reset) {
+			setLoading(true);
+		} else {
+			setLoadingMore(true);
+		}
+
 		try {
 			const params = new URLSearchParams();
 			if (search) params.append("search", search);
@@ -95,7 +120,7 @@ export default function ProductsPage() {
 			if (selectedBrand && selectedBrand !== "all")
 				params.append("brand", selectedBrand);
 			if (sortBy) params.append("sortBy", sortBy);
-			params.append("page", page.toString());
+			params.append("page", pageNum.toString());
 			params.append("limit", "12");
 
 			// Use hub-filtered products for authenticated customers, regular products for guests
@@ -104,25 +129,46 @@ export default function ProductsPage() {
 					? `/products/hub/my-products?${params}`
 					: `/products?${params}`;
 
-			console.log("🔍 [ProductList] Fetching products:", {
-				isAuthenticated,
-				userType: user?.userTypes,
-				endpoint,
-				assignedHub: user?.assignedHub,
-			});
-
 			const response = await api.get(endpoint);
 			const data = response.data;
 
-			console.log("📦 [ProductList] Response:", {
-				productsCount: data.data?.length || 0,
-				total: data.total,
-				hubId: data.hubId,
-				customerTier: data.customerTier,
-			});
+			const newProducts = data.data || [];
+			const totalPages = data.totalPages || 1;
 
-			setProducts(data.data || []);
-			setTotalPages(data.totalPages || 1);
+			if (reset) {
+				setProducts(newProducts);
+				setAllProducts(newProducts);
+				setTotalProducts(data.total || newProducts.length);
+			} else {
+				// Check if we've reached the end of actual products
+				if (newProducts.length === 0 || pageNum > totalPages) {
+					// Loop back: start repeating products from the beginning
+					const productsNeeded = 12;
+					const repeatedProducts: Product[] = [];
+					let currentIndex = 0;
+
+					// Keep adding products from allProducts until we have 12
+					while (
+						repeatedProducts.length < productsNeeded &&
+						allProducts.length > 0
+					) {
+						repeatedProducts.push(
+							allProducts[currentIndex % allProducts.length]
+						);
+						currentIndex++;
+					}
+
+					setProducts((prev) => [...prev, ...repeatedProducts]);
+					// Always has more since we're looping
+					setHasMore(true);
+				} else {
+					// Normal case: add new products
+					setProducts((prev) => [...prev, ...newProducts]);
+					setAllProducts((prev) => [...prev, ...newProducts]);
+					// Always keep hasMore true for infinite loop
+					setHasMore(true);
+				}
+			}
 		} catch (error: any) {
 			console.error("Failed to fetch products:", error);
 
@@ -146,6 +192,8 @@ export default function ProductsPage() {
 			}
 		} finally {
 			setLoading(false);
+			setLoadingMore(false);
+			resetFetching();
 		}
 	};
 
@@ -165,7 +213,6 @@ export default function ProductsPage() {
 		setSelectedCategory("all");
 		setSelectedBrand("all");
 		setSortBy("name");
-		setPage(1);
 	};
 
 	return (
@@ -341,74 +388,38 @@ export default function ProductsPage() {
 							<p className="text-xs sm:text-sm text-muted-foreground">
 								Showing {products.length} products
 							</p>
-							<div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-								Page {page} of {totalPages}
-							</div>
 						</div>
 
 						{/* Products Grid/List */}
 						{viewMode === "grid" ? (
 							<div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-6">
-								{products.map((product) => (
-									<ProductCard key={product._id} product={product} />
+								{products.map((product, index) => (
+									<ProductCard
+										key={`${product._id}-${index}`}
+										product={product}
+									/>
 								))}
 							</div>
 						) : (
 							<div className="space-y-4 flex flex-col gap-4">
-								{products.map((product) => (
-									<ProductListItem key={product._id} product={product} />
+								{products.map((product, index) => (
+									<ProductListItem
+										key={`${product._id}-${index}`}
+										product={product}
+									/>
 								))}
 							</div>
 						)}
 
-						{/* Pagination */}
-						{totalPages > 1 && (
-							<div className="flex justify-center gap-1 sm:gap-2 mt-6 sm:mt-8 flex-wrap">
-								<Button
-									variant="outline"
-									size="sm"
-									disabled={page === 1}
-									onClick={() => setPage(page - 1)}
-									className="text-xs sm:text-sm h-8 sm:h-9">
-									Previous
-								</Button>
-								{Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-									let pageNum;
-									if (totalPages <= 5) {
-										pageNum = i + 1;
-									} else if (page <= 3) {
-										pageNum = i + 1;
-									} else if (page >= totalPages - 2) {
-										pageNum = totalPages - 4 + i;
-									} else {
-										pageNum = page - 2 + i;
-									}
-									return (
-										<Button
-											key={pageNum}
-											variant={page === pageNum ? "default" : "outline"}
-											size="sm"
-											onClick={() => setPage(pageNum)}
-											className="text-xs sm:text-sm h-8 sm:h-9 min-w-[32px] sm:min-w-[36px]">
-											{pageNum}
-										</Button>
-									);
-								})}
-								{totalPages > 5 && page < totalPages - 2 && (
-									<span className="flex items-center px-2 text-muted-foreground">
-										...
-									</span>
-								)}
-								<Button
-									variant="outline"
-									size="sm"
-									disabled={page === totalPages}
-									onClick={() => setPage(page + 1)}
-									className="text-xs sm:text-sm h-8 sm:h-9">
-									Next
-								</Button>
-							</div>
-						)}
+						{/* Infinite Scroll Trigger */}
+						<div ref={targetRef} className="flex justify-center py-8">
+							{loadingMore && (
+								<div className="flex items-center gap-2 text-muted-foreground">
+									<Loader2 className="w-5 h-5 animate-spin" />
+									<span className="text-sm">Loading more products...</span>
+								</div>
+							)}
+						</div>
 					</>
 				)}
 			</div>

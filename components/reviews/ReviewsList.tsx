@@ -237,9 +237,9 @@ export function ReviewsList({ productId }: ReviewsListProps) {
 							<div className="flex items-center justify-between pt-3 border-t">
 								<p className="text-sm text-gray-600">
 									By{" "}
-									{review.user.firstName && review.user.lastName
+									{review.user?.firstName && review.user?.lastName
 										? `${review.user.firstName} ${review.user.lastName}`
-										: review.user.shopName || "Anonymous"}
+										: review.user?.shopName || "Anonymous"}
 								</p>
 
 								<div className="flex items-center gap-2">
