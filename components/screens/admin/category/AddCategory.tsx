@@ -147,7 +147,7 @@ export default function CreateProductPage() {
 			{/* Header */}
 			<div className="shrink-0 bg-white border-b shadow-sm -m-6 mb-6 p-6">
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-					<h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+					<h1 className="text-2xl sm:text-3xl font-bold text-gray-900 ">
 						Create Category
 					</h1>
 					<div className="flex gap-2">
@@ -158,7 +158,7 @@ export default function CreateProductPage() {
 							type="submit"
 							form="product-form"
 							disabled={submitting}
-							className="min-w-[120px]">
+							className="min-w-[120px] bg-green-600">
 							{submitting ? "Creating..." : "Create Category"}
 						</Button>
 					</div>

@@ -1,0 +1,72 @@
+name: 🚀 Deploy Frontend to AWS EC2
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Create frontend .env
+      - name: Create .env file
+        run: |
+          echo "NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}" >> .env
+          echo "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}" >> .env
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
+
+      # Build Next.js
+      - name: Install dependencies & build
+        run: |
+          npm install
+          npm run build
+
+      # Create archive including build output
+      - name: Create deployment archive
+        run: |
+          mkdir deploy
+          cp -r .next deploy/
+          cp -r public deploy/
+          cp package.json deploy/
+          cp package-lock.json deploy/
+          cp next.config.ts deploy/
+          cp .env deploy/
+          cd deploy
+          tar -czf ../kinghoppers-frontend.tar.gz .
+
+      # Upload bundle to EC2
+      - name: Upload frontend bundle to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "frontend.tar.gz"
+          target: "/home/ec2-user/kingshoppers-frontend"
+          overwrite: true
+
+      # Deploy on EC2
+      - name: Deploy & Restart Frontend
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ec2-user/kinghoppers-frontend
+            tar -xzf frontend.tar.gz
+
+            npm install --omit=dev
+
+            pm2 restart kinghoppers-frontend || pm2 start "npm start" --name kinghoppers-frontend
+            pm2 save

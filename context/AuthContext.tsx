@@ -27,6 +27,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	// Fetch current user from server (using httpOnly cookie)
 	const fetchCurrentUser = async (): Promise<User | null> => {
 		// Check if there's a token before making the API call
+		if (typeof window !== "undefined") {
+			const token = localStorage.getItem("auth_token");
+			if (!token) {
+				console.log("⚠️ No auth token found, skipping user fetch");
+				return null;
+			}
+		}
 
 		try {
 			const res = await api.get("/auth/me");

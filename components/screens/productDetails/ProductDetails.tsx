@@ -46,24 +46,48 @@ export default function ProductDetailPage() {
 
 	useEffect(() => {
 		fetchProduct();
-	}, [params.id]);
+	}, [params.id, user]);
 
 	const fetchProduct = async () => {
 		setLoading(true);
 		try {
-			const response = await api.get(`/products/${params.id}`);
+			// Use hub-specific endpoint for authenticated customers
+			const endpoint =
+				user?.userTypes === "customer"
+					? `/products/${params.id}/hub-pricing`
+					: `/products/${params.id}`;
+
+			const response = await api.get(endpoint);
 			const data = response.data.data;
 			setProduct(data);
+
+			// Filter variants to only show those with stock > 0 for customers
 			if (data.variants && data.variants.length > 0) {
-				setSelectedVariant(data.variants[0]);
-				const moq = data.variants[0].moq || 1;
-				setQuantity(moq);
-				setInputValue(String(moq));
+				// For customers, only show variants with stock
+				const availableVariants =
+					user?.userTypes === "customer"
+						? data.variants.filter((v: any) => v.stock > 0)
+						: data.variants;
+
+				if (availableVariants.length > 0) {
+					setSelectedVariant(availableVariants[0]);
+					const moq = availableVariants[0].moq || 1;
+					setQuantity(moq);
+					setInputValue(String(moq));
+				}
+
+				// Update product with filtered variants
+				setProduct({ ...data, variants: availableVariants });
 			}
 			// Fetch related products
 			fetchRelatedProducts(data);
 		} catch (error) {
 			console.error("Failed to fetch product:", error);
+			toast({
+				title: "Error",
+				description: "Failed to load product details",
+				variant: "destructive",
+			});
 		} finally {
 			setLoading(false);
 		}
@@ -430,14 +454,6 @@ export default function ProductDetailPage() {
 										<div>
 											<span className="font-medium">Barcode:</span>
 											<p className="text-muted-foreground">{product.barcode}</p>
-										</div>
-									)}
-									{product.gstPercentage && (
-										<div>
-											<span className="font-medium">GST:</span>
-											<p className="text-muted-foreground">
-												{product.gstPercentage}%
-											</p>
 										</div>
 									)}
 								</div>

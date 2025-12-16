@@ -4,23 +4,15 @@ import BannerSlider from "@/components/BannerSlider/BannerSlider";
 import HomepageSectionsList from "@/components/HomepageSectionsList";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import { Product } from "@/types/product";
-import {
-	ArrowRight,
-	Flame,
-	Sparkles,
-	Star,
-	TrendingUp,
-	Zap,
-} from "lucide-react";
+import { ArrowRight, Flame, Sparkles, Star, Zap } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function HomePage() {
-	const { user, isAuthenticated } = useAuth();
+	const { user, isAuthenticated, loading: authLoading } = useAuth();
 	const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
 	const [bestSellers, setBestSellers] = useState<Product[]>([]);
 	const [highMarginProducts, setHighMarginProducts] = useState<Product[]>([]);
@@ -34,14 +26,33 @@ export default function HomePage() {
 	const [hasMoreBestSellers, setHasMoreBestSellers] = useState(true);
 	const [hasMoreSale, setHasMoreSale] = useState(true);
 	const [hasMoreNewArrivals, setHasMoreNewArrivals] = useState(true);
+	const [hero, setHero] = useState<{ image: string }[]>([]);
+
+	const fetchBanners = async () => {
+		try {
+			const response = await api.get(`/banners?bannerType=hero`);
+			setHero(response.data.data || []);
+		} catch (error) {
+			console.error("Error fetching banners:", error);
+		} finally {
+			setLoading(false);
+		}
+	};
 
 	useEffect(() => {
-		fetchAllProducts();
-	}, [isAuthenticated]);
+		// Wait for auth to finish loading before fetching products
+		if (!authLoading) {
+			fetchAllProducts();
+			fetchBanners();
+		}
+	}, [authLoading, isAuthenticated]);
 
 	const fetchAllProducts = async () => {
 		try {
 			setLoading(true);
+
+			// Add timestamp to prevent caching
+			const timestamp = Date.now();
 
 			// For authenticated customers, use hub-filtered products
 			if (isAuthenticated && user?.userTypes === "customer") {
@@ -49,16 +60,26 @@ export default function HomePage() {
 				const [featuredRes, bestSellersRes, saleRes, newArrivalsRes] =
 					await Promise.all([
 						api.get(`/products/hub/my-products`, {
-							params: { limit: 8, page: 1, isFeatured: true },
+							params: { limit: 8, page: 1, isFeatured: true, _t: timestamp },
 						}),
 						api.get(`/products/hub/my-products`, {
-							params: { limit: 8, page: 1, sortBy: "-totalSold" },
+							params: {
+								limit: 8,
+								page: 1,
+								sortBy: "-totalSold",
+								_t: timestamp,
+							},
 						}),
 						api.get(`/products/hub/my-products`, {
-							params: { limit: 8, page: 1, isOnSale: true },
+							params: { limit: 8, page: 1, isOnSale: true, _t: timestamp },
 						}),
 						api.get(`/products/hub/my-products`, {
-							params: { limit: 8, page: 1, sortBy: "-createdAt" },
+							params: {
+								limit: 8,
+								page: 1,
+								sortBy: "-createdAt",
+								_t: timestamp,
+							},
 						}),
 					]);
 
@@ -74,25 +95,25 @@ export default function HomePage() {
 			} else {
 				// For guests, use regular product endpoints
 				const featuredRes = await api.get(`/products/featured`, {
-					params: { limit: 8, page: 1 },
+					params: { limit: 8, page: 1, _t: timestamp },
 				});
 				setFeaturedProducts(featuredRes.data.data || []);
 				setHasMoreFeatured((featuredRes.data.data || []).length === 8);
 
 				const bestSellersRes = await api.get(`/products/best-sellers`, {
-					params: { limit: 8, page: 1 },
+					params: { limit: 8, page: 1, _t: timestamp },
 				});
 				setBestSellers(bestSellersRes.data.data || []);
 				setHasMoreBestSellers((bestSellersRes.data.data || []).length === 8);
 
 				const saleRes = await api.get(`/products/on-sale`, {
-					params: { limit: 8, page: 1 },
+					params: { limit: 8, page: 1, _t: timestamp },
 				});
 				setHighMarginProducts(saleRes.data.data || []);
 				setHasMoreSale((saleRes.data.data || []).length === 8);
 
 				const newArrivalsRes = await api.get(`/products/new-arrivals`, {
-					params: { limit: 8, page: 1 },
+					params: { limit: 8, page: 1, _t: timestamp },
 				});
 				setNewArrivals(newArrivalsRes.data.data || []);
 				setHasMoreNewArrivals((newArrivalsRes.data.data || []).length === 8);
@@ -239,29 +260,35 @@ export default function HomePage() {
 	return (
 		<main className="min-h-screen bg-gray-50 pb-20 sm:pb-6">
 			{/* Hero Section */}
-			<section
-				className="relative bg-cover bg-center bg-no-repeat py-16 sm:py-20 md:py-24"
-				style={{
-					backgroundImage:
-						"url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSApRYg6X880zej2UlumRztM6qJj_zw29vu6Q&s')",
-				}}>
+			<section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden">
+				{/* Hero Image */}
+				<img
+					src={hero?.[0]?.image || "/placeholder-hero.jpg"}
+					alt="King Shoppers Hero Banner"
+					className="w-full h-full object-cover"
+				/>
+
+				{/* Dark Overlay */}
 				<div className="absolute inset-0 bg-black/40" />
 
-				<div className="relative mx-auto px-4 text-center text-white max-w-4xl">
-					<h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 animate-fade-in">
-						Welcome to King Shoppers
-					</h1>
-					<p className="text-base sm:text-lg md:text-xl text-gray-100 mb-6 sm:mb-8 max-w-2xl mx-auto">
-						Your trusted online destination for smart and stylish shopping
-					</p>
-					<Link href="/products">
-						<Button
-							size="lg"
-							className="bg-white text-black hover:bg-gray-100 font-semibold px-6 sm:px-8">
-							Shop Now
-							<ArrowRight className="ml-2 h-4 w-4" />
-						</Button>
-					</Link>
+				{/* Text Content */}
+				<div className="absolute inset-0 flex items-center justify-center">
+					<div className="relative mx-auto px-4 text-center text-white max-w-4xl">
+						<h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 drop-shadow-lg">
+							Welcome to King Shoppers
+						</h1>
+						<p className="text-base sm:text-lg md:text-xl text-gray-100 mb-6 sm:mb-8 max-w-2xl mx-auto drop-shadow-md">
+							Your trusted online destination for smart and stylish shopping
+						</p>
+						<Link href="/products">
+							<Button
+								size="lg"
+								className="bg-white text-black hover:bg-gray-100 font-semibold px-6 sm:px-8 shadow-lg">
+								Shop Now
+								<ArrowRight className="ml-2 h-4 w-4" />
+							</Button>
+						</Link>
+					</div>
 				</div>
 			</section>
 
@@ -272,7 +299,7 @@ export default function HomePage() {
 
 			{/* Banner */}
 			<section className="max-w-4xl mx-auto px-3 sm:px-4 my-8 sm:my-12">
-				<BannerSlider bannerType="hero" />
+				<BannerSlider bannerType="deal" />
 			</section>
 
 			{/* Featured Products */}
@@ -446,7 +473,7 @@ export default function HomePage() {
 			)}
 
 			{/* CTA Banner */}
-			<section className="max-w-7xl mx-auto px-3 sm:px-4 py-8 sm:py-12">
+			{/* <section className="max-w-7xl mx-auto px-3 sm:px-4 py-8 sm:py-12">
 				<Card className="bg-linear-to-r from-blue-600 to-purple-600 text-white p-8 sm:p-12 text-center">
 					<TrendingUp className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 sm:mb-6" />
 					<h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
@@ -465,7 +492,7 @@ export default function HomePage() {
 						</Button>
 					</Link>
 				</Card>
-			</section>
+			</section> */}
 		</main>
 	);
 }
