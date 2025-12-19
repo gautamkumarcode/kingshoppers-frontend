@@ -64,9 +64,13 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             cd /home/ec2-user/kingshoppers-frontend
+            
+            # Extract new files
             tar -xzf kinghoppers-frontend.tar.gz
 
+            # Install dependencies
             npm install --omit=dev
 
-            pm2 restart kinghoppers-frontend || pm2 start "npm start" --name kinghoppers-frontend
+            # Restart with PM2 on port 3002 (or start if not running)
+            PORT=3002 pm2 restart kinghoppers-frontend || PORT=3002 pm2 start "npm start" --name kinghoppers-frontend
             pm2 save
