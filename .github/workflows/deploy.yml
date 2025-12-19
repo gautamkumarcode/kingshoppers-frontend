@@ -39,7 +39,7 @@ jobs:
           cp -r public deploy/
           cp package.json deploy/
           cp package-lock.json deploy/
-          cp next.config.ts deploy/
+          cp next.config.mjs deploy/
           cp .env deploy/
           cd deploy
           tar -czf ../kinghoppers-frontend.tar.gz .
