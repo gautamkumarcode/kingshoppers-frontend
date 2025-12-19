@@ -315,13 +315,15 @@ export default function RegisterPage() {
 
 	return (
 		<Card className="max-w-4xl mx-auto w-full overflow-hidden">
-			<CardHeader className="space-y-1 text-center">
-				<CardTitle className="text-3xl">Create Your Account</CardTitle>
-				<CardDescription className="text-base">
+			<CardHeader className="space-y-1 text-center px-4 sm:px-6">
+				<CardTitle className="text-2xl sm:text-3xl">
+					Create Your Account
+				</CardTitle>
+				<CardDescription className="text-sm sm:text-base">
 					Complete your shop registration to start ordering
 				</CardDescription>
 			</CardHeader>
-			<CardContent>
+			<CardContent className="px-4 sm:px-6 max-h-[80vh] overflow-y-auto">
 				<form onSubmit={handleRegister} className="space-y-6">
 					{/* Phone Number Section */}
 					<div className="bg-gray-50 p-4 rounded-lg border">
@@ -356,7 +358,7 @@ export default function RegisterPage() {
 						<h3 className="text-lg font-semibold border-b pb-2">
 							Shop Information
 						</h3>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 							<div className="space-y-2">
 								<Label htmlFor="shopName">Shop Name *</Label>
 								<Input
@@ -504,7 +506,7 @@ export default function RegisterPage() {
 							/>
 						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 							<div className="space-y-2">
 								<Label htmlFor="area">Area/Locality</Label>
 								<Input
@@ -525,7 +527,7 @@ export default function RegisterPage() {
 							</div>
 						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 							<div className="space-y-2">
 								<Label htmlFor="city">City *</Label>
 								<Input
